@@ -125,6 +125,7 @@ const chartData = [
 const chartConfig = {
   visitors: {
     label: "Visitors",
+    color: "hsl(var(--chart-3))",
   },
   desktop: {
     label: "Desktop",
