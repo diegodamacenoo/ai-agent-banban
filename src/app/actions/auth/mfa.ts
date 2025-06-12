@@ -5,6 +5,7 @@ import { createSupabaseClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
 import { headers } from 'next/headers';
+import { verifyMFASchema, unenrollMFASchema, type VerifyMFAData, type UnenrollMFAData } from '@/lib/schemas/auth';
 
 /**
  * Inicia o processo de inscrição em MFA
@@ -17,17 +18,17 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar o usuário atual para garantir que está autenticado
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    if (userError || !userData.user) {
-      console.error("[DEBUG] Erro ao obter usuário atual:", userError);
+    if (sessionError || !session) {
+      console.error("[DEBUG] Erro ao obter sessão atual:", sessionError);
       return { 
         success: false, 
         error: "Usuário não está autenticado. Por favor, faça login novamente." 
       };
     }
     
-    console.log("[DEBUG] Usuário autenticado:", userData.user.id);
+    console.log("[DEBUG] Usuário autenticado:", session.user.id);
     
     // Listar fatores existentes para verificar se já existe um fator pendente
     const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
@@ -114,11 +115,19 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
 
 /**
  * Verifica um código TOTP para finalizar a inscrição em MFA
- * @param {string} factorId ID do fator MFA
- * @param {string} code Código TOTP para verificação
+ * @param {VerifyMFAData} data Dados de verificação MFA
  * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
  */
-export async function verifyMFA(factorId: string, code: string): Promise<{ success: boolean, error?: string }> {
+export async function verifyMFA(data: VerifyMFAData): Promise<{ success: boolean, error?: string }> {
+  const parsed = verifyMFASchema.safeParse(data);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+
+  const { factorId, code } = parsed.data;
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
@@ -136,8 +145,8 @@ export async function verifyMFA(factorId: string, code: string): Promise<{ succe
     const challengeId = challengeResponse.data.id;
 
     // Verificar se o usuário está autenticado
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       return { success: false, error: 'Usuário não autenticado' };
     }
     
@@ -157,12 +166,12 @@ export async function verifyMFA(factorId: string, code: string): Promise<{ succe
     await supabase.auth.refreshSession();
 
     // Registrar ativação do 2FA no audit log
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
     await createAuditLog({
-      actor_user_id: user.id,
+      actor_user_id: session.user.id,
       action_type: AUDIT_ACTION_TYPES.USER_ENROLLED_MFA,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
-      resource_id: user.id,
+      resource_id: session.user.id,
       ip_address: ipAddress,
       user_agent: userAgent,
       organization_id: organizationId,

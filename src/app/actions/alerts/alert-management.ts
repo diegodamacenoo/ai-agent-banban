@@ -3,28 +3,21 @@
 import { createSupabaseClient } from "@/lib/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { 
+  updateAlertStatusSchema, 
+  alertHistorySchema, 
+  updateThresholdSchema,
+  getAlertDetailsSchema,
+  getAlertStatisticsSchema,
+  type AlertType, 
+  type AlertStatus,
+  type UpdateAlertStatusData,
+  type AlertHistoryData,
+  type UpdateThresholdData
+} from '@/lib/schemas/alerts';
 
-// Tipos para os alertas
-export type AlertType = 'stagnant' | 'replenishment' | 'divergence' | 'margin' | 'returns' | 'redistribution';
-export type AlertStatus = 'open' | 'resolved' | 'ignored';
-
-interface AlertActionParams {
-  alertId: string;
-  alertType: AlertType;
-  status: AlertStatus;
-  notes?: string;
-}
-
-interface AlertHistoryParams {
-  variantId: string;
-  alertType?: AlertType;
-  limit?: number;
-}
-
-interface ThresholdUpdateParams {
-  alertType: AlertType;
-  thresholdConfig: Record<string, any>;
-}
+// Re-export types for use in other files
+export type { AlertType, AlertStatus } from '@/lib/schemas/alerts';
 
 // Mapear tipos de alerta para nomes de tabela
 const ALERT_TABLE_MAP: Record<AlertType, string> = {
@@ -39,14 +32,24 @@ const ALERT_TABLE_MAP: Record<AlertType, string> = {
 /**
  * Atualizar status de um alerta
  */
-export async function updateAlertStatus({ alertId, alertType, status, notes }: AlertActionParams) {
+export async function updateAlertStatus(data: UpdateAlertStatusData) {
+  const parsed = updateAlertStatusSchema.safeParse(data);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+
+  const { alertId, alertType, status, notes } = parsed.data;
+
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    // Obter usuário atual
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    // Obter sessão atual
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado' };
     }
 
@@ -58,7 +61,7 @@ export async function updateAlertStatus({ alertId, alertType, status, notes }: A
     // Atualizar o status do alerta
     const updateData: any = {
       status,
-      resolved_by: status !== 'open' ? user.id : null,
+      resolved_by: status !== 'open' ? session.user.id : null,
       resolved_at: status !== 'open' ? new Date().toISOString() : null,
       resolution_notes: notes || null
     };
@@ -91,7 +94,16 @@ export async function updateAlertStatus({ alertId, alertType, status, notes }: A
 /**
  * Buscar histórico de alertas para um produto
  */
-export async function getAlertHistory({ variantId, alertType, limit = 50 }: AlertHistoryParams) {
+export async function getAlertHistory(data: AlertHistoryData) {
+  const parsed = alertHistorySchema.safeParse(data);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+
+  const { variantId, alertType, limit } = parsed.data;
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
@@ -478,7 +490,16 @@ export async function getAlertThresholds() {
 /**
  * Atualizar configurações de thresholds
  */
-export async function updateAlertThresholds({ alertType, thresholdConfig }: ThresholdUpdateParams) {
+export async function updateAlertThresholds(data: UpdateThresholdData) {
+  const parsed = updateThresholdSchema.safeParse(data);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+
+  const { alertType, thresholdConfig } = parsed.data;
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);

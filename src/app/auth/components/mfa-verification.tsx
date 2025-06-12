@@ -16,7 +16,7 @@ interface MFAVerificationProps {
   onCancel?: () => void;
 }
 
-export default function MFAVerification({ redirectUrl = "/dashboard", onSuccess, onCancel }: MFAVerificationProps) {
+export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel }: MFAVerificationProps) {
   const [codigo, setCodigo] = useState("");
   const [verificando, setVerificando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -70,7 +70,10 @@ export default function MFAVerification({ redirectUrl = "/dashboard", onSuccess,
     setErro(null);
     
     try {
-      const { success, error } = await verifyMFA(factorId, codigo);
+      const { success, error } = await verifyMFA({ 
+        factorId: factorId, 
+        code: codigo 
+      });
       
       if (success) {
         toast({

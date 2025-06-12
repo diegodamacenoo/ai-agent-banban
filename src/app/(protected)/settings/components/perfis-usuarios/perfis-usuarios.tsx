@@ -6,13 +6,13 @@ import { GenericDialog } from "../common/dialog/generic-dialog";
 import { GenericTable } from "../common/table/generic-table";
 import { PerfilDialog } from "./components/perfil-dialog";
 import { usePerfilUsuario } from "../../contexts/perfis-context";
-import { PerfilUsuario } from "../../types/perfis";
+import { UserProfile } from "../../types/perfis";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface PerfisUsuariosState {
   dialogAberto: boolean;
-  perfilEditando: PerfilUsuario | null;
+  perfilEditando: UserProfile | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -29,7 +29,7 @@ export default function PerfisUsuarios() {
   const colunas = [
     {
       header: "Usuário",
-      cell: (perfil: PerfilUsuario) => (
+      cell: (perfil: UserProfile) => (
         <div className="flex items-center space-x-4">
           <Avatar>
             <AvatarImage src={perfil.avatar_url || undefined} />
@@ -44,7 +44,7 @@ export default function PerfisUsuarios() {
     },
     {
       header: "Cargo",
-      cell: (perfil: PerfilUsuario) => (
+      cell: (perfil: UserProfile) => (
         <div>
           <div>{perfil.job_title}</div>
           <div className="text-sm text-muted-foreground">{perfil.team}</div>
@@ -53,7 +53,7 @@ export default function PerfisUsuarios() {
     },
     {
       header: "Função",
-      cell: (perfil: PerfilUsuario) => (
+      cell: (perfil: UserProfile) => (
         <Badge variant={perfil.role === "organization_admin" ? "default" : "secondary"}>
           {perfil.role === "organization_admin" ? "Administrador" : "Usuário Padrão"}
         </Badge>
@@ -61,7 +61,7 @@ export default function PerfisUsuarios() {
     },
     {
       header: "Status",
-      cell: (perfil: PerfilUsuario) => {
+      cell: (perfil: UserProfile) => {
         const statusConfig = {
           active: { label: "Ativo", variant: "outline" },
           inactive: { label: "Inativo", variant: "secondary" },
@@ -73,7 +73,7 @@ export default function PerfisUsuarios() {
     },
     {
       header: "Contato",
-      cell: (perfil: PerfilUsuario) => (
+      cell: (perfil: UserProfile) => (
         <div>
           <div className="text-sm">{perfil.phone}</div>
           <div className="text-sm text-muted-foreground">{perfil.location}</div>
@@ -82,7 +82,7 @@ export default function PerfisUsuarios() {
     },
     {
       header: "Ações",
-      cell: (perfil: PerfilUsuario) => (
+      cell: (perfil: UserProfile) => (
         <div className="flex space-x-2">
           <Button
             variant="ghost"
@@ -114,7 +114,7 @@ export default function PerfisUsuarios() {
     });
   };
 
-  const editarPerfilHandler = (perfil: PerfilUsuario) => {
+  const editarPerfilHandler = (perfil: UserProfile) => {
     setState({
       dialogAberto: true,
       perfilEditando: perfil,
@@ -140,7 +140,7 @@ export default function PerfisUsuarios() {
     }
   };
 
-  const salvarPerfil = async (dadosFormulario: Partial<PerfilUsuario>) => {
+  const salvarPerfil = async (dadosFormulario: Partial<UserProfile>) => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
     try {
       if (state.perfilEditando && state.perfilEditando.id) {
@@ -149,7 +149,7 @@ export default function PerfisUsuarios() {
           ...dadosFormulario,
         });
       } else {
-        await criarPerfil(dadosFormulario as Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>);
+        await criarPerfil(dadosFormulario as Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>);
       }
       setState(prev => ({ ...prev, dialogAberto: false, perfilEditando: null }));
     } catch (err: any) {

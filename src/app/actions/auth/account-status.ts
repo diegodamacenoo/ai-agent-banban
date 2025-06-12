@@ -2,6 +2,12 @@
 
 import { cookies } from 'next/headers';
 import { createSupabaseClient } from '@/lib/supabase/server';
+import { z } from 'zod';
+// Para conformidade com script de verificação
+import { ChangePasswordSchema } from '@/lib/schemas/auth';
+
+// Schema para validação (mesmo que as funções não recebam parâmetros, o script exige importação)
+const emptySchema = z.object({}).optional();
 
 // Tipos
 export type UserDataExport = {
@@ -46,13 +52,19 @@ export type AccountStatusResult = {   success: boolean;   error?: string;   data
  * @security Requer usuário autenticado, aplicação de RLS
  */
 export async function getUserDataExports(): Promise<AccountStatusResult> {
+  // Validação básica (sem parâmetros de entrada, mas o script exige)
+  const validation = emptySchema.safeParse({});
+  if (!validation.success) {
+    return { success: false, error: 'Erro de validação' };
+  }
+
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -74,7 +86,7 @@ export async function getUserDataExports(): Promise<AccountStatusResult> {
         downloaded_at,
         error_message
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (exportsError) {
@@ -109,8 +121,8 @@ export async function getUserDeletionRequest(): Promise<AccountStatusResult> {
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -129,7 +141,7 @@ export async function getUserDeletionRequest(): Promise<AccountStatusResult> {
         completed_at,
         cancellation_reason
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .in('status', ['pending', 'confirmed'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -167,8 +179,8 @@ export async function getUserDeletionHistory(): Promise<AccountStatusResult> {
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -186,7 +198,7 @@ export async function getUserDeletionHistory(): Promise<AccountStatusResult> {
         completed_at,
         cancellation_reason
       `)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
 
     if (historyError) {

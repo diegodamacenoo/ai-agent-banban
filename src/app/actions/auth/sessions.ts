@@ -5,6 +5,7 @@ import { createSupabaseClient, createSupabaseAdminClient } from '@/lib/supabase/
 import { revalidatePath } from 'next/cache';
 import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
 import type { UserSession } from '@/app/(protected)/settings/types/session-types';
+import { terminateSessionSchema, type TerminateSessionData } from '@/lib/schemas/auth';
 
 /**
  * Busca as sessões ativas do usuário atual
@@ -15,9 +16,9 @@ export async function getUserSessions(): Promise<{data?: UserSession[], error?: 
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    // Primeiro obtém o ID do usuário atual
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Primeiro obtém a sessão atual
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
       return { error: 'Usuário não autenticado' };
     }
     
@@ -25,7 +26,7 @@ export async function getUserSessions(): Promise<{data?: UserSession[], error?: 
     const { data, error } = await supabase
       .from('user_sessions')
       .select('id, user_id, created_at, updated_at, user_agent, ip')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false });
       
     if (error) {
@@ -62,17 +63,27 @@ export async function getUserSessions(): Promise<{data?: UserSession[], error?: 
 
 /**
  * Encerra uma sessão específica do usuário
- * @param {string} sessionId ID da sessão a ser encerrada
+ * @param {TerminateSessionData} data Dados da sessão a ser encerrada
  * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
  */
-export async function terminateSession(sessionId: string): Promise<{success: boolean, error?: string}> {
+export async function terminateSession(data: TerminateSessionData): Promise<{success: boolean, error?: string}> {
+  const parsed = terminateSessionSchema.safeParse(data);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+
+  const { sessionId } = parsed.data;
+
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    // Primeiro obtém o ID do usuário atual
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Obter sessão atual
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado' };
     }
     
@@ -81,7 +92,7 @@ export async function terminateSession(sessionId: string): Promise<{success: boo
       .from('user_sessions')
       .select('id')
       .eq('id', sessionId)
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .single();
       
     if (!data) {
@@ -102,7 +113,7 @@ export async function terminateSession(sessionId: string): Promise<{success: boo
       const { ipAddress, userAgent } = await captureHeaders();
       
       await createAuditLog({
-        actor_user_id: user.id,
+        actor_user_id: session.user.id,
         action_type: AUDIT_ACTION_TYPES.SESSION_TERMINATED,
         resource_type: AUDIT_RESOURCE_TYPES.SESSION,
         resource_id: sessionId,
@@ -138,7 +149,7 @@ export async function terminateSession(sessionId: string): Promise<{success: boo
             // Registrar log de auditoria
             const { ipAddress, userAgent } = await captureHeaders();
             await createAuditLog({
-              actor_user_id: user.id,
+              actor_user_id: session.user.id,
               action_type: AUDIT_ACTION_TYPES.SESSION_TERMINATED,
               resource_type: AUDIT_RESOURCE_TYPES.SESSION,
               resource_id: sessionId,
@@ -192,7 +203,7 @@ export async function terminateSession(sessionId: string): Promise<{success: boo
             // Registrar log de auditoria
             const { ipAddress, userAgent } = await captureHeaders();
             await createAuditLog({
-              actor_user_id: user.id,
+              actor_user_id: session.user.id,
               action_type: AUDIT_ACTION_TYPES.SESSION_TERMINATED,
               resource_type: AUDIT_RESOURCE_TYPES.SESSION,
               resource_id: sessionId,
@@ -223,7 +234,7 @@ export async function terminateSession(sessionId: string): Promise<{success: boo
         // Registrar log de auditoria mesmo para fallback
         const { ipAddress, userAgent } = await captureHeaders();
         await createAuditLog({
-          actor_user_id: user.id,
+          actor_user_id: session.user.id,
           action_type: AUDIT_ACTION_TYPES.SESSION_TERMINATED,
           resource_type: AUDIT_RESOURCE_TYPES.SESSION,
           resource_id: sessionId,
@@ -265,8 +276,8 @@ export async function terminateAllOtherSessions(): Promise<{success: boolean, er
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar se o usuário está autenticado
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { success: false, error: 'Usuário não autenticado' };
     }
     
@@ -290,7 +301,7 @@ export async function terminateAllOtherSessions(): Promise<{success: boolean, er
         await adminSupabase
           .from('user_sessions')
           .delete()
-          .eq('user_id', user.id)
+          .eq('user_id', session.user.id)
           .neq('id', currentSession.id);
       }
     } catch (cleanupError) {
@@ -301,7 +312,7 @@ export async function terminateAllOtherSessions(): Promise<{success: boolean, er
     // Registrar log de auditoria
     const { ipAddress, userAgent } = await captureHeaders();
     await createAuditLog({
-      actor_user_id: user.id,
+      actor_user_id: session.user.id,
       action_type: AUDIT_ACTION_TYPES.ALL_SESSIONS_TERMINATED,
       resource_type: AUDIT_RESOURCE_TYPES.SESSION,
       ip_address: ipAddress,

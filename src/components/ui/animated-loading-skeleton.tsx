@@ -33,7 +33,7 @@ const AnimatedLoadingSkeleton = () => {
     const generateSearchPath = (config: GridConfig) => {
         const { numCards, cols, xBase, yBase, xStep, yStep } = config
         const rows = Math.ceil(numCards / cols) // Calculate rows based on cards and columns
-        let allPositions = []
+        const allPositions = []
 
         // Generate grid positions for cards
         for (let row = 0; row < rows; row++) {
@@ -59,11 +59,10 @@ const AnimatedLoadingSkeleton = () => {
         return {
             x: shuffledPositions.map(pos => pos.x),
             y: shuffledPositions.map(pos => pos.y),
-            scale: Array(shuffledPositions.length).fill(1.2),
+            scale: shuffledPositions.map(() => 1.2),
             transition: {
                 duration: shuffledPositions.length * 2,
-                repeat: Infinity, // Loop animation infinitely
-                ease: [0.4, 0, 0.2, 1], // Ease function for smooth animation
+                repeat: Infinity,
                 times: shuffledPositions.map((_, i) => i / (shuffledPositions.length - 1))
             }
         }
@@ -99,23 +98,6 @@ const AnimatedLoadingSkeleton = () => {
         })
     }
 
-    // Glow effect variants for the search icon
-    const glowVariants = {
-        animate: {
-            boxShadow: [
-                "0 0 20px rgba(59, 130, 246, 0.2)",
-                "0 0 35px rgba(59, 130, 246, 0.4)",
-                "0 0 20px rgba(59, 130, 246, 0.2)"
-            ],
-            scale: [1, 1.1, 1], // Pulsating effect
-            transition: {
-                duration: 1,
-                repeat: Infinity,
-                ease: "easeInOut" // Smooth pulsation
-            }
-        }
-    }
-
     const config = getGridConfig(windowWidth) // Get current grid configuration
 
     return (
@@ -134,8 +116,18 @@ const AnimatedLoadingSkeleton = () => {
                 >
                     <motion.div
                         className="bg-blue-500/20 p-3 rounded-full backdrop-blur-sm"
-                        variants={glowVariants}
-                        animate="animate"
+                        animate={{
+                            boxShadow: [
+                                "0 0 20px rgba(59, 130, 246, 0.2)",
+                                "0 0 35px rgba(59, 130, 246, 0.4)",
+                                "0 0 20px rgba(59, 130, 246, 0.2)"
+                            ],
+                            scale: [1, 1.1, 1],
+                        }}
+                        transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                        }}
                     >
                         <svg
                             className="w-6 h-6 text-blue-600"

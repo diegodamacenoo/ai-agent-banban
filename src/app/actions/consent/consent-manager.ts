@@ -5,13 +5,7 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { captureRequestInfo, createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-
-// Schema para validação de consentimento
-const ConsentSchema = z.object({
-  consent_type: z.enum(['terms_of_service', 'privacy_policy', 'marketing']),
-  version: z.string().min(1, 'Versão é obrigatória'),
-  accepted: z.boolean().refine(val => val === true, 'Consentimento deve ser aceito')
-});
+import { ConsentSchema, GetConsentHistorySchema, MultipleConsentsSchema } from '@/lib/schemas/consent';
 
 export type ConsentData = z.infer<typeof ConsentSchema>;
 
@@ -33,8 +27,8 @@ export async function recordConsent(data: ConsentData): Promise<{success: boolea
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { 
         success: false,
         error: 'Usuário não autenticado' 
@@ -42,13 +36,13 @@ export async function recordConsent(data: ConsentData): Promise<{success: boolea
     }
 
     // Capturar informações da requisição
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
 
     // Registrar o consentimento
     const { error } = await supabase
       .from('user_consents')
       .insert({
-        user_id: user.id,
+        user_id: session.user.id,
         consent_type: data.consent_type,
         version: data.version,
         ip_address: ipAddress,
@@ -66,7 +60,7 @@ export async function recordConsent(data: ConsentData): Promise<{success: boolea
 
     // Registrar log de auditoria
     await createAuditLog({
-      actor_user_id: user.id,
+      actor_user_id: session.user.id,
       action_type: AUDIT_ACTION_TYPES.USER_CONSENT_RECORDED,
       resource_type: AUDIT_RESOURCE_TYPES.USER_CONSENT,
       ip_address: ipAddress,
@@ -95,19 +89,23 @@ export async function recordConsent(data: ConsentData): Promise<{success: boolea
  * @returns Promise com histórico de consentimentos
  */
 export async function getConsentHistory(): Promise<{data?: any[], error?: string}> {
+  const validation = GetConsentHistorySchema.safeParse({});
+  if (!validation.success) {
+    return { error: 'Validation failed' };
+  }
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { error: 'Usuário não autenticado' };
     }
 
     const { data, error } = await supabase
       .from('user_consents')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', session.user.id)
       .order('accepted_at', { ascending: false });
 
     if (error) {
@@ -132,8 +130,8 @@ export async function recordMultipleConsents(consents: ConsentData[]): Promise<{
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
       return { 
         success: false,
         error: 'Usuário não autenticado' 
@@ -141,22 +139,20 @@ export async function recordMultipleConsents(consents: ConsentData[]): Promise<{
     }
 
     // Validar todos os consentimentos
-    for (const consent of consents) {
-      const validation = ConsentSchema.safeParse(consent);
-      if (!validation.success) {
-        return { 
-          success: false,
-          error: `Erro no consentimento ${consent.consent_type}: ${validation.error.errors.map(e => e.message).join(', ')}` 
-        };
-      }
+    const validation = MultipleConsentsSchema.safeParse(consents);
+    if (!validation.success) {
+      return { 
+        success: false,
+        error: `Erro de validação: ${validation.error.errors.map(e => e.message).join(', ')}` 
+      };
     }
 
     // Capturar informações da requisição
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
 
     // Preparar dados para inserção
     const consentRecords = consents.map(consent => ({
-      user_id: user.id,
+      user_id: session.user.id,
       consent_type: consent.consent_type,
       version: consent.version,
       ip_address: ipAddress,
@@ -180,7 +176,7 @@ export async function recordMultipleConsents(consents: ConsentData[]): Promise<{
     // Registrar logs de auditoria para cada consentimento
     for (const consent of consents) {
       await createAuditLog({
-        actor_user_id: user.id,
+        actor_user_id: session.user.id,
         action_type: AUDIT_ACTION_TYPES.USER_CONSENT_RECORDED,
         resource_type: AUDIT_RESOURCE_TYPES.USER_CONSENT,
         ip_address: ipAddress,

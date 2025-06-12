@@ -16,10 +16,12 @@ export async function getSecurityAlertSettings() {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
+
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('security_alert_settings')
@@ -58,10 +60,12 @@ export async function updateSecurityAlertSettings(
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
+
+    const user = session.user;
 
     // Validar dados de entrada
     const validatedSettings = updateSecurityAlertSettingsSchema.parse(settings);
@@ -142,10 +146,12 @@ export async function getUserKnownDevices() {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
+
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('user_known_devices')
@@ -171,10 +177,12 @@ export async function removeKnownDevice(deviceId: string) {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
+
+    const user = session.user;
 
     const { error } = await supabase
       .from('user_known_devices')

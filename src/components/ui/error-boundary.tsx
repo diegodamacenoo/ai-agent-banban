@@ -104,10 +104,10 @@ export function PageErrorBoundary({ children }: { children: React.ReactNode }) {
                   </Button>
                   <Button 
                     variant="outline" 
-                    onClick={() => window.location.href = '/dashboard'}
+                    onClick={() => window.location.href = '/'}
                     className="flex-1"
                   >
-                    Ir ao Dashboard
+                    Ir ao Home
                   </Button>
                 </div>
               </div>

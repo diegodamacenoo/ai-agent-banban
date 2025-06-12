@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers';
 import { createSupabaseAdminClient } from '@/lib/supabase/server';
 import { createAuditLog, captureRequestInfo, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
+import { processDataExportSchema, type ProcessDataExportData } from '@/lib/schemas/auth';
 
 /**
  * Processamento real de exportação de dados com Supabase Storage
@@ -23,12 +24,20 @@ export type ExportData = {
  * @description Esta função processa uma exportação de dados real,
  * gerando o arquivo e salvando no Supabase Storage.
  * 
- * @param {string} exportId - ID da exportação a ser processada
+ * @param {ProcessDataExportData} data - Dados da exportação a ser processada
  * @returns {Promise<boolean>} Sucesso do processamento
  * 
- * @security Apenas para uso interno do sistema
+ * @security Apenas para uso interno do sistema - não requer verificação de usuário
+ * @internal Esta função é chamada pelo sistema, não por usuários diretamente
  */
-export async function processDataExport(exportId: string): Promise<boolean> {
+export async function processDataExport(data: ProcessDataExportData): Promise<boolean> {
+  const parsed = processDataExportSchema.safeParse(data);
+  if (!parsed.success) {
+    console.error('Dados inválidos para processamento de exportação:', parsed.error.errors);
+    return false;
+  }
+
+  const { exportId } = parsed.data;
   try {
     const supabase = createSupabaseAdminClient(await cookies());
     
@@ -118,6 +127,10 @@ export async function processDataExport(exportId: string): Promise<boolean> {
 
       // Enviar notificação por email
       await sendExportNotification(exportData.user_id, exportData.format, exportData.download_token);
+
+      // Nota: revalidatePath não é necessário aqui pois esta é uma função interna
+      // que processa exportações em background. A UI será atualizada via polling
+      // ou notificações quando o usuário acessar a página de configurações.
 
       console.log(`Exportação ${exportId} processada com sucesso`);
       return true;

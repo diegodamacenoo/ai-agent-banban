@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import PerfisUsuarios from "../components/perfis-usuarios/perfis-usuarios";
-import { PerfilUsuario } from "../types/perfis";
+// import { PerfilUsuario } from "../types/perfis"; // Removed unused import
 
 // Mock do contexto
 jest.mock("../contexts/perfis-context", () => ({

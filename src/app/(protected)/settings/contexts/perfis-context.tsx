@@ -2,12 +2,30 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import type {
-  PerfilUsuario,
-  PerfilUsuarioContextType,
-  PerfilUsuarioProviderProps,
-  PerfilUsuarioState,
-  PerfilUsuarioActions,
+  UserProfile,
+  RoleEnum,
+  UserStatusEnum,
 } from "../types/perfis";
+
+// Types para o contexto de usuários
+type PerfilUsuarioState = {
+  perfis: UserProfile[];
+  isLoading: boolean;
+  error: string | null;
+};
+
+type PerfilUsuarioActions = {
+  criarPerfil: (perfilData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>) => Promise<void>;
+  editarPerfil: (perfilData: UserProfile) => Promise<void>;
+  removerPerfil: (id: string) => Promise<void>;
+  carregarPerfis: () => Promise<void>;
+};
+
+interface PerfilUsuarioContextType extends PerfilUsuarioState, PerfilUsuarioActions {}
+
+interface PerfilUsuarioProviderProps {
+  children: React.ReactNode;
+}
 
 const PerfilUsuarioContext = createContext<PerfilUsuarioContextType | undefined>(undefined);
 
@@ -33,7 +51,7 @@ export function PerfilUsuarioProvider({ children }: PerfilUsuarioProviderProps) 
   }, [carregarPerfisAction]);
 
   const actions: PerfilUsuarioActions = {
-    criarPerfil: useCallback(async (perfilData: Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>) => {
+    criarPerfil: useCallback(async (perfilData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       const result = await createPerfilUsuario(perfilData);
       if (!result.success || result.error) {
@@ -45,17 +63,20 @@ export function PerfilUsuarioProvider({ children }: PerfilUsuarioProviderProps) 
       }
     }, [carregarPerfisAction]),
 
-    editarPerfil: useCallback(async (perfilData: PerfilUsuario) => {
+    editarPerfil: useCallback(async (perfilData: UserProfile) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       const result = await updatePerfilUsuario(perfilData);
-      if (!result.success || result.error) {
-        setState((prev) => ({ ...prev, isLoading: false, error: result.error || null }));
-        throw new Error(result.error || "Erro ao editar perfil.");
+      
+      if (result.success) {
+        setState((prev) => ({
+          ...prev,
+          perfis: prev.perfis.map(p => p.id === perfilData.id ? perfilData : p),
+          isLoading: false
+        }));
       } else {
-        await carregarPerfisAction();
-        setState((prev) => ({...prev, isLoading: false }));
+        setState((prev) => ({ ...prev, error: result.error || 'Erro ao atualizar perfil', isLoading: false }));
       }
-    }, [carregarPerfisAction]),
+    }, []),
 
     removerPerfil: useCallback(async (id: string) => {
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
@@ -87,7 +108,7 @@ export function usePerfilUsuario() {
   return context;
 }
 
-async function createPerfilUsuario(perfilData: Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>) {
+async function createPerfilUsuario(perfilData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>) {
   try {
     const response = await fetch('/api/settings/users/profiles', {
       method: 'POST',
@@ -108,7 +129,7 @@ async function createPerfilUsuario(perfilData: Omit<PerfilUsuario, 'id' | 'creat
   }
 }
 
-async function updatePerfilUsuario(perfilData: PerfilUsuario) {
+async function updatePerfilUsuario(perfilData: UserProfile) {
   try {
     const response = await fetch(`/api/settings/users/profiles/${perfilData.id}`, {
       method: 'PUT',

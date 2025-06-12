@@ -4,8 +4,9 @@ import { useState, useTransition } from 'react';
 import { AlertSection } from './alert-section';
 import { AlertFilters } from './alert-filters';
 import { SkeletonAlertasPage } from './alert-skeletons';
-import { exportAlertsToCSV } from '@/app/actions/export-alerts';
+import { exportAlertsToCSV } from '@/app/actions/alerts/export-alerts';
 import { toast } from '@/hooks/use-toast';
+import { SectionErrorBoundary } from '@/components/ui/error-boundary';
 import { 
   AlertTriangle, 
   Clock, 
@@ -134,7 +135,7 @@ export function AlertasClient({ initialData }: AlertasClientProps) {
 
         const result = await exportAlertsToCSV({
           search: filters.search || undefined,
-          types: filters.types.length > 0 ? filters.types : undefined,
+          types: filters.types.length > 0 ? filters.types as any : undefined,
           severities: filters.severities.length > 0 ? filters.severities : undefined,
         });
         
@@ -190,215 +191,217 @@ export function AlertasClient({ initialData }: AlertasClientProps) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Filtros */}
-      <AlertFilters
-        onSearchChange={handleSearchChange}
-        onTypeFilter={handleTypeFilter}
-        onSeverityFilter={handleSeverityFilter}
-        onSortChange={handleSortChange}
-        onExport={handleExport}
-        totalAlerts={getTotalAlerts()}
-        isExporting={isPending}
-      />
-
-      {/* Seções de Alertas */}
+    <SectionErrorBoundary sectionName="Sistema de Alertas">
       <div className="space-y-6">
-        {/* Produtos Parados */}
-        <AlertSection
-          title="Produtos Parados"
-          description="Produtos sem movimento por períodos prolongados"
-          icon={iconMapping['clock']}
-          data={applyFilters(initialData.stagnantProducts, 'stagnant')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'location', label: 'Local' },
-            { key: 'days', label: 'Dias Parado' },
-            { key: 'stock', label: 'Estoque' },
-            { key: 'action', label: 'Ação Sugerida' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
-                </div>
-              </div>
-            ),
-            location: item.core_locations?.location_name,
-            days: `${item.days_without_movement} dias`,
-            stock: `${item.current_stock} un`,
-            action: item.suggested_action === 'promotion' ? 'Promoção' : 
-                   item.suggested_action === 'transfer' ? 'Transferir' : 'Liquidação'
-          })}
-          totalCount={initialData.summary?.total_stagnant_products || 0}
-          alertType="stagnant"
+        {/* Filtros */}
+        <AlertFilters
+          onSearchChange={handleSearchChange}
+          onTypeFilter={handleTypeFilter}
+          onSeverityFilter={handleSeverityFilter}
+          onSortChange={handleSortChange}
+          onExport={handleExport}
+          totalAlerts={getTotalAlerts()}
+          isExporting={isPending}
         />
 
-        {/* Alertas de Reposição */}
-        <AlertSection
-          title="Alertas de Reposição"
-          description="Produtos com estoque baixo que precisam de reposição"
-          icon={iconMapping['alert-triangle']}
-          data={applyFilters(initialData.replenishmentAlerts, 'replenishment')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'location', label: 'Local' },
-            { key: 'stock', label: 'Estoque Atual' },
-            { key: 'coverage', label: 'Cobertura' },
-            { key: 'suggested', label: 'Repor' },
-            { key: 'priority', label: 'Prioridade' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
+        {/* Seções de Alertas */}
+        <div className="space-y-6">
+          {/* Produtos Parados */}
+          <AlertSection
+            title="Produtos Parados"
+            description="Produtos sem movimento por períodos prolongados"
+            icon={iconMapping['clock']}
+            data={applyFilters(initialData.stagnantProducts, 'stagnant')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'location', label: 'Local' },
+              { key: 'days', label: 'Dias Parado' },
+              { key: 'stock', label: 'Estoque' },
+              { key: 'action', label: 'Ação Sugerida' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
                 </div>
-              </div>
-            ),
-            location: item.core_locations?.location_name,
-            stock: `${item.current_stock} un`,
-            coverage: `${item.coverage_days.toFixed(1)} dias`,
-            suggested: `${item.suggested_qty} un`,
-            priority: item.priority_level
-          })}
-          totalCount={initialData.summary?.total_replenishment_alerts || 0}
-          alertType="replenishment"
-        />
+              ),
+              location: item.core_locations?.location_name,
+              days: `${item.days_without_movement} dias`,
+              stock: `${item.current_stock} un`,
+              action: item.suggested_action === 'promotion' ? 'Promoção' : 
+                     item.suggested_action === 'transfer' ? 'Transferir' : 'Liquidação'
+            })}
+            totalCount={initialData.summary?.total_stagnant_products || 0}
+            alertType="stagnant"
+          />
 
-        {/* Divergências de Estoque */}
-        <AlertSection
-          title="Divergências de Estoque"
-          description="Diferenças entre estoque esperado e contado"
-          icon={iconMapping['trending-down']}
-          data={applyFilters(initialData.inventoryDivergences, 'divergence')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'location', label: 'Local' },
-            { key: 'expected', label: 'Esperado' },
-            { key: 'scanned', label: 'Contado' },
-            { key: 'difference', label: 'Diferença' },
-            { key: 'impact', label: 'Impacto' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
+          {/* Alertas de Reposição */}
+          <AlertSection
+            title="Alertas de Reposição"
+            description="Produtos com estoque baixo que precisam de reposição"
+            icon={iconMapping['alert-triangle']}
+            data={applyFilters(initialData.replenishmentAlerts, 'replenishment')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'location', label: 'Local' },
+              { key: 'stock', label: 'Estoque Atual' },
+              { key: 'coverage', label: 'Cobertura' },
+              { key: 'suggested', label: 'Repor' },
+              { key: 'priority', label: 'Prioridade' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
                 </div>
-              </div>
-            ),
-            location: item.core_locations?.location_name,
-            expected: `${item.expected_qty} un`,
-            scanned: `${item.scanned_qty} un`,
-            difference: `${item.difference_percentage.toFixed(1)}%`,
-            impact: `R$ ${Math.abs(item.total_value_impact).toFixed(2)}`
-          })}
-          totalCount={initialData.summary?.total_inventory_divergences || 0}
-          alertType="divergence"
-        />
+              ),
+              location: item.core_locations?.location_name,
+              stock: `${item.current_stock} un`,
+              coverage: `${item.coverage_days.toFixed(1)} dias`,
+              suggested: `${item.suggested_qty} un`,
+              priority: item.priority_level
+            })}
+            totalCount={initialData.summary?.total_replenishment_alerts || 0}
+            alertType="replenishment"
+          />
 
-        {/* Alertas de Margem */}
-        <AlertSection
-          title="Alertas de Margem"
-          description="Produtos com margem abaixo do mínimo aceitável"
-          icon={iconMapping['dollar-sign']}
-          data={applyFilters(initialData.marginAlerts, 'margin')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'current_margin', label: 'Margem Atual' },
-            { key: 'current_price', label: 'Preço Atual' },
-            { key: 'suggested_price', label: 'Preço Sugerido' },
-            { key: 'impact', label: 'Impacto' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
+          {/* Divergências de Estoque */}
+          <AlertSection
+            title="Divergências de Estoque"
+            description="Diferenças entre estoque esperado e contado"
+            icon={iconMapping['trending-down']}
+            data={applyFilters(initialData.inventoryDivergences, 'divergence')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'location', label: 'Local' },
+              { key: 'expected', label: 'Esperado' },
+              { key: 'scanned', label: 'Contado' },
+              { key: 'difference', label: 'Diferença' },
+              { key: 'impact', label: 'Impacto' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
                 </div>
-              </div>
-            ),
-            current_margin: `${item.current_margin_pct.toFixed(1)}%`,
-            current_price: `R$ ${item.current_price.toFixed(2)}`,
-            suggested_price: `R$ ${item.suggested_price.toFixed(2)}`,
-            impact: `+R$ ${item.potential_revenue_impact.toFixed(2)}`
-          })}
-          totalCount={initialData.summary?.total_margin_alerts || 0}
-          alertType="margin"
-        />
+              ),
+              location: item.core_locations?.location_name,
+              expected: `${item.expected_qty} un`,
+              scanned: `${item.scanned_qty} un`,
+              difference: `${item.difference_percentage.toFixed(1)}%`,
+              impact: `R$ ${Math.abs(item.total_value_impact).toFixed(2)}`
+            })}
+            totalCount={initialData.summary?.total_inventory_divergences || 0}
+            alertType="divergence"
+          />
 
-        {/* Picos de Devolução */}
-        <AlertSection
-          title="Picos de Devolução"
-          description="Produtos com aumento significativo de devoluções"
-          icon={iconMapping['rotate-ccw']}
-          data={applyFilters(initialData.returnSpikes, 'returns')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'location', label: 'Local' },
-            { key: 'returns_last', label: 'Última Semana' },
-            { key: 'returns_previous', label: 'Semana Anterior' },
-            { key: 'increase', label: 'Aumento' },
-            { key: 'value', label: 'Valor' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
+          {/* Alertas de Margem */}
+          <AlertSection
+            title="Alertas de Margem"
+            description="Produtos com margem abaixo do mínimo aceitável"
+            icon={iconMapping['dollar-sign']}
+            data={applyFilters(initialData.marginAlerts, 'margin')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'current_margin', label: 'Margem Atual' },
+              { key: 'current_price', label: 'Preço Atual' },
+              { key: 'suggested_price', label: 'Preço Sugerido' },
+              { key: 'impact', label: 'Impacto' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
                 </div>
-              </div>
-            ),
-            location: item.core_locations?.location_name,
-            returns_last: `${item.returns_last_7_days} devoluções`,
-            returns_previous: `${item.returns_previous_7_days} devoluções`,
-            increase: `+${item.increase_percentage.toFixed(0)}%`,
-            value: `R$ ${item.total_return_value.toFixed(2)}`
-          })}
-          totalCount={initialData.summary?.total_return_spikes || 0}
-          alertType="returns"
-        />
+              ),
+              current_margin: `${item.current_margin_pct.toFixed(1)}%`,
+              current_price: `R$ ${item.current_price.toFixed(2)}`,
+              suggested_price: `R$ ${item.suggested_price.toFixed(2)}`,
+              impact: `+R$ ${item.potential_revenue_impact.toFixed(2)}`
+            })}
+            totalCount={initialData.summary?.total_margin_alerts || 0}
+            alertType="margin"
+          />
 
-        {/* Sugestões de Redistribuição */}
-        <AlertSection
-          title="Sugestões de Redistribuição"
-          description="Oportunidades de transferência entre locais"
-          icon={iconMapping['arrow-up-down']}
-          data={applyFilters(initialData.redistributionSuggestions, 'redistribution')}
-          columns={[
-            { key: 'product', label: 'Produto' },
-            { key: 'from', label: 'De' },
-            { key: 'to', label: 'Para' },
-            { key: 'qty', label: 'Quantidade' },
-            { key: 'priority', label: 'Prioridade' },
-            { key: 'gain', label: 'Ganho Estimado' }
-          ]}
-          renderRow={(item: any) => ({
-            product: (
-              <div>
-                <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
-                <div className="text-sm text-muted-foreground">
-                  {item.core_product_variants?.size} - {item.core_product_variants?.color}
+          {/* Picos de Devolução */}
+          <AlertSection
+            title="Picos de Devolução"
+            description="Produtos com aumento significativo de devoluções"
+            icon={iconMapping['rotate-ccw']}
+            data={applyFilters(initialData.returnSpikes, 'returns')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'location', label: 'Local' },
+              { key: 'returns_last', label: 'Última Semana' },
+              { key: 'returns_previous', label: 'Semana Anterior' },
+              { key: 'increase', label: 'Aumento' },
+              { key: 'value', label: 'Valor' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
                 </div>
-              </div>
-            ),
-            from: item.source_location?.location_name,
-            to: item.target_location?.location_name,
-            qty: `${item.suggested_transfer_qty} un`,
-            priority: item.priority_score.toFixed(1),
-            gain: `+R$ ${item.estimated_revenue_gain.toFixed(2)}`
-          })}
-          totalCount={initialData.summary?.total_redistribution_suggestions || 0}
-          alertType="redistribution"
-        />
+              ),
+              location: item.core_locations?.location_name,
+              returns_last: `${item.returns_last_7_days} devoluções`,
+              returns_previous: `${item.returns_previous_7_days} devoluções`,
+              increase: `+${item.increase_percentage.toFixed(0)}%`,
+              value: `R$ ${item.total_return_value.toFixed(2)}`
+            })}
+            totalCount={initialData.summary?.total_return_spikes || 0}
+            alertType="returns"
+          />
+
+          {/* Sugestões de Redistribuição */}
+          <AlertSection
+            title="Sugestões de Redistribuição"
+            description="Oportunidades de transferência entre locais"
+            icon={iconMapping['arrow-up-down']}
+            data={applyFilters(initialData.redistributionSuggestions, 'redistribution')}
+            columns={[
+              { key: 'product', label: 'Produto' },
+              { key: 'from', label: 'De' },
+              { key: 'to', label: 'Para' },
+              { key: 'qty', label: 'Quantidade' },
+              { key: 'priority', label: 'Prioridade' },
+              { key: 'gain', label: 'Ganho Estimado' }
+            ]}
+            renderRow={(item: any) => ({
+              product: (
+                <div>
+                  <div className="font-medium">{item.core_product_variants?.core_products?.product_name}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {item.core_product_variants?.size} - {item.core_product_variants?.color}
+                  </div>
+                </div>
+              ),
+              from: item.source_location?.location_name,
+              to: item.target_location?.location_name,
+              qty: `${item.suggested_transfer_qty} un`,
+              priority: item.priority_score.toFixed(1),
+              gain: `+R$ ${item.estimated_revenue_gain.toFixed(2)}`
+            })}
+            totalCount={initialData.summary?.total_redistribution_suggestions || 0}
+            alertType="redistribution"
+          />
+        </div>
       </div>
-    </div>
+    </SectionErrorBoundary>
   );
 } 

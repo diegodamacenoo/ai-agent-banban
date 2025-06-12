@@ -5,21 +5,7 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
-
-// Schema para validação de dados de atualização de perfil
-const UpdateProfileSchema = z.object({
-  first_name: z.string().min(1, 'Nome é obrigatório'),
-  last_name: z.string().optional(),
-  job_title: z.string().optional().nullable(),
-  phone: z.string().optional().nullable(),
-  team: z.string().optional().nullable(),
-  location: z.string().optional().nullable(),
-  username: z.string().optional().nullable(),
-  avatar_url: z.string().url().optional().nullable(),
-  email: z.string().email('E-mail inválido'),
-  role: z.string(),
-  theme: z.string(),
-});
+import { UpdateProfileSchema } from '@/lib/schemas/profiles';
 
 export type ProfileData = {
   first_name: string;
@@ -45,12 +31,12 @@ export async function getProfile(): Promise<{ data?: ProfileData, error?: string
     // Busca o usuário autenticado
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
-    const { data: { user } } = await supabase.auth.getUser();
-
-    // Se o usuário não está autenticado, retorna um erro
-    if (!user) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       return { error: 'Usuário não autenticado' };
     }
+
+    const user = session.user;
 
     // Busca o perfil do usuário
     const { data, error } = await supabase
@@ -102,13 +88,13 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    // Buscar dados atuais do perfil para comparar mudanças
-    const { data: { user } } = await supabase.auth.getUser();
-    // Se o usuário não está autenticado, retorna um erro
-    if (!user) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
-    console.log('DEBUG - Usuário autenticado:', user);
+
+    const user = session.user;
+
     // Buscar dados atuais do perfil para comparar mudanças
     const { data: currentProfile } = await supabase
       .from('profiles')
@@ -156,8 +142,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
       }
     });
     
-    revalidatePath('/settings');
-    revalidatePath('/dashboard'); // Revalidar outras rotas que possam exibir dados do perfil
+    revalidatePath('/'); // Revalidar outras rotas que possam exibir dados do perfil
     
     // Adiciona o e-mail do objeto auth ao resultado
     const profileResult: ProfileData = {

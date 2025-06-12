@@ -17,10 +17,12 @@ export async function requestPasswordReset(): Promise<{ success: boolean, error?
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user?.email) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user?.email) {
       return { success: false, error: 'Não foi possível obter o e-mail do usuário.' };
     }
+    
+    const user = session.user;
     const validation = RequestPasswordResetSchema.safeParse({ email: user.email });
     if (!validation.success) {
       return { success: false, error: validation.error.errors.map((e) => e.message).join(', ') };
@@ -58,10 +60,12 @@ export async function changePassword(
     const supabase = createSupabaseClient(cookieStore);
     
     // Obter dados do usuário para o log
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
+    
+    const user = session.user;
     
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) {

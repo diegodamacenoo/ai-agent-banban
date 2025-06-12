@@ -188,6 +188,11 @@ export const AUDIT_ACTION_TYPES = {
   USER_ENROLLED_MFA: 'user_enrolled_mfa',
   USER_UNENROLLED_MFA: 'user_unenrolled_mfa',
   
+  // Perfis/Roles
+  ROLE_CREATED: 'role_created',
+  ROLE_UPDATED: 'role_updated',
+  ROLE_DELETED: 'role_deleted',
+  
   // Conta/Perfil
   PROFILE_UPDATED: 'profile_updated',
   PASSWORD_CHANGED: 'password_changed',
@@ -229,6 +234,7 @@ export const AUDIT_RESOURCE_TYPES = {
   USER: 'user',
   PROFILE: 'profile',
   INVITE: 'invite',
+  ROLE: 'role',
   SESSION: 'session',
   SECURITY_SETTINGS: 'security_settings',
   KNOWN_DEVICE: 'known_device',

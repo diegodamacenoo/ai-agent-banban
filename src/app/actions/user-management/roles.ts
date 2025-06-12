@@ -1,43 +1,39 @@
 'use server';
 
 import { createSupabaseClient } from '@/lib/supabase/server';
-import type { PerfilUsuario } from '@/app/(protected)/settings/types/perfis';
-import { z } from 'zod';
+import type { Role } from '@/app/(protected)/settings/types/perfis';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
+import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
+import { PerfilSchema, UpdatePerfilSchema, DeletePerfilSchema } from '@/lib/schemas/user-management';
 
-// Esquema para validação ao criar (sem id, created_at, updated_at)
-const CreatePerfilSchema = z.object({
-  nome: z.string().min(1, 'Nome do perfil é obrigatório'),
-  descricao: z.string().optional(),
-  permissoes: z.array(z.string()).optional(),
-});
-
-// Esquema para validação ao atualizar (id é obrigatório)
-const UpdatePerfilSchema = CreatePerfilSchema.extend({
-  id: z.string().uuid('ID inválido'),
-});
-
-const PERFIL_USUARIO_COLUMNS = 'id, first_name, last_name, role, created_at, updated_at';
+const PERFIL_COLUMNS = 'id, name, description, permissions, created_at, updated_at';
 
 /**
  * Busca todos os perfis de usuário/roles disponíveis
- * @returns {Promise<{data?: PerfilUsuario[], error?: string}>} Lista de perfis ou erro
+ * @returns {Promise<{data?: Role[], error?: string}>} Lista de perfis ou erro
  */
-export async function getPerfisUsuario(): Promise<{ data?: PerfilUsuario[]; error?: string }> {
+export async function getPerfisUsuario(): Promise<{ data?: Role[]; error?: string }> {
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { error: 'Usuário não autenticado.' };
+    }
+
+    // Idealmente, isso deveria vir de uma tabela 'roles', não 'profiles'
     const { data, error } = await supabase
-      .from('profiles') // Tabela de perfis de usuário/roles
-      .select(PERFIL_USUARIO_COLUMNS) 
-      .order('first_name', { ascending: true });
+      .from('roles') 
+      .select(PERFIL_COLUMNS) 
+      .order('name', { ascending: true });
 
     if (error) {
       console.error('Erro ao buscar perfis de usuário:', error);
       return { error: 'Não foi possível carregar os perfis de usuário.' };
     }
-    return { data: data as PerfilUsuario[] };
+    return { data: data as Role[] };
   } catch (e: any) {
     console.error('Erro inesperado em getPerfisUsuario:', e);
     return { error: 'Um erro inesperado ocorreu.' };
@@ -46,17 +42,11 @@ export async function getPerfisUsuario(): Promise<{ data?: PerfilUsuario[]; erro
 
 /**
  * Cria um novo perfil de usuário/role
- * @param {Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>} formData Dados do perfil a ser criado
- * @returns {Promise<{success: boolean, data?: PerfilUsuario, error?: string}>} Resultado da operação
+ * @param {Omit<Role, 'id' | 'created_at' | 'updated_at'>} formData Dados do perfil a ser criado
+ * @returns {Promise<{success: boolean, data?: Role, error?: string}>} Resultado da operação
  */
-export async function createPerfilUsuario(
-  formData: Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>
-): Promise<{ success: boolean, data?: PerfilUsuario; error?: string }> {
-  const validation = CreatePerfilSchema.safeParse({
-    nome: formData.first_name,
-    descricao: formData.last_name,
-    permissoes: formData.role
-  });
+export async function createPerfilUsuario(formData: Omit<Role, 'id' | 'created_at' | 'updated_at'>): Promise<{ success: boolean; data?: Role; error?: string }> {
+  const validation = PerfilSchema.safeParse(formData);
   
   if (!validation.success) {
     return { 
@@ -68,16 +58,25 @@ export async function createPerfilUsuario(
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { success: false, error: 'Usuário não autenticado.' };
+    }
+
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    if (userProfile?.role !== 'organization_admin') {
+      return { success: false, error: 'Apenas administradores podem criar perfis.' };
+    }
+
     const { data: newPerfil, error } = await supabase
-      .from('profiles') 
+      .from('roles') 
       .insert({
-        first_name: validation.data.nome,
-        last_name: validation.data.descricao,
-        role: validation.data.permissoes || [],
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        name: validation.data.name,
+        description: validation.data.description,
+        permissions: validation.data.permissions || [],
       })
-      .select(PERFIL_USUARIO_COLUMNS)
+      .select(PERFIL_COLUMNS)
       .single();
 
     if (error) {
@@ -87,10 +86,27 @@ export async function createPerfilUsuario(
         error: 'Não foi possível criar o perfil de usuário.' 
       };
     }
-    revalidatePath('/settings');
+
+    // Registrar no log de auditoria
+    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    await createAuditLog({
+      actor_user_id: session.user.id,
+      action_type: AUDIT_ACTION_TYPES.ROLE_CREATED,
+      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      resource_id: newPerfil.id,
+      organization_id: userProfile.organization_id,
+      details: {
+        role_name: newPerfil.name,
+        permissions: newPerfil.permissions,
+      },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+    
+    revalidatePath('/settings/user-profiles');
     return { 
       success: true,
-      data: newPerfil as PerfilUsuario 
+      data: newPerfil as Role
     };
   } catch (e: any) {
     console.error('Erro inesperado em createPerfilUsuario:', e);
@@ -103,19 +119,11 @@ export async function createPerfilUsuario(
 
 /**
  * Atualiza um perfil de usuário/role existente
- * @param {PerfilUsuario} formData Dados completos do perfil a ser atualizado
- * @returns {Promise<{success: boolean, data?: PerfilUsuario, error?: string}>} Resultado da operação
+ * @param {Role} formData Dados completos do perfil a ser atualizado
+ * @returns {Promise<{success: boolean, data?: Role, error?: string}>} Resultado da operação
  */
-export async function updatePerfilUsuario(
-  formData: PerfilUsuario
-): Promise<{ success: boolean, data?: PerfilUsuario; error?: string }> {
-  // Validamos o formData completo para garantir que o id está presente e é válido
-  const validation = UpdatePerfilSchema.safeParse({
-    id: formData.id,
-    nome: formData.first_name,
-    descricao: formData.last_name,
-    permissoes: formData.role,
-  });
+export async function updatePerfilUsuario(formData: Role): Promise<{ success: boolean; data?: Role; error?: string }> {
+  const validation = UpdatePerfilSchema.safeParse(formData);
 
   if (!validation.success) {
     return { 
@@ -124,22 +132,32 @@ export async function updatePerfilUsuario(
     };
   }
   
-  const { id, nome, descricao, permissoes } = validation.data;
+  const { id, name, description, permissions } = validation.data;
 
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { success: false, error: 'Usuário não autenticado.' };
+    }
+
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    if (userProfile?.role !== 'organization_admin') {
+      return { success: false, error: 'Apenas administradores podem atualizar perfis.' };
+    }
+    
     const { data: updatedPerfil, error } = await supabase
-      .from('profiles') 
+      .from('roles') 
       .update({ 
-        first_name: nome,
-        last_name: descricao,
-        role: permissoes,
+        name,
+        description,
+        permissions,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)
-      .select(PERFIL_USUARIO_COLUMNS)
+      .select(PERFIL_COLUMNS)
       .single();
 
     if (error) {
@@ -149,10 +167,27 @@ export async function updatePerfilUsuario(
         error: 'Não foi possível atualizar o perfil de usuário.' 
       };
     }
-    revalidatePath('/settings');
+
+    // Registrar no log de auditoria
+    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    await createAuditLog({
+      actor_user_id: session.user.id,
+      action_type: AUDIT_ACTION_TYPES.ROLE_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      resource_id: updatedPerfil.id,
+      organization_id: userProfile.organization_id,
+      details: {
+        role_name: updatedPerfil.name,
+        permissions: updatedPerfil.permissions,
+      },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    revalidatePath('/settings/user-profiles');
     return { 
       success: true,
-      data: updatedPerfil as PerfilUsuario 
+      data: updatedPerfil as Role
     };
   } catch (e: any) {
     console.error('Erro inesperado em updatePerfilUsuario:', e);
@@ -168,21 +203,38 @@ export async function updatePerfilUsuario(
  * @param {string} id ID do perfil a ser removido
  * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
  */
-export async function deletePerfilUsuario(
-  id: string
-): Promise<{ success: boolean; error?: string }> {
-  if (!id) {
-    return { 
+export async function deletePerfilUsuario(id: string): Promise<{ success: boolean; error?: string }> {
+  const validation = DeletePerfilSchema.safeParse({ id });
+
+  if (!validation.success) {
+    return {
       success: false,
-      error: 'ID do perfil é obrigatório para remoção.' 
+      error: validation.error.errors.map(e => e.message).join(', ')
     };
   }
 
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      return { success: false, error: 'Usuário não autenticado.' };
+    }
+
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    if (userProfile?.role !== 'organization_admin') {
+      return { success: false, error: 'Apenas administradores podem remover perfis.' };
+    }
+
+    const { data: roleToDelete, error: fetchError } = await supabase.from('roles').select('name').eq('id', id).single();
+
+    if (fetchError || !roleToDelete) {
+        return { success: false, error: 'Perfil não encontrado ou erro ao buscar.' };
+    }
+
     const { error } = await supabase
-      .from('profiles') 
+      .from('roles') 
       .delete()
       .eq('id', id);
 
@@ -193,7 +245,23 @@ export async function deletePerfilUsuario(
         error: 'Não foi possível remover o perfil de usuário.' 
       };
     }
-    revalidatePath('/settings');
+
+    // Registrar no log de auditoria
+    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    await createAuditLog({
+      actor_user_id: session.user.id,
+      action_type: AUDIT_ACTION_TYPES.ROLE_DELETED,
+      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      resource_id: id,
+      organization_id: userProfile.organization_id,
+      details: {
+        deleted_role_name: roleToDelete.name,
+      },
+      ip_address: ipAddress,
+      user_agent: userAgent,
+    });
+
+    revalidatePath('/settings/user-profiles');
     return { success: true };
   } catch (e: any) {
     console.error('Erro inesperado em deletePerfilUsuario:', e);

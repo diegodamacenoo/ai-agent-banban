@@ -96,7 +96,7 @@ export default function SettingsSeguranca() {
   const handleEncerrarSessao = async (id: string) => {
     setEncerrandoSessao(id);
     try {
-      const result = await terminateSession(id);
+      const result = await terminateSession({ sessionId: id });
       if (result.success) {
         toast({
           title: "Sucesso",

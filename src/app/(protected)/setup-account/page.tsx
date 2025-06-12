@@ -125,7 +125,7 @@ export default async function SetupPage({
       }
     }
 
-    return redirect('/dashboard');
+    return redirect('/');
   }
 
   // Nova Server Action para Logout

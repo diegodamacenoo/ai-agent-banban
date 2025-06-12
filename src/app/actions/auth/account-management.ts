@@ -53,10 +53,12 @@ export async function requestDataExport(format: DataExportFormat): Promise<Actio
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Verificar se já existe exportação pendente
     const { data: existingExport, error: checkError } = await supabase
@@ -154,10 +156,12 @@ export async function deactivateAccount(): Promise<ActionResult> {
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Buscar perfil do usuário
     const { data: profile, error: profileError } = await supabase
@@ -287,10 +291,12 @@ export async function requestAccountDeletion(password: string): Promise<ActionRe
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Verificar senha atual
     const { error: passwordError } = await supabase.auth.signInWithPassword({
@@ -535,10 +541,12 @@ export async function cancelAccountDeletion(): Promise<ActionResult> {
     const supabase = createSupabaseClient(cookieStore);
     
     // Verificar autenticação
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Buscar solicitação pendente ou confirmada
     const { data: deletionRequest, error: findError } = await supabase

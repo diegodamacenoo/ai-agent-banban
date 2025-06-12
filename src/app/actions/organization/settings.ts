@@ -32,10 +32,12 @@ export async function getOrganizationSettings(): Promise<{data?: any, error?: st
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
       return { error: 'Usuário não autenticado' };
     }
+    
+    const user = session.user;
     
     // Primeiro, obtenha o ID da organização do perfil do usuário
     const { data: profileData, error: profileError } = await supabase
@@ -86,13 +88,12 @@ export async function updateOrganizationSettings(formData: OrganizationSettings)
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { 
-        success: false,
-        error: 'Usuário não autenticado' 
-      };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
     
     // Primeiro, obtenha o ID da organização do perfil do usuário
     const { data: profileData, error: profileError } = await supabase

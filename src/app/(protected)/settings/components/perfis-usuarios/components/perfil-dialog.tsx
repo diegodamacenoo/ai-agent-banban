@@ -6,19 +6,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
-import { PerfilUsuario, RoleEnum, UserStatusEnum } from "../../../types/perfis";
+import { UserProfile, RoleEnum, UserStatusEnum } from "../../../types/perfis";
 import { useState } from "react";
 
 interface PerfilDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSalvar: (dadosFormulario: Partial<PerfilUsuario>) => Promise<void>;
-  perfil?: PerfilUsuario;
+  onSalvar: (dadosFormulario: Partial<UserProfile>) => Promise<void>;
+  perfil?: UserProfile;
   isLoading?: boolean;
 }
 
 export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }: PerfilDialogProps) {
-  const [formData, setFormData] = useState<Partial<PerfilUsuario>>({
+  const [formData, setFormData] = useState<Partial<UserProfile>>({
     first_name: perfil?.first_name || "",
     last_name: perfil?.last_name || "",
     username: perfil?.username || "",
@@ -39,7 +39,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
     await onSalvar(formData);
   };
 
-  const handleInputChange = (field: keyof PerfilUsuario, value: any) => {
+  const handleInputChange = (field: keyof UserProfile, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 

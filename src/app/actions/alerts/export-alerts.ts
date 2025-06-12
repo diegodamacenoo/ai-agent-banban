@@ -3,13 +3,19 @@
 import { revalidatePath } from 'next/cache';
 import { createSupabaseClient } from '@/lib/supabase/server';
 import { cookies } from 'next/headers';
+import { exportAlertsSchema, type ExportAlertsData } from '@/lib/schemas/alerts';
 
-export async function exportAlertsToCSV(filters?: {
-  search?: string;
-  types?: string[];
-  severities?: string[];
-  date?: string;
-}) {
+export async function exportAlertsToCSV(filters: ExportAlertsData) {
+  const parsed = exportAlertsSchema.safeParse(filters);
+  if (!parsed.success) {
+    return { 
+      success: false, 
+      error: parsed.error.errors.map(e => e.message).join(', ') 
+    };
+  }
+  
+  const validatedFilters = parsed.data;
+  
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
@@ -20,7 +26,7 @@ export async function exportAlertsToCSV(filters?: {
       return { success: false, error: 'Usuário não autenticado' };
     }
 
-    const analysisDate = filters?.date || new Date().toISOString().split('T')[0];
+    const analysisDate = validatedFilters?.date || new Date().toISOString().split('T')[0];
     
     // Coletar dados de todos os tipos de alertas
     const alertsData = await Promise.all([
@@ -160,15 +166,15 @@ export async function exportAlertsToCSV(filters?: {
       let filtered = data;
 
       // Filtro por tipo
-      if (filters?.types && filters.types.length > 0) {
-        if (!filters.types.includes(type)) {
+      if (validatedFilters?.types && validatedFilters.types.length > 0) {
+        if (!validatedFilters.types.includes(type as any)) {
           return [];
         }
       }
 
       // Filtro por busca
-      if (filters?.search) {
-        const searchTerm = filters.search.toLowerCase();
+      if (validatedFilters?.search) {
+        const searchTerm = validatedFilters.search.toLowerCase();
         filtered = filtered.filter((item: any) => {
           const productName = item.core_product_variants?.core_products?.product_name?.toLowerCase() || '';
           const locationName = item.core_locations?.location_name?.toLowerCase() || 

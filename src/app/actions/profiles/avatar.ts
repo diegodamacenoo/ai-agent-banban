@@ -9,6 +9,7 @@ import { captureRequestInfo } from '@/lib/utils/audit-logger';
 import { createAuditLog } from '@/lib/utils/audit-logger';
 import { AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
 import { AUDIT_ACTION_TYPES } from '@/lib/utils/audit-logger';
+import { UploadAvatarSchema } from '@/lib/schemas/profiles';
 
 /**
  * Atualiza a URL do avatar no perfil do usuário
@@ -20,10 +21,12 @@ export async function updateAvatar(url: string | null): Promise<{success: boolea
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
     
     const { error } = await supabase
       .from('profiles')
@@ -38,8 +41,8 @@ export async function updateAvatar(url: string | null): Promise<{success: boolea
       return { success: false, error: error.message };
     }
     
+    revalidatePath('/');
     revalidatePath('/settings');
-    revalidatePath('/dashboard');
     return { success: true };
   } catch (error) {
     console.error('Erro inesperado ao atualizar url do avatar:', error);
@@ -57,25 +60,21 @@ export async function uploadAvatar(formData: FormData): Promise<{success: boolea
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
     
     const file = formData.get('avatar') as File;
-    if (!file) {
-      return { success: false, error: 'Nenhum arquivo enviado' };
-    }
-    
-    // Validação do tipo do arquivo
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-    if (!validTypes.includes(file.type)) {
-      return { success: false, error: 'Tipo de arquivo não suportado. Envie uma imagem JPG, PNG, WEBP ou GIF.' };
-    }
-    
-    // Validação do tamanho (2MB máximo)
-    if (file.size > 2 * 1024 * 1024) {
-      return { success: false, error: 'Arquivo muito grande. O tamanho máximo é 2MB.' };
+    const validation = UploadAvatarSchema.safeParse({ avatar: file });
+
+    if (!validation.success) {
+      return { 
+        success: false,
+        error: validation.error.errors.map(e => e.message).join(', ') 
+      };
     }
     
     // Gerar um nome de arquivo único para evitar sobreposições
@@ -131,8 +130,8 @@ export async function uploadAvatar(formData: FormData): Promise<{success: boolea
       }
     }); 
     
+    revalidatePath('/');
     revalidatePath('/settings');
-    revalidatePath('/dashboard');
     return { success: true, url: publicUrl };
   } catch (error) {
     console.error('Erro inesperado ao fazer upload do avatar:', error);

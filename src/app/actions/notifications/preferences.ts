@@ -5,20 +5,12 @@ import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { captureRequestInfo, createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-
-// Schema para validação de preferências de notificação
-const NotificationPreferencesSchema = z.object({
-  prefers_email_notifications: z.boolean(),
-  prefers_push_notifications: z.boolean(),
-});
-
-// Schema para configurações de alertas de segurança
-const SecurityAlertSettingsSchema = z.object({
-  alert_new_device: z.boolean(),
-  alert_failed_attempts: z.boolean(),
-  alert_user_deletion: z.boolean(),
-  failed_attempts_threshold: z.number().min(2).max(10),
-});
+import { 
+  NotificationPreferencesSchema, 
+  SecurityAlertSettingsSchema,
+  GetNotificationPreferencesSchema,
+  GetSecurityAlertSettingsSchema
+} from '@/lib/schemas/notifications';
 
 export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
 export type SecurityAlertSettings = z.infer<typeof SecurityAlertSettingsSchema>;
@@ -41,13 +33,12 @@ export async function updateNotificationPreferences(data: NotificationPreference
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return { 
-        success: false,
-        error: 'Usuário não autenticado' 
-      };
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Buscar dados atuais para comparação
     const { data: currentProfile } = await supabase
@@ -123,13 +114,12 @@ export async function updateSecurityAlertSettings(data: SecurityAlertSettings): 
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return { 
-        success: false,
-        error: 'Usuário não autenticado' 
-      };
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return { success: false, error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     // Buscar configurações atuais
     const { data: currentSettings } = await supabase
@@ -209,14 +199,20 @@ export async function updateSecurityAlertSettings(data: SecurityAlertSettings): 
  * @returns Promise com preferências de notificação
  */
 export async function getNotificationPreferences(): Promise<{data?: any, error?: string}> {
+  const validation = GetNotificationPreferencesSchema.safeParse({});
+  if (!validation.success) {
+    return { error: 'Validation failed' };
+  }
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return { error: 'Usuário não autenticado' };
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return { error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('profiles')
@@ -241,14 +237,20 @@ export async function getNotificationPreferences(): Promise<{data?: any, error?:
  * @returns Promise com configurações de alertas de segurança
  */
 export async function getSecurityAlertSettings(): Promise<{data?: any, error?: string}> {
+  const validation = GetSecurityAlertSettingsSchema.safeParse({});
+  if (!validation.success) {
+    return { error: 'Validation failed' };
+  }
   try {
     const cookieStore = await cookies();
     const supabase = createSupabaseClient(cookieStore);
     
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return { error: 'Usuário não autenticado' };
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session?.user) {
+      return { error: 'Usuário não autenticado.' };
     }
+
+    const user = session.user;
 
     const { data, error } = await supabase
       .from('security_alert_settings')

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "sonner";
 import { UserProvider } from "@/app/contexts/UserContext";
+import { PageErrorBoundary } from "@/components/ui/error-boundary";
 import InitDebug from "./init-debug";
 
 const inter = Inter({
@@ -25,7 +26,9 @@ export default function RootLayout({
     <html lang="pt-BR" className={inter.variable}>
       <body>
         <UserProvider>
-          {children}
+          <PageErrorBoundary>
+            {children}
+          </PageErrorBoundary>
           <Toaster />
           <SonnerToaster />
           <InitDebug />

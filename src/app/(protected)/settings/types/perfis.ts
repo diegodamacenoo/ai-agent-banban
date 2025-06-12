@@ -1,7 +1,18 @@
-export type RoleEnum = 'organization_admin' | 'standard_user';
+export type RoleEnum = 'organization_admin' | 'standard_user' | 'reader';
 export type UserStatusEnum = 'active' | 'inactive' | 'suspended';
 
-export interface PerfilUsuario {
+// Novo tipo para gerenciar Roles/Perfis de Acesso
+export interface Role {
+  id: string;
+  name: string;
+  description?: string | null;
+  permissions?: string[];
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+// Tipo para o perfil de um usuário individual
+export interface UserProfile {
   id: string;
   organization_id?: string;
   role: RoleEnum;
@@ -26,28 +37,28 @@ export interface PerfilUsuario {
   location?: string | null;
 }
 
-export type PerfilUsuarioState = {
-  perfis: PerfilUsuario[];
+export type PerfilState = {
+  roles: Role[];
   isLoading: boolean;
   error: string | null;
 }
 
-export type PerfilUsuarioActions = {
-  criarPerfil: (perfil: Omit<PerfilUsuario, 'id' | 'created_at' | 'updated_at'>) => void;
-  editarPerfil: (perfil: PerfilUsuario) => void;
+export type PerfilActions = {
+  criarPerfil: (perfil: Omit<Role, 'id' | 'created_at' | 'updated_at'>) => void;
+  editarPerfil: (perfil: Role) => void;
   removerPerfil: (id: string) => void;
   carregarPerfis: () => void;
 }
 
-export interface PerfilUsuarioContextType extends PerfilUsuarioState, PerfilUsuarioActions {}
+export interface PerfilContextType extends PerfilState, PerfilActions {}
 
-export interface PerfilUsuarioProviderProps {
+export interface PerfilProviderProps {
   children: React.ReactNode;
 }
 
-export type PerfilUsuarioDialogProps = {
+export type PerfilDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSalvar: (perfil: PerfilUsuario) => void;
-  perfil?: PerfilUsuario;
+  onSalvar: (perfil: Role) => void;
+  perfil?: Role;
 }

@@ -1,0 +1,32 @@
+{
+  "internal_functions": {
+    "description": "Funções internas do sistema que não requerem verificação de usuário",
+    "permission_check_exceptions": [
+      "src/app/actions/auth/data-export-processor.ts"
+    ],
+    "revalidation_exceptions": [
+      "src/app/actions/auth/data-export-processor.ts"
+    ],
+    "return_format_exceptions": [
+      "src/app/actions/auth/data-export-processor.ts"
+    ]
+  },
+  "system_functions": {
+    "description": "Funções que são chamadas pelo sistema, não por usuários",
+    "files": [
+      "src/app/actions/auth/data-export-processor.ts"
+    ]
+  },
+  "background_jobs": {
+    "description": "Jobs em background que processam dados assincronamente",
+    "files": [
+      "src/app/actions/auth/data-export-processor.ts"
+    ]
+  },
+  "test_files": {
+    "description": "Arquivos de teste que não são Server Actions",
+    "exclude_from_server_actions": [
+      "src/app/actions/__tests__/"
+    ]
+  }
+} 

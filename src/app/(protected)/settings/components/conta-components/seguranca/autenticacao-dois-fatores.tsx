@@ -24,6 +24,7 @@ import Image from "next/image";
 import { useToast } from "@/components/ui/use-toast";
 import { createLogger } from "@/lib/utils/logger";
 import { DEBUG_MODULES } from "@/lib/utils/debug-config";
+import { SectionErrorBoundary } from "@/components/ui/error-boundary";
 
 // Criar logger para o componente de autenticação de dois fatores
 const logger = createLogger(DEBUG_MODULES.UI_SETTINGS);
@@ -444,7 +445,10 @@ export default function AutenticacaoDoisFatores() {
         setErro(null);
         
         try {
-            const { success, error } = await verifyMFA(setupData.factorId, codigoVerificacao);
+            const { success, error } = await verifyMFA({ 
+                factorId: setupData.factorId, 
+                code: codigoVerificacao 
+            });
             
             if (success) {
                 // Processo de verificação bem-sucedido
@@ -532,168 +536,170 @@ export default function AutenticacaoDoisFatores() {
     }
 
     return (
-        <Card className="shadow-none">
-            <CardContent className="p-6 space-y-6">
-                {erro && (
-                    <Alert variant="destructive" className="mb-4">
-                        <AlertTitle>Erro</AlertTitle>
-                        <AlertDescription>{erro}</AlertDescription>
-                    </Alert>
-                )}
-                
-                {tempoLimiteAtivo && (
-                    <Alert variant="destructive" className="mb-4 bg-amber-50 border-amber-200">
-                        <AlertTriangleIcon className="h-4 w-4 text-amber-600" />
-                        <AlertTitle className="text-amber-600">Tempo limite excedido</AlertTitle>
-                        <AlertDescription className="text-amber-700">
-                            O tempo para configuração do 2FA expirou. Por favor, tente novamente.
-                        </AlertDescription>
-                    </Alert>
-                )}
-
-                <div className="flex items-center justify-between space-x-2">
-                    <Label htmlFor="status-2fa" className="font-medium">
-                        Status da Autenticação em Dois Fatores
-                    </Label>
-                    <Switch
-                        id="status-2fa"
-                        checked={status2FA}
-                        onCheckedChange={handleStatusChange}
-                    />
-                </div>
-
-                {mostrarSetup && (
-                    <div className="space-y-4 pt-4 border-t">
-                        <div className="flex justify-between items-center">
-                            <h3 className="font-medium">Configurar Autenticação de Dois Fatores</h3>
-                            <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 w-8 p-0" 
-                                onClick={cancelarSetup}
-                            >
-                                <XCircleIcon className="h-5 w-5" />
-                            </Button>
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <p className="text-sm">
-                                Escaneie o QR code abaixo com seu aplicativo autenticador (Google Authenticator, Microsoft Authenticator, Authy, etc).
-                            </p>
-                            
-                            <div className="flex flex-col items-center space-y-4 p-4 bg-muted rounded-md">
-                                {carregandoQrCode ? (
-                                    <div className="w-48 h-48 flex items-center justify-center">
-                                        <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
-                                    </div>
-                                ) : setupData ? (
-                                    <div 
-                                        className="w-48 h-48 bg-white p-2 rounded-md" 
-                                        dangerouslySetInnerHTML={{ __html: setupData.qrCode }} 
-                                    />
-                                ) : null}
-                                
-                                {setupData && (
-                                    <div className="w-full">
-                                        <Label htmlFor="secret-key" className="text-xs font-medium mb-1 block">
-                                            Ou insira esta chave manualmente:
-                                        </Label>
-                                        <div className="flex items-center space-x-2">
-                                            <Input 
-                                                id="secret-key" 
-                                                value={setupData.secret} 
-                                                readOnly 
-                                                className="font-mono text-sm"
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(setupData.secret);
-                                                    toast({
-                                                        title: "Copiado!",
-                                                        description: "A chave secreta foi copiada para a área de transferência.",
-                                                        duration: 3000,
-                                                    });
-                                                }}
-                                            >
-                                                Copiar
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        
-                        <div className="space-y-2">
-                            <Label htmlFor="verification-code">Insira o código do aplicativo autenticador</Label>
-                            <div className="flex space-x-2">
-                                <Input
-                                    id="verification-code"
-                                    placeholder="000000"
-                                    maxLength={6}
-                                    value={codigoVerificacao}
-                                    onChange={handleCodigoChange}
-                                    className="text-center font-mono text-lg tracking-wider"
-                                    type="tel"
-                                    inputMode="numeric"
-                                    autoComplete="one-time-code"
-                                />
-                                <Button 
-                                    onClick={verificarCodigo} 
-                                    disabled={verificando || codigoVerificacao.length !== 6 || tempoLimiteAtivo}
-                                >
-                                    {verificando ? (
-                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                    ) : null}
-                                    Verificar
-                                </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                                Digite o código de 6 dígitos exibido no seu aplicativo autenticador.
-                                {setupData && (
-                                    <span className="block mt-1">Você tem 10 minutos para completar esta configuração.</span>
-                                )}
-                            </p>
-                        </div>
-                        
-                        <div className="flex justify-end space-x-2 pt-2">
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={cancelarSetup}
-                                disabled={verificando}
-                            >
-                                Cancelar configuração
-                            </Button>
-                        </div>
-                    </div>
-                )}
-
-                {status2FA && !mostrarSetup && (
-                    <div className="space-y-3 pt-4 border-t">
-                        <Alert className="bg-green-50 border-green-200">
-                            <InfoIcon className="h-4 w-4 text-green-600" />
-                            <AlertTitle className="text-green-600">2FA está ativo</AlertTitle>
-                            <AlertDescription className="text-green-700">
-                                Sua conta está protegida com autenticação de dois fatores.
+        <SectionErrorBoundary sectionName="Autenticação de Dois Fatores">
+            <Card className="shadow-none">
+                <CardContent className="p-6 space-y-6">
+                    {erro && (
+                        <Alert variant="destructive" className="mb-4">
+                            <AlertTitle>Erro</AlertTitle>
+                            <AlertDescription>{erro}</AlertDescription>
+                        </Alert>
+                    )}
+                    
+                    {tempoLimiteAtivo && (
+                        <Alert variant="destructive" className="mb-4 bg-amber-50 border-amber-200">
+                            <AlertTriangleIcon className="h-4 w-4 text-amber-600" />
+                            <AlertTitle className="text-amber-600">Tempo limite excedido</AlertTitle>
+                            <AlertDescription className="text-amber-700">
+                                O tempo para configuração do 2FA expirou. Por favor, tente novamente.
                             </AlertDescription>
                         </Alert>
-                        
-                        <div className="flex justify-end space-x-2 pt-2">
-                            <Button 
-                                variant="destructive" 
-                                size="sm" 
-                                className="gap-2"
-                                onClick={() => handleStatusChange(false)}
-                            >
-                                <RefreshCcwIcon className="w-4 h-4" /> Desativar 2FA
-                            </Button>
-                        </div>
+                    )}
+
+                    <div className="flex items-center justify-between space-x-2">
+                        <Label htmlFor="status-2fa" className="font-medium">
+                            Status da Autenticação em Dois Fatores
+                        </Label>
+                        <Switch
+                            id="status-2fa"
+                            checked={status2FA}
+                            onCheckedChange={handleStatusChange}
+                        />
                     </div>
-                )}
-            </CardContent>
-        </Card>
+
+                    {mostrarSetup && (
+                        <div className="space-y-4 pt-4 border-t">
+                            <div className="flex justify-between items-center">
+                                <h3 className="font-medium">Configurar Autenticação de Dois Fatores</h3>
+                                <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-8 w-8 p-0" 
+                                    onClick={cancelarSetup}
+                                >
+                                    <XCircleIcon className="h-5 w-5" />
+                                </Button>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <p className="text-sm">
+                                    Escaneie o QR code abaixo com seu aplicativo autenticador (Google Authenticator, Microsoft Authenticator, Authy, etc).
+                                </p>
+                                
+                                <div className="flex flex-col items-center space-y-4 p-4 bg-muted rounded-md">
+                                    {carregandoQrCode ? (
+                                        <div className="w-48 h-48 flex items-center justify-center">
+                                            <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
+                                        </div>
+                                    ) : setupData ? (
+                                        <div 
+                                            className="w-48 h-48 bg-white p-2 rounded-md" 
+                                            dangerouslySetInnerHTML={{ __html: setupData.qrCode }} 
+                                        />
+                                    ) : null}
+                                    
+                                    {setupData && (
+                                        <div className="w-full">
+                                            <Label htmlFor="secret-key" className="text-xs font-medium mb-1 block">
+                                                Ou insira esta chave manualmente:
+                                            </Label>
+                                            <div className="flex items-center space-x-2">
+                                                <Input 
+                                                    id="secret-key" 
+                                                    value={setupData.secret} 
+                                                    readOnly 
+                                                    className="font-mono text-sm"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(setupData.secret);
+                                                        toast({
+                                                            title: "Copiado!",
+                                                            description: "A chave secreta foi copiada para a área de transferência.",
+                                                            duration: 3000,
+                                                        });
+                                                    }}
+                                                >
+                                                    Copiar
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                <Label htmlFor="verification-code">Insira o código do aplicativo autenticador</Label>
+                                <div className="flex space-x-2">
+                                    <Input
+                                        id="verification-code"
+                                        placeholder="000000"
+                                        maxLength={6}
+                                        value={codigoVerificacao}
+                                        onChange={handleCodigoChange}
+                                        className="text-center font-mono text-lg tracking-wider"
+                                        type="tel"
+                                        inputMode="numeric"
+                                        autoComplete="one-time-code"
+                                    />
+                                    <Button 
+                                        onClick={verificarCodigo} 
+                                        disabled={verificando || codigoVerificacao.length !== 6 || tempoLimiteAtivo}
+                                    >
+                                        {verificando ? (
+                                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        ) : null}
+                                        Verificar
+                                    </Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    Digite o código de 6 dígitos exibido no seu aplicativo autenticador.
+                                    {setupData && (
+                                        <span className="block mt-1">Você tem 10 minutos para completar esta configuração.</span>
+                                    )}
+                                </p>
+                            </div>
+                            
+                            <div className="flex justify-end space-x-2 pt-2">
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    onClick={cancelarSetup}
+                                    disabled={verificando}
+                                >
+                                    Cancelar configuração
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {status2FA && !mostrarSetup && (
+                        <div className="space-y-3 pt-4 border-t">
+                            <Alert className="bg-green-50 border-green-200">
+                                <InfoIcon className="h-4 w-4 text-green-600" />
+                                <AlertTitle className="text-green-600">2FA está ativo</AlertTitle>
+                                <AlertDescription className="text-green-700">
+                                    Sua conta está protegida com autenticação de dois fatores.
+                                </AlertDescription>
+                            </Alert>
+                            
+                            <div className="flex justify-end space-x-2 pt-2">
+                                <Button 
+                                    variant="destructive" 
+                                    size="sm" 
+                                    className="gap-2"
+                                    onClick={() => handleStatusChange(false)}
+                                >
+                                    <RefreshCcwIcon className="w-4 h-4" /> Desativar 2FA
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </SectionErrorBoundary>
     );
 } 

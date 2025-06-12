@@ -127,8 +127,8 @@ export default function LoginForm() {
           // Não bloquear o login por erro de detecção
         }
         
-        // Redireciona para dashboard em caso de sucesso
-        router.push('/dashboard');
+        // Redireciona para home em caso de sucesso
+        router.push('/');
         router.refresh();
       }
     } catch (e: any) {
