@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, Save, RotateCcw } from 'lucide-react';
@@ -84,7 +84,7 @@ export function ThresholdSettingsModal({ children }: ThresholdSettingsModalProps
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erro inesperado',
         description: 'Falha ao carregar configurações',
@@ -115,7 +115,7 @@ export function ThresholdSettingsModal({ children }: ThresholdSettingsModalProps
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erro inesperado',
         description: 'Falha ao salvar configurações',

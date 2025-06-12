@@ -23,9 +23,7 @@ import {
   Clock,
   Package,
   MapPin,
-  DollarSign,
-  TrendingUp,
-  AlertTriangle
+
 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { getAlertDetails, updateAlertStatus, AlertType, AlertStatus } from '@/app/actions/alerts/alert-management';
@@ -68,7 +66,7 @@ export function AlertDetailModal({ alertId, alertType, children }: AlertDetailMo
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erro inesperado',
         description: 'Falha ao carregar detalhes do alerta',
@@ -111,7 +109,7 @@ export function AlertDetailModal({ alertId, alertType, children }: AlertDetailMo
           variant: 'destructive'
         });
       }
-    } catch (error) {
+    } catch {
       toast({
         title: 'Erro inesperado',
         description: 'Falha ao atualizar alerta',

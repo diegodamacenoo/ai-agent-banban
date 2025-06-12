@@ -106,7 +106,7 @@ export function AlertFilters({
         title: "Export iniciado",
         description: "O arquivo será baixado em breve.",
       });
-    } catch (err) {
+    } catch {
       toast({
         title: "Erro no export",
         description: "Não foi possível iniciar o export.",

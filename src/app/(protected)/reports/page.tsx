@@ -31,7 +31,7 @@ import { createSupabaseClient } from '@/lib/supabase/client';
 import { Download, Calendar as CalendarIcon, FileText, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+
 import { PageErrorBoundary } from "@/components/ui/error-boundary";
 import { SkeletonReportTable } from "@/components/ui/skeleton-loader";
 
@@ -113,7 +113,7 @@ export default function ReportsPage() {
     loadReports();
   }, [dateFrom, dateTo]);
 
-  const handleDownload = (fileUrl: string, title: string) => {
+  const handleDownload = (fileUrl: string) => {
     window.open(fileUrl, '_blank');
   };
 
@@ -156,7 +156,7 @@ export default function ReportsPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => handleDownload(props.row.original.file_url, props.row.original.title)}
+          onClick={() => handleDownload(props.row.original.file_url)}
         >
           <Download className="w-4 h-4 mr-2" />
           Download
