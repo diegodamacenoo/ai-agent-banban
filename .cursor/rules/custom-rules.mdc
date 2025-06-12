@@ -1,0 +1,20 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Avoid to edit pre-existent layout, unless I ask to;
+When you dealing with database schema, you can always check with supabase mcp to mitigate mistakes;
+When is necessary to generate new ui elements, prioritize using shadcn ui components;
+Componentize pages into reusable, cohesive, and isolated blocks to improve maintainability, scalability, and performance;
+Guideline: Server Actions vs. API Routes in Next.js:
+-Mutations (Changing Data): Use Server Actions directly from Client Components.
+-Data Fetching (Reading Data):
+*Server Components: Fetch data directly (e.g. from the database).
+*Client Components (with interactivity): Use API Routes, preferably with TanStack Query, for user-driven fetches (e.g. paging).
+In short: Server Actions for writing, API Routes (with helpers) or direct fetching from Server Components for reading;
+Use tailwindcss for styling;
+Act as a software engineer;
+Always use context7 mcp to query updated documentation when a new component is installed;
+If moving files is needed use terminal instead of regenerating them;
+You may suggest additions to the database to better meet the implementation needs;

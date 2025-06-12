@@ -13,18 +13,13 @@ export function createSupabaseClient(cookieStore: ReadonlyRequestCookies) {
           return cookieStore.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // Ignorado em Server Components se houver middleware
-          }
+          // Em Server Actions, o cookieStore é ReadonlyRequestCookies.
+          // A modificação de cookies deve ser tratada pelo middleware ou pela resposta da rota.
+          // console.log(`Supabase client (server) attempted to set cookie: ${name}`);
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-            // Ignorado em Server Components se houver middleware
-          }
+          // Em Server Actions, o cookieStore é ReadonlyRequestCookies.
+          // console.log(`Supabase client (server) attempted to remove cookie: ${name}`);
         },
       },
     }
@@ -46,24 +41,14 @@ export function createSupabaseAdminClient(cookieStore: ReadonlyRequestCookies) {
         get(name: string) {
           return cookieStore.get(name)?.value;
         },
-        // Para operações de admin, geralmente não precisamos setar/remover cookies via cliente,
-        // mas mantemos a estrutura por consistência com createServerClient.
-        // O manuseio de cookies aqui pode não ser estritamente necessário dependendo
-        // se você precisa que o estado de autenticação reflita imediatamente
-        // após a ação de admin, o que geralmente não é o caso para convites.
         set(name: string, value: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-             // Ignorado em Server Components se houver middleware
-          }
+          // Em Server Actions, o cookieStore é ReadonlyRequestCookies.
+          // A modificação de cookies deve ser tratada pelo middleware ou pela resposta da rota.
+          // console.log(`Supabase admin client (server) attempted to set cookie: ${name}`);
         },
         remove(name: string, options: CookieOptions) {
-          try {
-            cookieStore.set({ name, value: '', ...options, maxAge: 0 });
-          } catch (error) {
-             // Ignorado em Server Components se houver middleware
-          }
+          // Em Server Actions, o cookieStore é ReadonlyRequestCookies.
+          // console.log(`Supabase admin client (server) attempted to remove cookie: ${name}`);
         },
       },
       // Importante: Especificar auth.autoRefreshToken como false para clientes de serviço

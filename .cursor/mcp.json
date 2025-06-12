@@ -6,8 +6,9 @@
         "/c",
         "npx",
         "-y",
-        "@modelcontextprotocol/server-postgres",
-        "postgresql://postgres.bopytcghbmuywfltmwhk:RfDa)zN767@Rn$A@aws-0-sa-east-1.pooler.supabase.com:5432/postgres"
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_6e13beee744d416467dd0248a91081afd2755ce1"
       ]
     }
   }

@@ -15,14 +15,25 @@ pnpm run dev
 
 Abra [http://localhost:3000](http://localhost:3000) (ou a porta configurada) no seu navegador para ver o resultado.
 
-## Documentação
+## 📚 Documentação
 
-A documentação detalhada do projeto está organizada na pasta `docs/`:
+A documentação do projeto está **totalmente reorganizada** na pasta `docs/` para facilitar navegação e manutenção:
 
-*   **[Configuração do Ambiente](./docs/SETUP.md):** Como instalar dependências, configurar variáveis de ambiente e rodar o projeto.
-*   **[Arquitetura](./docs/ARCHITECTURE.md):** Visão geral da estrutura de pastas, tecnologias utilizadas e padrões de design.
-*   **[Lógica Principal](./docs/CORE_LOGIC.md):** Explicações sobre as partes mais complexas ou centrais do sistema.
-*   **[Testes](./docs/TESTING.md):** Como executar e escrever testes automatizados.
+### **🎯 Acesso Rápido:**
+*   **[📚 Índice Completo](./docs/README.md)** - Navegação completa da documentação
+*   **[⚙️ Configuração](./docs/configuration/CONFIGURATION.md)** - Setup e configuração do ambiente
+*   **[📖 Princípios](./docs/guides/PRINCIPLES.md)** - Princípios fundamentais do projeto
+*   **[🧪 Testes](./docs/testing/)** - Documentação de testes e validações
+
+### **🗂️ Estrutura Organizada:**
+*   **[`guides/`](./docs/guides/)** - Guias fundamentais e melhores práticas
+*   **[`implementations/`](./docs/implementations/)** - Documentação de funcionalidades implementadas
+*   **[`testing/`](./docs/testing/)** - Procedimentos de teste e validação
+*   **[`configuration/`](./docs/configuration/)** - Scripts e configurações do sistema
+*   **[`reference/`](./docs/reference/)** - Referência técnica e troubleshooting
+*   **[`changelog/`](./docs/changelog/)** - Histórico de mudanças e correções
+
+**💡 Dica:** Comece pelo [README da documentação](./docs/README.md) que contém instruções completas de manutenção e navegação.
 
 ## Como Contribuir
 

@@ -2,6 +2,11 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 // Importamos createServerClient diretamente do @supabase/ssr para configurar um cliente localmente no middleware
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createLogger } from '@/lib/utils/logger';
+import { DEBUG_MODULES } from '@/lib/utils/debug-config';
+
+// Criar logger para o middleware
+const logger = createLogger(DEBUG_MODULES.MIDDLEWARE);
 
 export async function middleware(request: NextRequest) {
   // Primeiro, permite que updateSession atualize os cookies e a sessão do Supabase.
@@ -39,13 +44,13 @@ export async function middleware(request: NextRequest) {
     const { data: profile, error: profileError } = await supabaseForUserCheck
       .from('profiles')
       .select('is_setup_complete')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single();
 
-    // Adicionar log para debug, remover em produção se não necessário
-    console.log('User profile for setup check:', profile); 
+    // Log usando o novo sistema
+    logger.debug('User profile for setup check:', profile); 
     if (profileError) {
-      console.error('Profile error for setup check:', profileError);
+      logger.error('Profile error for setup check:', profileError);
       // Considerar como tratar erros aqui - talvez redirecionar para uma página de erro ou login?
       // Por enquanto, se houver erro ao buscar o perfil, a lógica de redirecionamento baseada em setup não será aplicada.
     }
@@ -63,16 +68,15 @@ export async function middleware(request: NextRequest) {
       ) {
         const url = request.nextUrl.clone();
         url.pathname = '/setup-account';
-        console.log(`Redirecting to /setup-account (setup not complete) for user: ${user.id} from ${request.nextUrl.pathname}`);
+        logger.info(`Redirecting to /setup-account (setup not complete) for user: ${user.id} from ${request.nextUrl.pathname}`);
         return NextResponse.redirect(url);
       }
     } else if (profile && profile.is_setup_complete) {
       // PRIORIDADE 2: Setup completo, usuário logado tentando acessar /login
-      // Se o usuário está autenticado, completou o setup e está tentando acessar /login, redireciona para /dashboard
+      // Se o usuário está autenticado, completou o setup e está tentando acessar /login, redireciona para /
       if (request.nextUrl.pathname.startsWith('/login')) {
         const url = request.nextUrl.clone();
-        url.pathname = '/dashboard';
-        console.log(`Redirecting to /dashboard (setup complete, tried /login) for user: ${user.id}`);
+        url.pathname = '/';
         return NextResponse.redirect(url);
       }
     }
@@ -80,8 +84,8 @@ export async function middleware(request: NextRequest) {
     // a lógica de redirecionamento abaixo (para !user) ou o retorno da response original ainda se aplicam.
   }
 
-  // Lógica de proteção de rota: se NÃO autenticado e tentando acessar /dashboard
-  if (!user && request.nextUrl.pathname.startsWith('/dashboard')) {
+  // Lógica de proteção de rota: se NÃO autenticado e tentando acessar uma rota protegida
+  if (!user && !request.nextUrl.pathname.startsWith('/login')) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     // Se vamos redirecionar, não devemos usar a `response` de `updateSession` diretamente,

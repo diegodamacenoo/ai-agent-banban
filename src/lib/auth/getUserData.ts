@@ -16,11 +16,11 @@ export const getCachedUserProps = cache(async () => {
     redirect('/login?message=Sessão inválida ou usuário não encontrado.');
   }
 
-  // Buscar dados da tabela 'profiles'
+  // Buscar dados essenciais da tabela 'profiles' (campos específicos ao invés de *)
   const { data: profileData, error: profileError } = await supabase
     .from('profiles')
-    .select('*')
-    .eq('user_id', authData.user.id)
+    .select('first_name, last_name, username, avatar_url')
+    .eq('id', authData.user.id)
     .single();
 
   if (profileError) {

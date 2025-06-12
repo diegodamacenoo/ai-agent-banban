@@ -1,0 +1,9 @@
+*Always respond in Portuguese.
+*If I ask to plan, do not execute changes without confirm before.
+*When you dealing with database schema, you can always check with supabase mcp to mitigate mistakes.
+*When is necessary to generate new ui elements, prioritize using shadcn ui components over basic html.
+*Componentize pages into reusable, cohesive, and isolated blocks to improve maintainability, scalability, and performance. 
+*Don`t use bold or semi-bold text style, use medium instead.
+*Consult architecture.md for project architecture.
+*Use tailwindcss for styling.
+*You can always use context7 mcp to query updated documentation.

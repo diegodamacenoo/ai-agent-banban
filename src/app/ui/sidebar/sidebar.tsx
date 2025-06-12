@@ -1,10 +1,12 @@
 'use client';
 import * as React from "react"
-import { usePathname } from 'next/navigation';
+import { memo, useMemo } from 'react';
 
-import { NavMain } from "@/app/ui/sidebar/nav-main"
-import { NavSecondary } from "@/app/ui/sidebar/nav-secondary"
-import { NavUser } from "@/app/ui/sidebar/nav-user"
+import { NavPrimary } from "@/app/ui/sidebar/components/nav-primary"
+import { NavSecondary } from "@/app/ui/sidebar/components/nav-secondary"
+import { NavUser } from "@/app/ui/sidebar/components/nav-user"
+import { SidebarLogo } from "@/app/ui/sidebar/components/sidebar-logo"
+import { SidebarContextProvider } from "./contexts/sidebar-context"
 
 import {
   Calendar,
@@ -18,6 +20,11 @@ import {
   SearchIcon,
   SettingsIcon,
   Users,
+  Package,
+  Activity,
+  BarChart3,
+  AlertTriangle,
+  TrendingUp,
 } from "lucide-react"
 import Link from 'next/link';
 
@@ -39,24 +46,35 @@ import {
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import clsx from "clsx";
 
-// Menu items.
-const data = {
+// Menu items - memoizado para evitar recriação desnecessária
+const MENU_DATA = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: "Home",
+      url: "/",
       icon: Home,
     },
     {
-      title: "Relatórios",
-      url: "#",
-      icon: Inbox,
+      title: "Performance",
+      url: "/performance",
+      icon: TrendingUp,
     },
     {
-      title: "Usuários",
-      url: "#",
-      icon: Users,
+      title: "Insights",
+      url: "/alertas",
+      icon: AlertTriangle,
     },
+    {
+      title: "Catálogo",
+      url: "/catalog",
+      icon: Package,
+    },
+    /*{
+      title: "Eventos",
+      url: "/events",
+      icon: Activity,
+    },
+    */
   ],
   navSecondary: [
     {
@@ -72,44 +90,40 @@ const data = {
       url: "#",
     }
   ],
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+} as const;
 
+interface UserData {
+  id: string;
+  email: string;
+  name: any;
+  avatar: any;
 }
 
-export function AppSidebar({ userData }: { userData: { id: string; email: string; name: any; avatar: any; } }) {
-  const pathname = usePathname();
+interface AppSidebarProps {
+  userData: UserData;
+}
+
+export const AppSidebar = memo(function AppSidebar({ userData }: AppSidebarProps) {
   return (
-    <Sidebar variant="inset">
+    <SidebarContextProvider>
+      <Sidebar variant="inset" className="border-r">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarLogo />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
-              <a href="#">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
+        <SidebarContent>
+          <NavPrimary items={MENU_DATA.navMain} />
+          {/*<NavSecondary items={MENU_DATA.navSecondary} />*/}
+        </SidebarContent>
 
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} />
-      </SidebarContent>
-
-      <SidebarFooter>
-        <NavUser userData={userData} />
-      </SidebarFooter>
-
-    </Sidebar>
+        <SidebarFooter>
+          <NavUser userData={userData} />
+        </SidebarFooter>
+      </Sidebar>
+    </SidebarContextProvider>
   )
-}
+})

@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+    "resend": "https://esm.sh/resend@3.2.0"
+  },
+  "compilerOptions": {
+    "lib": ["deno.window"],
+    "types": [
+      "https://deno.land/x/xhr@0.1.0/mod.d.ts"
+    ]
+  }
+} 
