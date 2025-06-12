@@ -33,7 +33,7 @@ const AnimatedLoadingSkeleton = () => {
     const generateSearchPath = (config: GridConfig) => {
         const { numCards, cols, xBase, yBase, xStep, yStep } = config
         const rows = Math.ceil(numCards / cols) // Calculate rows based on cards and columns
-        const allPositions = []
+        const allPositions: Array<{x: number, y: number}> = []
 
         // Generate grid positions for cards
         for (let row = 0; row < rows; row++) {
@@ -78,8 +78,11 @@ const AnimatedLoadingSkeleton = () => {
 
     // Updates animation path whenever the window width changes
     useEffect(() => {
-        const config = getGridConfig(windowWidth)
-        controls.start(generateSearchPath(config))
+        if (windowWidth > 0) {
+            const config = getGridConfig(windowWidth)
+            const animationConfig = generateSearchPath(config)
+            controls.start(animationConfig)
+        }
     }, [windowWidth, controls])
 
     // Variants for frame animations
