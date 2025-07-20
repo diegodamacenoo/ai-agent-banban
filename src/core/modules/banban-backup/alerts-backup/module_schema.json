@@ -1,0 +1,1253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axon.banban.com.br/schemas/modules/banban-alerts-config.json",
+  "title": "BanBan Alerts Module Configuration Schema",
+  "description": "Schema de configuração para o módulo de alertas BanBan Fashion v2.0.0",
+  "type": "object",
+  "required": ["general", "thresholds", "delivery", "escalation"],
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do sistema de alertas",
+      "required": ["enabled", "processing_mode", "max_alerts_per_hour"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Sistema Habilitado",
+          "description": "Ativa ou desativa o sistema de alertas",
+          "default": true
+        },
+        "processing_mode": {
+          "type": "string",
+          "title": "Modo de Processamento",
+          "description": "Define como os alertas são processados",
+          "enum": ["real_time", "batch", "hybrid"],
+          "default": "real_time"
+        },
+        "max_alerts_per_hour": {
+          "type": "integer",
+          "title": "Máximo de Alertas por Hora",
+          "description": "Limite de alertas gerados por hora para evitar spam",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "alert_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Alertas (dias)",
+          "description": "Quantos dias manter alertas no sistema",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 90
+        },
+        "enable_aggregation": {
+          "type": "boolean",
+          "title": "Agregação de Alertas",
+          "description": "Agrupa alertas similares para evitar duplicação",
+          "default": true
+        },
+        "aggregation_window_minutes": {
+          "type": "integer",
+          "title": "Janela de Agregação (minutos)",
+          "description": "Tempo para agrupar alertas similares",
+          "minimum": 1,
+          "maximum": 60,
+          "default": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "title": "Thresholds de Alertas",
+      "description": "Configuração dos limites para geração de alertas",
+      "required": ["stock", "margin", "performance"],
+      "properties": {
+        "stock": {
+          "type": "object",
+          "title": "Thresholds de Estoque",
+          "required": ["critical_level", "low_level", "overstock_level"],
+          "properties": {
+            "critical_level": {
+              "type": "integer",
+              "title": "Nível Crítico",
+              "description": "Quantidade que dispara alerta crítico",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 5
+            },
+            "low_level": {
+              "type": "integer",
+              "title": "Nível Baixo",
+              "description": "Quantidade que dispara alerta de atenção",
+              "minimum": 0,
+              "maximum": 500,
+              "default": 10
+            },
+            "overstock_level": {
+              "type": "integer",
+              "title": "Nível de Excesso",
+              "description": "Quantidade que indica excesso de estoque",
+              "minimum": 100,
+              "maximum": 10000,
+              "default": 500
+            },
+            "enable_seasonal_adjustment": {
+              "type": "boolean",
+              "title": "Ajuste Sazonal",
+              "description": "Ajusta thresholds baseado na sazonalidade",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "margin": {
+          "type": "object",
+          "title": "Thresholds de Margem",
+          "required": ["low_margin_threshold"],
+          "properties": {
+            "low_margin_threshold": {
+              "type": "number",
+              "title": "Margem Baixa (%)",
+              "description": "Percentual que dispara alerta de margem baixa",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.31
+            },
+            "negative_margin_alert": {
+              "type": "boolean",
+              "title": "Alerta Margem Negativa",
+              "description": "Dispara alerta para margens negativas",
+              "default": true
+            },
+            "target_margin": {
+              "type": "number",
+              "title": "Margem Alvo (%)",
+              "description": "Margem ideal para comparação",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.45
+            }
+          },
+          "additionalProperties": false
+        },
+        "performance": {
+          "type": "object",
+          "title": "Thresholds de Performance",
+          "required": ["slow_moving_days"],
+          "properties": {
+            "slow_moving_days": {
+              "type": "integer",
+              "title": "Produtos Parados (dias)",
+              "description": "Dias sem venda para considerar produto parado",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "sales_drop_percentage": {
+              "type": "number",
+              "title": "Queda de Vendas (%)",
+              "description": "Percentual de queda que dispara alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.3
+            },
+            "return_rate_threshold": {
+              "type": "number",
+              "title": "Taxa de Devolução (%)",
+              "description": "Taxa de devolução que dispara alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.15
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "delivery": {
+      "type": "object",
+      "title": "Configurações de Entrega",
+      "description": "Como e onde entregar os alertas",
+      "required": ["channels", "recipients"],
+      "properties": {
+        "channels": {
+          "type": "object",
+          "title": "Canais de Entrega",
+          "required": ["email", "dashboard"],
+          "properties": {
+            "email": {
+              "type": "object",
+              "title": "Email",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Email Habilitado",
+                  "default": true
+                },
+                "template": {
+                  "type": "string",
+                  "title": "Template de Email",
+                  "enum": ["basic", "detailed", "executive"],
+                  "default": "detailed"
+                },
+                "batch_delivery": {
+                  "type": "boolean",
+                  "title": "Entrega em Lote",
+                  "description": "Agrupa alertas em um único email",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "sms": {
+              "type": "object",
+              "title": "SMS",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "SMS Habilitado",
+                  "default": false
+                },
+                "only_critical": {
+                  "type": "boolean",
+                  "title": "Apenas Críticos",
+                  "description": "Enviar SMS apenas para alertas críticos",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "push_notification": {
+              "type": "object",
+              "title": "Push Notification",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Push Habilitado",
+                  "default": true
+                },
+                "sound": {
+                  "type": "boolean",
+                  "title": "Som Habilitado",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "dashboard": {
+              "type": "object",
+              "title": "Dashboard",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Dashboard Habilitado",
+                  "default": true
+                },
+                "auto_refresh": {
+                  "type": "boolean",
+                  "title": "Atualização Automática",
+                  "default": true
+                },
+                "refresh_interval_seconds": {
+                  "type": "integer",
+                  "title": "Intervalo de Atualização (s)",
+                  "minimum": 5,
+                  "maximum": 300,
+                  "default": 30
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "recipients": {
+          "type": "object",
+          "title": "Destinatários",
+          "required": ["by_priority"],
+          "properties": {
+            "by_priority": {
+              "type": "object",
+              "title": "Por Prioridade",
+              "required": ["critical", "attention", "moderate", "opportunity"],
+              "properties": {
+                "critical": {
+                  "type": "array",
+                  "title": "Alertas Críticos",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "minItems": 1
+                },
+                "attention": {
+                  "type": "array",
+                  "title": "Alertas de Atenção",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "moderate": {
+                  "type": "array",
+                  "title": "Alertas Moderados",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "opportunity": {
+                  "type": "array",
+                  "title": "Oportunidades",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "by_department": {
+              "type": "object",
+              "title": "Por Departamento",
+              "properties": {
+                "operations": {
+                  "type": "array",
+                  "title": "Operações",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "management": {
+                  "type": "array",
+                  "title": "Gerência",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "executive": {
+                  "type": "array",
+                  "title": "Executivo",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "escalation": {
+      "type": "object",
+      "title": "Regras de Escalação",
+      "description": "Configurações para escalação automática de alertas",
+      "required": ["enabled", "rules"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Escalação Habilitada",
+          "description": "Ativa o sistema de escalação automática",
+          "default": true
+        },
+        "rules": {
+          "type": "object",
+          "title": "Regras por Prioridade",
+          "required": ["critical", "attention"],
+          "properties": {
+            "critical": {
+              "type": "object",
+              "title": "Escalação Crítica",
+              "required": ["escalate_after_minutes", "max_escalations"],
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 1,
+                  "maximum": 60,
+                  "default": 15
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 1,
+                  "maximum": 5,
+                  "default": 3
+                },
+                "escalation_targets": {
+                  "type": "array",
+                  "title": "Alvos de Escalação",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "attention": {
+              "type": "object",
+              "title": "Escalação Atenção",
+              "required": ["escalate_after_minutes", "max_escalations"],
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 15,
+                  "maximum": 480,
+                  "default": 60
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 2
+                },
+                "escalation_targets": {
+                  "type": "array",
+                  "title": "Alvos de Escalação",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "moderate": {
+              "type": "object",
+              "title": "Escalação Moderada",
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 60,
+                  "maximum": 1440,
+                  "default": 240
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 0,
+                  "maximum": 2,
+                  "default": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "business_rules": {
+      "type": "object",
+      "title": "Regras de Negócio",
+      "description": "Regras específicas do varejo de moda",
+      "properties": {
+        "seasonal_alerts": {
+          "type": "object",
+          "title": "Alertas Sazonais",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Alertas Sazonais Habilitados",
+              "default": true
+            },
+            "pre_season_days": {
+              "type": "integer",
+              "title": "Dias Pré-Temporada",
+              "description": "Dias antes da temporada para alertas",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 30
+            },
+            "end_season_discount_threshold": {
+              "type": "number",
+              "title": "Desconto Fim de Temporada (%)",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.5
+            }
+          },
+          "additionalProperties": false
+        },
+        "collection_rules": {
+          "type": "object",
+          "title": "Regras por Coleção",
+          "properties": {
+            "new_collection_monitoring_days": {
+              "type": "integer",
+              "title": "Monitoramento Nova Coleção (dias)",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 14
+            },
+            "outlet_stock_threshold": {
+              "type": "integer",
+              "title": "Threshold Estoque Outlet",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            }
+          },
+          "additionalProperties": false
+        },
+        "size_color_matrix": {
+          "type": "object",
+          "title": "Matriz Tamanho/Cor",
+          "properties": {
+            "enable_matrix_alerts": {
+              "type": "boolean",
+              "title": "Alertas de Matriz",
+              "description": "Alertas baseados na distribuição de tamanhos/cores",
+              "default": true
+            },
+            "unbalanced_threshold": {
+              "type": "number",
+              "title": "Threshold Desbalanceamento",
+              "description": "Percentual de desbalanceamento que gera alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "analytics": {
+      "type": "object",
+      "title": "Analytics de Alertas",
+      "description": "Configurações para análise de alertas",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Analytics Habilitado",
+          "default": true
+        },
+        "retention_days": {
+          "type": "integer",
+          "title": "Retenção de Dados (dias)",
+          "minimum": 30,
+          "maximum": 365,
+          "default": 180
+        },
+        "generate_reports": {
+          "type": "boolean",
+          "title": "Gerar Relatórios",
+          "default": true
+        },
+        "report_frequency": {
+          "type": "string",
+          "title": "Frequência de Relatórios",
+          "enum": ["daily", "weekly", "monthly"],
+          "default": "weekly"
+        }
+      },
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "title": "Performance e Cache",
+      "description": "Configurações de performance do sistema",
+      "properties": {
+        "cache_enabled": {
+          "type": "boolean",
+          "title": "Cache Habilitado",
+          "default": true
+        },
+        "cache_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout do Cache (s)",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 300
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Número de alertas processados por lote",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "processing_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout de Processamento (s)",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 30
+        }
+      },
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "title": "Configurações de Segurança",
+      "description": "Configurações relacionadas à segurança",
+      "properties": {
+        "audit_logging": {
+          "type": "boolean",
+          "title": "Log de Auditoria",
+          "default": true
+        },
+        "encrypt_sensitive_data": {
+          "type": "boolean",
+          "title": "Criptografar Dados Sensíveis",
+          "default": true
+        },
+        "access_control": {
+          "type": "string",
+          "title": "Controle de Acesso",
+          "enum": ["public", "authenticated", "rbac"],
+          "default": "rbac"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+} 
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axon.banban.com.br/schemas/modules/banban-alerts-config.json",
+  "title": "BanBan Alerts Module Configuration Schema",
+  "description": "Schema de configuração para o módulo de alertas BanBan Fashion v2.0.0",
+  "type": "object",
+  "required": ["general", "thresholds", "delivery", "escalation"],
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do sistema de alertas",
+      "required": ["enabled", "processing_mode", "max_alerts_per_hour"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Sistema Habilitado",
+          "description": "Ativa ou desativa o sistema de alertas",
+          "default": true
+        },
+        "processing_mode": {
+          "type": "string",
+          "title": "Modo de Processamento",
+          "description": "Define como os alertas são processados",
+          "enum": ["real_time", "batch", "hybrid"],
+          "default": "real_time"
+        },
+        "max_alerts_per_hour": {
+          "type": "integer",
+          "title": "Máximo de Alertas por Hora",
+          "description": "Limite de alertas gerados por hora para evitar spam",
+          "minimum": 1,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "alert_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Alertas (dias)",
+          "description": "Quantos dias manter alertas no sistema",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 90
+        },
+        "enable_aggregation": {
+          "type": "boolean",
+          "title": "Agregação de Alertas",
+          "description": "Agrupa alertas similares para evitar duplicação",
+          "default": true
+        },
+        "aggregation_window_minutes": {
+          "type": "integer",
+          "title": "Janela de Agregação (minutos)",
+          "description": "Tempo para agrupar alertas similares",
+          "minimum": 1,
+          "maximum": 60,
+          "default": 5
+        }
+      },
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "title": "Thresholds de Alertas",
+      "description": "Configuração dos limites para geração de alertas",
+      "required": ["stock", "margin", "performance"],
+      "properties": {
+        "stock": {
+          "type": "object",
+          "title": "Thresholds de Estoque",
+          "required": ["critical_level", "low_level", "overstock_level"],
+          "properties": {
+            "critical_level": {
+              "type": "integer",
+              "title": "Nível Crítico",
+              "description": "Quantidade que dispara alerta crítico",
+              "minimum": 0,
+              "maximum": 100,
+              "default": 5
+            },
+            "low_level": {
+              "type": "integer",
+              "title": "Nível Baixo",
+              "description": "Quantidade que dispara alerta de atenção",
+              "minimum": 0,
+              "maximum": 500,
+              "default": 10
+            },
+            "overstock_level": {
+              "type": "integer",
+              "title": "Nível de Excesso",
+              "description": "Quantidade que indica excesso de estoque",
+              "minimum": 100,
+              "maximum": 10000,
+              "default": 500
+            },
+            "enable_seasonal_adjustment": {
+              "type": "boolean",
+              "title": "Ajuste Sazonal",
+              "description": "Ajusta thresholds baseado na sazonalidade",
+              "default": true
+            }
+          },
+          "additionalProperties": false
+        },
+        "margin": {
+          "type": "object",
+          "title": "Thresholds de Margem",
+          "required": ["low_margin_threshold"],
+          "properties": {
+            "low_margin_threshold": {
+              "type": "number",
+              "title": "Margem Baixa (%)",
+              "description": "Percentual que dispara alerta de margem baixa",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.31
+            },
+            "negative_margin_alert": {
+              "type": "boolean",
+              "title": "Alerta Margem Negativa",
+              "description": "Dispara alerta para margens negativas",
+              "default": true
+            },
+            "target_margin": {
+              "type": "number",
+              "title": "Margem Alvo (%)",
+              "description": "Margem ideal para comparação",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.45
+            }
+          },
+          "additionalProperties": false
+        },
+        "performance": {
+          "type": "object",
+          "title": "Thresholds de Performance",
+          "required": ["slow_moving_days"],
+          "properties": {
+            "slow_moving_days": {
+              "type": "integer",
+              "title": "Produtos Parados (dias)",
+              "description": "Dias sem venda para considerar produto parado",
+              "minimum": 1,
+              "maximum": 365,
+              "default": 30
+            },
+            "sales_drop_percentage": {
+              "type": "number",
+              "title": "Queda de Vendas (%)",
+              "description": "Percentual de queda que dispara alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.3
+            },
+            "return_rate_threshold": {
+              "type": "number",
+              "title": "Taxa de Devolução (%)",
+              "description": "Taxa de devolução que dispara alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.15
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "delivery": {
+      "type": "object",
+      "title": "Configurações de Entrega",
+      "description": "Como e onde entregar os alertas",
+      "required": ["channels", "recipients"],
+      "properties": {
+        "channels": {
+          "type": "object",
+          "title": "Canais de Entrega",
+          "required": ["email", "dashboard"],
+          "properties": {
+            "email": {
+              "type": "object",
+              "title": "Email",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Email Habilitado",
+                  "default": true
+                },
+                "template": {
+                  "type": "string",
+                  "title": "Template de Email",
+                  "enum": ["basic", "detailed", "executive"],
+                  "default": "detailed"
+                },
+                "batch_delivery": {
+                  "type": "boolean",
+                  "title": "Entrega em Lote",
+                  "description": "Agrupa alertas em um único email",
+                  "default": false
+                }
+              },
+              "additionalProperties": false
+            },
+            "sms": {
+              "type": "object",
+              "title": "SMS",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "SMS Habilitado",
+                  "default": false
+                },
+                "only_critical": {
+                  "type": "boolean",
+                  "title": "Apenas Críticos",
+                  "description": "Enviar SMS apenas para alertas críticos",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "push_notification": {
+              "type": "object",
+              "title": "Push Notification",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Push Habilitado",
+                  "default": true
+                },
+                "sound": {
+                  "type": "boolean",
+                  "title": "Som Habilitado",
+                  "default": true
+                }
+              },
+              "additionalProperties": false
+            },
+            "dashboard": {
+              "type": "object",
+              "title": "Dashboard",
+              "required": ["enabled"],
+              "properties": {
+                "enabled": {
+                  "type": "boolean",
+                  "title": "Dashboard Habilitado",
+                  "default": true
+                },
+                "auto_refresh": {
+                  "type": "boolean",
+                  "title": "Atualização Automática",
+                  "default": true
+                },
+                "refresh_interval_seconds": {
+                  "type": "integer",
+                  "title": "Intervalo de Atualização (s)",
+                  "minimum": 5,
+                  "maximum": 300,
+                  "default": 30
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "recipients": {
+          "type": "object",
+          "title": "Destinatários",
+          "required": ["by_priority"],
+          "properties": {
+            "by_priority": {
+              "type": "object",
+              "title": "Por Prioridade",
+              "required": ["critical", "attention", "moderate", "opportunity"],
+              "properties": {
+                "critical": {
+                  "type": "array",
+                  "title": "Alertas Críticos",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "minItems": 1
+                },
+                "attention": {
+                  "type": "array",
+                  "title": "Alertas de Atenção",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "moderate": {
+                  "type": "array",
+                  "title": "Alertas Moderados",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "opportunity": {
+                  "type": "array",
+                  "title": "Oportunidades",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "by_department": {
+              "type": "object",
+              "title": "Por Departamento",
+              "properties": {
+                "operations": {
+                  "type": "array",
+                  "title": "Operações",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "management": {
+                  "type": "array",
+                  "title": "Gerência",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "executive": {
+                  "type": "array",
+                  "title": "Executivo",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "escalation": {
+      "type": "object",
+      "title": "Regras de Escalação",
+      "description": "Configurações para escalação automática de alertas",
+      "required": ["enabled", "rules"],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Escalação Habilitada",
+          "description": "Ativa o sistema de escalação automática",
+          "default": true
+        },
+        "rules": {
+          "type": "object",
+          "title": "Regras por Prioridade",
+          "required": ["critical", "attention"],
+          "properties": {
+            "critical": {
+              "type": "object",
+              "title": "Escalação Crítica",
+              "required": ["escalate_after_minutes", "max_escalations"],
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 1,
+                  "maximum": 60,
+                  "default": 15
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 1,
+                  "maximum": 5,
+                  "default": 3
+                },
+                "escalation_targets": {
+                  "type": "array",
+                  "title": "Alvos de Escalação",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "attention": {
+              "type": "object",
+              "title": "Escalação Atenção",
+              "required": ["escalate_after_minutes", "max_escalations"],
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 15,
+                  "maximum": 480,
+                  "default": 60
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 1,
+                  "maximum": 3,
+                  "default": 2
+                },
+                "escalation_targets": {
+                  "type": "array",
+                  "title": "Alvos de Escalação",
+                  "items": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                }
+              },
+              "additionalProperties": false
+            },
+            "moderate": {
+              "type": "object",
+              "title": "Escalação Moderada",
+              "properties": {
+                "escalate_after_minutes": {
+                  "type": "integer",
+                  "title": "Escalar Após (minutos)",
+                  "minimum": 60,
+                  "maximum": 1440,
+                  "default": 240
+                },
+                "max_escalations": {
+                  "type": "integer",
+                  "title": "Máximo de Escalações",
+                  "minimum": 0,
+                  "maximum": 2,
+                  "default": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "business_rules": {
+      "type": "object",
+      "title": "Regras de Negócio",
+      "description": "Regras específicas do varejo de moda",
+      "properties": {
+        "seasonal_alerts": {
+          "type": "object",
+          "title": "Alertas Sazonais",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "title": "Alertas Sazonais Habilitados",
+              "default": true
+            },
+            "pre_season_days": {
+              "type": "integer",
+              "title": "Dias Pré-Temporada",
+              "description": "Dias antes da temporada para alertas",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 30
+            },
+            "end_season_discount_threshold": {
+              "type": "number",
+              "title": "Desconto Fim de Temporada (%)",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.5
+            }
+          },
+          "additionalProperties": false
+        },
+        "collection_rules": {
+          "type": "object",
+          "title": "Regras por Coleção",
+          "properties": {
+            "new_collection_monitoring_days": {
+              "type": "integer",
+              "title": "Monitoramento Nova Coleção (dias)",
+              "minimum": 1,
+              "maximum": 90,
+              "default": 14
+            },
+            "outlet_stock_threshold": {
+              "type": "integer",
+              "title": "Threshold Estoque Outlet",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 100
+            }
+          },
+          "additionalProperties": false
+        },
+        "size_color_matrix": {
+          "type": "object",
+          "title": "Matriz Tamanho/Cor",
+          "properties": {
+            "enable_matrix_alerts": {
+              "type": "boolean",
+              "title": "Alertas de Matriz",
+              "description": "Alertas baseados na distribuição de tamanhos/cores",
+              "default": true
+            },
+            "unbalanced_threshold": {
+              "type": "number",
+              "title": "Threshold Desbalanceamento",
+              "description": "Percentual de desbalanceamento que gera alerta",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.7
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "analytics": {
+      "type": "object",
+      "title": "Analytics de Alertas",
+      "description": "Configurações para análise de alertas",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Analytics Habilitado",
+          "default": true
+        },
+        "retention_days": {
+          "type": "integer",
+          "title": "Retenção de Dados (dias)",
+          "minimum": 30,
+          "maximum": 365,
+          "default": 180
+        },
+        "generate_reports": {
+          "type": "boolean",
+          "title": "Gerar Relatórios",
+          "default": true
+        },
+        "report_frequency": {
+          "type": "string",
+          "title": "Frequência de Relatórios",
+          "enum": ["daily", "weekly", "monthly"],
+          "default": "weekly"
+        }
+      },
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "title": "Performance e Cache",
+      "description": "Configurações de performance do sistema",
+      "properties": {
+        "cache_enabled": {
+          "type": "boolean",
+          "title": "Cache Habilitado",
+          "default": true
+        },
+        "cache_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout do Cache (s)",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 300
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Número de alertas processados por lote",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "processing_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout de Processamento (s)",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 30
+        }
+      },
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "title": "Configurações de Segurança",
+      "description": "Configurações relacionadas à segurança",
+      "properties": {
+        "audit_logging": {
+          "type": "boolean",
+          "title": "Log de Auditoria",
+          "default": true
+        },
+        "encrypt_sensitive_data": {
+          "type": "boolean",
+          "title": "Criptografar Dados Sensíveis",
+          "default": true
+        },
+        "access_control": {
+          "type": "string",
+          "title": "Controle de Acesso",
+          "enum": ["public", "authenticated", "rbac"],
+          "default": "rbac"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+} 

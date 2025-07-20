@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ if .Data.is_invite }}Convite para se juntar{{ else }}Confirme sua conta{{ end }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 20px;
+            background: #3b82f6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        h1 {
+            color: #1f2937;
+            margin: 0;
+            font-size: 24px;
+        }
+        .subtitle {
+            color: #6b7280;
+            margin: 10px 0 0;
+            font-size: 16px;
+        }
+        .content {
+            margin: 30px 0;
+        }
+        .cta-button {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 20px 0;
+        }
+        .cta-button:hover {
+            background: #2563eb;
+        }
+        .alternative {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .code {
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1f2937;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 10px 0;
+            border: 2px solid #e5e7eb;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }
+        .organization-info {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .organization-info h3 {
+            margin: 0 0 10px;
+            color: #0369a1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">A</div>
+            {{ if .Data.is_invite }}
+                <h1>Você foi convidado!</h1>
+                <p class="subtitle">Você recebeu um convite para se juntar à nossa plataforma</p>
+            {{ else }}
+                <h1>Confirme sua conta</h1>
+                <p class="subtitle">Clique no link abaixo para ativar sua conta</p>
+            {{ end }}
+        </div>
+
+        <div class="content">
+            {{ if .Data.is_invite }}
+                {{ if .Data.organization_id }}
+                    <div class="organization-info">
+                        <h3>📋 Detalhes do Convite</h3>
+                        <p><strong>Organização:</strong> {{ .Data.organization_name | default "Organização" }}</p>
+                        <p><strong>Função:</strong> {{ .Data.role | default "Membro" }}</p>
+                        <p><strong>Convidado por:</strong> {{ .Data.invited_by_email | default "Administrador" }}</p>
+                    </div>
+                {{ end }}
+                
+                <p>Você foi convidado para criar uma conta e se juntar à nossa plataforma. Para aceitar o convite e configurar sua conta, clique no botão abaixo:</p>
+                
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="cta-button">🎉 Aceitar Convite</a>
+                </div>
+                
+                <p><small>Este convite expira em 7 dias. Após aceitar, você poderá definir sua senha pessoal e completar a configuração da sua conta.</small></p>
+            {{ else }}
+                <p>Olá!</p>
+                <p>Obrigado por se cadastrar! Para completar seu registro e ativar sua conta, clique no botão abaixo:</p>
+                
+                <div style="text-align: center;">
+                    <a href="{{ .ConfirmationURL }}" class="cta-button">✅ Confirmar Conta</a>
+                </div>
+                
+                <p>Se você não se cadastrou em nossa plataforma, pode ignorar este email com segurança.</p>
+            {{ end }}
+        </div>
+
+        <div class="alternative">
+            <p><strong>Alternativa:</strong> Se o botão não funcionar, você também pode usar este código:</p>
+            <div class="code">{{ .Token }}</div>
+            <p><small>Digite este código de 6 dígitos na página de confirmação</small></p>
+        </div>
+
+        <div class="footer">
+            <p>Este link é válido por uma única utilização e expira em algumas horas.</p>
+            <p>Se você não solicitou isto, pode ignorar este email com segurança.</p>
+            <p>© {{ .SiteURL }} - Todos os direitos reservados</p>
+        </div>
+    </div>
+</body>
+</html> 

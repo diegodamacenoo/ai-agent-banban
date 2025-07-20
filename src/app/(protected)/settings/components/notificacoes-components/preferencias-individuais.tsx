@@ -4,25 +4,25 @@ import * as React from "react";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from "@/shared/ui/card";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+} from "@/shared/ui/select";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Input } from "@/shared/ui/input";
 import { MailIcon, MessageSquareIcon, SmartphoneIcon, MoonIcon } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { Separator } from "@/shared/ui/separator";
+import { Button } from "@/shared/ui/button";
 import { SaveIcon } from "lucide-react";
 import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import { SkeletonPreferences } from "@/components/ui/skeleton-loader";
+import { useToast } from '@/shared/ui/toast';
+import { SkeletonPreferences } from "@/shared/ui/skeleton-loader";
 
 interface NotificationPreferences {
     prefers_email_notifications: boolean;
@@ -30,6 +30,8 @@ interface NotificationPreferences {
 }
 
 export function PreferenciasIndividuais() {
+  const { toast } = useToast();
+
     const [preferences, setPreferences] = useState<NotificationPreferences>({
         prefers_email_notifications: true,
         prefers_push_notifications: false,
@@ -37,7 +39,7 @@ export function PreferenciasIndividuais() {
     const [isLoading, setIsLoading] = useState(true);
     const [savingStates, setSavingStates] = useState<{[key: string]: boolean}>({});
 
-    // Carregar preferências do usuário via API Route
+    // Carregar preferÃªncias do usuÃ¡rio via API Route
     useEffect(() => {
         const loadPreferences = async () => {
             try {
@@ -48,7 +50,7 @@ export function PreferenciasIndividuais() {
                 });
                 
                 if (!response.ok) {
-                    throw new Error('Erro ao carregar preferências');
+                    throw new Error('Erro ao carregar preferÃªncias');
                 }
 
                 const result = await response.json();
@@ -60,10 +62,10 @@ export function PreferenciasIndividuais() {
                     };
                     setPreferences(prefs);
                 } else {
-                    toast.error(result.error || 'Erro ao carregar preferências');
+                    toast.error(result.error || 'Erro ao carregar preferÃªncias');
                 }
             } catch (error) {
-                toast.error('Erro ao carregar preferências');
+                toast.error('Erro ao carregar preferÃªncias');
             } finally {
                 setIsLoading(false);
             }
@@ -73,14 +75,14 @@ export function PreferenciasIndividuais() {
     }, []);
 
     const handlePreferenceChange = async (key: keyof NotificationPreferences, value: boolean) => {
-        // Atualização otimista
+        // AtualizaÃ§Ã£o otimista
         const previousValue = preferences[key];
         setPreferences(prev => ({
             ...prev,
             [key]: value
         }));
 
-        // Indicar que está salvando esta preferência específica
+        // Indicar que estÃ¡ salvando esta preferÃªncia especÃ­fica
         setSavingStates(prev => ({ ...prev, [key]: true }));
 
         try {
@@ -99,20 +101,20 @@ export function PreferenciasIndividuais() {
             });
 
             if (!response.ok) {
-                throw new Error('Erro na requisição');
+                throw new Error('Erro na requisiÃ§Ã£o');
             }
 
             const result = await response.json();
             
             if (result.success) {
-                toast.success('Preferência atualizada com sucesso');
+                toast.success('PreferÃªncia atualizada com sucesso');
             } else {
                 // Reverter em caso de erro
                 setPreferences(prev => ({
                     ...prev,
                     [key]: previousValue
                 }));
-                toast.error(result.error || 'Erro ao salvar preferência');
+                toast.error(result.error || 'Erro ao salvar preferÃªncia');
             }
         } catch (error) {
             // Reverter em caso de erro
@@ -120,7 +122,7 @@ export function PreferenciasIndividuais() {
                 ...prev,
                 [key]: previousValue
             }));
-            toast.error('Erro inesperado ao salvar preferência');
+            toast.error('Erro inesperado ao salvar preferÃªncia');
         } finally {
             setSavingStates(prev => ({ ...prev, [key]: false }));
         }
@@ -144,7 +146,7 @@ export function PreferenciasIndividuais() {
                     <div className="flex items-center justify-between">
                         <div className="space-y-0.5">
                             <h4 className="font-medium">E-mail</h4>
-                            <p className="text-sm text-muted-foreground">Receba notificações via e-mail</p>
+                            <p className="text-sm text-muted-foreground">Receba notificaÃ§Ãµes via e-mail</p>
                         </div>
                         <div className="flex items-center gap-2">
                             <Switch
@@ -162,8 +164,8 @@ export function PreferenciasIndividuais() {
                 {/* Canal Push/SMS */}
                 <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
-                        <h4 className="font-medium">Notificações Push</h4>
-                        <p className="text-sm text-muted-foreground">Receba notificações push no navegador</p>
+                        <h4 className="font-medium">NotificaÃ§Ãµes Push</h4>
+                        <p className="text-sm text-muted-foreground">Receba notificaÃ§Ãµes push no navegador</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <Switch

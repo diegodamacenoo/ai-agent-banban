@@ -1,0 +1,867 @@
+/**
+ * BanBan Performance Module v2.0.0
+ * Sistema avançado de análise de performance para varejo de moda
+ * 
+ * @author BanBan Development Team
+ * @version 2.0.0
+ * @license Proprietary
+ */
+
+import { z } from 'zod';
+import type { 
+  ModuleInterface, 
+  ModuleInitResult, 
+  ModuleHealthStatus,
+  ApiEndpoint 
+} from '../../../shared/types/module-interface';
+
+// =====================================================
+// TYPES & INTERFACES
+// =====================================================
+
+export interface PerformanceModuleConfig {
+  enabled?: boolean;
+  refresh_interval_minutes?: number;
+  cache_enabled?: boolean;
+  max_data_points?: number;
+  alert_thresholds?: {
+    low_stock?: number;
+    low_margin?: number;
+    slow_moving_days?: number;
+  };
+  fashion_specific?: {
+    seasonal_analysis?: boolean;
+    size_matrix_tracking?: boolean;
+    collection_performance?: boolean;
+  };
+}
+
+export interface FashionMetrics {
+  id: string;
+  tenant_id: string;
+  period: string;
+  total_sales: number;
+  total_units: number;
+  average_ticket: number;
+  conversion_rate: number;
+  inventory_turnover: number;
+  margin_percentage: number;
+  seasonal_index: number;
+  collection_performance: Record<string, any>;
+  size_matrix_performance: Record<string, any>;
+  brand_performance: Record<string, any>;
+  calculated_at: Date;
+}
+
+export interface InventoryTurnover {
+  product_id: string;
+  product_name: string;
+  category: string;
+  brand: string;
+  turnover_rate: number;
+  days_on_hand: number;
+  stock_level: number;
+  sales_velocity: number;
+  performance_rating: 'excellent' | 'good' | 'average' | 'poor' | 'critical';
+}
+
+export interface SeasonalAnalysis {
+  season: string;
+  year: number;
+  sales_performance: number;
+  units_sold: number;
+  margin_performance: number;
+  top_products: string[];
+  underperforming_products: string[];
+  seasonal_trends: Record<string, any>;
+}
+
+export interface BrandPerformance {
+  brand_name: string;
+  sales_volume: number;
+  margin_percentage: number;
+  units_sold: number;
+  return_rate: number;
+  customer_satisfaction: number;
+  market_share: number;
+  growth_rate: number;
+}
+
+// =====================================================
+// VALIDATION SCHEMAS
+// =====================================================
+
+const PerformanceConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  refresh_interval_minutes: z.number().min(1).max(1440).default(15),
+  cache_enabled: z.boolean().default(true),
+  max_data_points: z.number().min(100).max(10000).default(1000),
+  alert_thresholds: z.object({
+    low_stock: z.number().min(0).max(100).default(10),
+    low_margin: z.number().min(0).max(100).default(20),
+    slow_moving_days: z.number().min(1).max(365).default(30)
+  }).default({}),
+  fashion_specific: z.object({
+    seasonal_analysis: z.boolean().default(true),
+    size_matrix_tracking: z.boolean().default(true),
+    collection_performance: z.boolean().default(true)
+  }).default({})
+});
+
+const MetricsQuerySchema = z.object({
+  period: z.enum(['day', 'week', 'month', 'quarter', 'year']).default('month'),
+  start_date: z.string().datetime().optional(),
+  end_date: z.string().datetime().optional(),
+  category: z.string().optional(),
+  brand: z.string().optional(),
+  collection: z.string().optional()
+});
+
+// =====================================================
+// MAIN MODULE CLASS
+// =====================================================
+
+export class BanbanPerformanceModule implements ModuleInterface {
+  private config: PerformanceModuleConfig;
+  private initialized: boolean = false;
+  private metricsCalculator?: any; // Será implementado nos serviços
+  private cacheService?: any;
+
+  constructor(config: Partial<PerformanceModuleConfig> = {}) {
+    this.config = PerformanceConfigSchema.parse(config);
+  }
+
+  // =====================================================
+  // MODULE INTERFACE IMPLEMENTATION
+  // =====================================================
+
+  async initialize(): Promise<ModuleInitResult> {
+    try {
+      if (this.initialized) {
+        return { success: true, message: 'Performance module already initialized' };
+      }
+
+      // Validar configuração
+      const validatedConfig = PerformanceConfigSchema.parse(this.config);
+      this.config = validatedConfig;
+
+      // Inicializar componentes do módulo
+      // TODO: Implementar MetricsCalculator, CacheService, AlertsService
+      
+      this.initialized = true;
+
+      return {
+        success: true,
+        message: 'BanBan Performance Module initialized successfully',
+        data: {
+          module_id: 'banban-performance',
+          version: '2.0.0',
+          config: this.config
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to initialize performance module: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error : new Error('Unknown error')
+      };
+    }
+  }
+
+  async shutdown(): Promise<void> {
+    if (this.metricsCalculator) {
+      // TODO: Implementar shutdown do calculator
+    }
+    if (this.cacheService) {
+      // TODO: Implementar shutdown do cache
+    }
+    this.initialized = false;
+  }
+
+  async getHealth(): Promise<ModuleHealthStatus> {
+    if (!this.initialized) {
+      return {
+        status: 'unhealthy',
+        message: 'Module not initialized',
+        checks: {
+          initialized: false,
+          database: false,
+          cache: false,
+          calculator: false
+        }
+      };
+    }
+
+    // TODO: Implementar checks de saúde reais
+    return {
+      status: 'healthy',
+      message: 'All systems operational',
+      checks: {
+        initialized: true,
+        database: true,
+        cache: true,
+        calculator: true,
+        metrics_updated: true
+      },
+      metrics: {
+        cached_metrics: 0,
+        last_calculation: new Date().toISOString(),
+        average_response_time: 0,
+        error_rate: 0
+      }
+    };
+  }
+
+  getInfo() {
+    return {
+      id: 'banban-performance',
+      name: 'BanBan Performance System',
+      version: '2.0.0',
+      description: 'Sistema avançado de análise de performance para varejo de moda',
+      category: 'custom',
+  vendor: 'BanBan Fashion Systems',
+      client_id: 'banban'
+    };
+  }
+
+  getApiEndpoints(): ApiEndpoint[] {
+    return [
+      {
+        path: '/fashion-metrics',
+        method: 'GET',
+        description: 'Métricas específicas de moda e varejo',
+        auth_required: true,
+        handler: 'getFashionMetrics'
+      },
+      {
+        path: '/inventory-turnover',
+        method: 'GET',
+        description: 'Análise de giro de estoque por produto',
+        auth_required: true,
+        handler: 'getInventoryTurnover'
+      },
+      {
+        path: '/seasonal-analysis',
+        method: 'GET',
+        description: 'Análise sazonal de performance',
+        auth_required: true,
+        handler: 'getSeasonalAnalysis'
+      },
+      {
+        path: '/brand-performance',
+        method: 'GET',
+        description: 'Performance detalhada por marca',
+        auth_required: true,
+        handler: 'getBrandPerformance'
+      },
+      {
+        path: '/executive-dashboard',
+        method: 'GET',
+        description: 'Dashboard executivo com KPIs principais',
+        auth_required: true,
+        handler: 'getExecutiveDashboard'
+      },
+      {
+        path: '/product-margins',
+        method: 'GET',
+        description: 'Análise de margens por produto',
+        auth_required: true,
+        handler: 'getProductMargins'
+      },
+      {
+        path: '/size-matrix',
+        method: 'GET',
+        description: 'Performance da matriz tamanho/cor',
+        auth_required: true,
+        handler: 'getSizeMatrixPerformance'
+      },
+      {
+        path: '/collection-performance',
+        method: 'GET',
+        description: 'Performance por coleção',
+        auth_required: true,
+        handler: 'getCollectionPerformance'
+      },
+      {
+        path: '/forecast',
+        method: 'GET',
+        description: 'Previsões de performance',
+        auth_required: true,
+        handler: 'getForecast'
+      },
+      {
+        path: '/growth-trends',
+        method: 'GET',
+        description: 'Tendências de crescimento',
+        auth_required: true,
+        handler: 'getGrowthTrends'
+      },
+      {
+        path: '/alerts',
+        method: 'GET',
+        description: 'Alertas de performance',
+        auth_required: true,
+        handler: 'getPerformanceAlerts'
+      },
+      {
+        path: '/metrics/refresh',
+        method: 'POST',
+        description: 'Forçar recálculo de métricas',
+        auth_required: true,
+        handler: 'refreshMetrics'
+      },
+      {
+        path: '/export',
+        method: 'POST',
+        description: 'Exportar dados de performance',
+        auth_required: true,
+        handler: 'exportData'
+      },
+      {
+        path: '/health',
+        method: 'GET',
+        description: 'Health check do módulo performance',
+        auth_required: false,
+        handler: 'healthCheck'
+      }
+    ];
+  }
+
+  // =====================================================
+  // PUBLIC API METHODS
+  // =====================================================
+
+  /**
+   * Obter métricas de moda
+   */
+  async getFashionMetrics(filters: z.infer<typeof MetricsQuerySchema>, tenantId: string): Promise<FashionMetrics[]> {
+    this.ensureInitialized();
+    const validatedFilters = MetricsQuerySchema.parse(filters);
+    
+    // TODO: Implementar busca de métricas
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter análise de giro de estoque
+   */
+  async getInventoryTurnover(filters: {
+    category?: string;
+    brand?: string;
+    min_turnover?: number;
+    max_turnover?: number;
+  } = {}, tenantId: string): Promise<InventoryTurnover[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de turnover
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter análise sazonal
+   */
+  async getSeasonalAnalysis(year: number, tenantId: string): Promise<SeasonalAnalysis[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise sazonal
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance por marca
+   */
+  async getBrandPerformance(period: string, tenantId: string): Promise<BrandPerformance[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar performance por marca
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter dashboard executivo
+   */
+  async getExecutiveDashboard(period: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar dashboard executivo
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter margens por produto
+   */
+  async getProductMargins(filters: {
+    category?: string;
+    brand?: string;
+    min_margin?: number;
+  } = {}, tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de margens
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance da matriz tamanho/cor
+   */
+  async getSizeMatrixPerformance(productId: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de matriz
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance por coleção
+   */
+  async getCollectionPerformance(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar performance por coleção
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter previsões
+   */
+  async getForecast(type: string, period: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar previsões
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter tendências de crescimento
+   */
+  async getGrowthTrends(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar tendências
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter alertas de performance
+   */
+  async getPerformanceAlerts(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar alertas
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Forçar recálculo de métricas
+   */
+  async refreshMetrics(tenantId: string): Promise<{ success: boolean; message: string }> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar refresh
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Exportar dados
+   */
+  async exportData(format: 'excel' | 'csv' | 'pdf', filters: Record<string, any>, tenantId: string): Promise<Buffer> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar export
+    throw new Error('Method not implemented');
+  }
+
+  // =====================================================
+  // INTERNAL METHODS
+  // =====================================================
+
+  private ensureInitialized(): void {
+    if (!this.initialized) {
+      throw new Error('Performance module not initialized. Call initialize() first.');
+    }
+  }
+
+  /**
+   * Calcular métricas de performance
+   */
+  async calculateMetrics(tenantId: string, period: string): Promise<void> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar cálculo de métricas
+    // Calcular turnover de inventário
+    // Calcular margens por produto
+    // Calcular performance sazonal
+    // Calcular performance por marca
+    // Atualizar cache
+  }
+
+  /**
+   * Atualizar configurações
+   */
+  async updateConfig(newConfig: Partial<PerformanceModuleConfig>, tenantId: string): Promise<void> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar atualização de config
+    throw new Error('Method not implemented');
+  }
+}
+
+// =====================================================
+// FACTORY FUNCTIONS
+// =====================================================
+
+/**
+ * Criar e inicializar módulo de performance
+ */
+export async function initializePerformanceModule(config?: Partial<PerformanceModuleConfig>): Promise<BanbanPerformanceModule> {
+  const performanceModule = new BanbanPerformanceModule(config);
+  const result = await performanceModule.initialize();
+  
+  if (!result.success) {
+    throw new Error(`Failed to initialize performance module: ${result.message}`);
+  }
+  
+  return performanceModule;
+}
+
+/**
+ * Registrar módulo no sistema
+ */
+export async function register(): Promise<ModuleInterface> {
+  return new BanbanPerformanceModule();
+}
+
+// =====================================================
+// EXPORTS
+// =====================================================
+
+export default BanbanPerformanceModule;
+export { PerformanceConfigSchema, MetricsQuerySchema };
+export type { 
+  PerformanceModuleConfig, 
+  FashionMetrics, 
+  InventoryTurnover, 
+  SeasonalAnalysis,
+  BrandPerformance
+};
+
+  getApiEndpoints(): ApiEndpoint[] {
+    return [
+      {
+        path: '/fashion-metrics',
+        method: 'GET',
+        description: 'Métricas específicas de moda e varejo',
+        auth_required: true,
+        handler: 'getFashionMetrics'
+      },
+      {
+        path: '/inventory-turnover',
+        method: 'GET',
+        description: 'Análise de giro de estoque por produto',
+        auth_required: true,
+        handler: 'getInventoryTurnover'
+      },
+      {
+        path: '/seasonal-analysis',
+        method: 'GET',
+        description: 'Análise sazonal de performance',
+        auth_required: true,
+        handler: 'getSeasonalAnalysis'
+      },
+      {
+        path: '/brand-performance',
+        method: 'GET',
+        description: 'Performance detalhada por marca',
+        auth_required: true,
+        handler: 'getBrandPerformance'
+      },
+      {
+        path: '/executive-dashboard',
+        method: 'GET',
+        description: 'Dashboard executivo com KPIs principais',
+        auth_required: true,
+        handler: 'getExecutiveDashboard'
+      },
+      {
+        path: '/product-margins',
+        method: 'GET',
+        description: 'Análise de margens por produto',
+        auth_required: true,
+        handler: 'getProductMargins'
+      },
+      {
+        path: '/size-matrix',
+        method: 'GET',
+        description: 'Performance da matriz tamanho/cor',
+        auth_required: true,
+        handler: 'getSizeMatrixPerformance'
+      },
+      {
+        path: '/collection-performance',
+        method: 'GET',
+        description: 'Performance por coleção',
+        auth_required: true,
+        handler: 'getCollectionPerformance'
+      },
+      {
+        path: '/forecast',
+        method: 'GET',
+        description: 'Previsões de performance',
+        auth_required: true,
+        handler: 'getForecast'
+      },
+      {
+        path: '/growth-trends',
+        method: 'GET',
+        description: 'Tendências de crescimento',
+        auth_required: true,
+        handler: 'getGrowthTrends'
+      },
+      {
+        path: '/alerts',
+        method: 'GET',
+        description: 'Alertas de performance',
+        auth_required: true,
+        handler: 'getPerformanceAlerts'
+      },
+      {
+        path: '/metrics/refresh',
+        method: 'POST',
+        description: 'Forçar recálculo de métricas',
+        auth_required: true,
+        handler: 'refreshMetrics'
+      },
+      {
+        path: '/export',
+        method: 'POST',
+        description: 'Exportar dados de performance',
+        auth_required: true,
+        handler: 'exportData'
+      },
+      {
+        path: '/health',
+        method: 'GET',
+        description: 'Health check do módulo performance',
+        auth_required: false,
+        handler: 'healthCheck'
+      }
+    ];
+  }
+
+  // =====================================================
+  // PUBLIC API METHODS
+  // =====================================================
+
+  /**
+   * Obter métricas de moda
+   */
+  async getFashionMetrics(filters: z.infer<typeof MetricsQuerySchema>, tenantId: string): Promise<FashionMetrics[]> {
+    this.ensureInitialized();
+    const validatedFilters = MetricsQuerySchema.parse(filters);
+    
+    // TODO: Implementar busca de métricas
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter análise de giro de estoque
+   */
+  async getInventoryTurnover(filters: {
+    category?: string;
+    brand?: string;
+    min_turnover?: number;
+    max_turnover?: number;
+  } = {}, tenantId: string): Promise<InventoryTurnover[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de turnover
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter análise sazonal
+   */
+  async getSeasonalAnalysis(year: number, tenantId: string): Promise<SeasonalAnalysis[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise sazonal
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance por marca
+   */
+  async getBrandPerformance(period: string, tenantId: string): Promise<BrandPerformance[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar performance por marca
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter dashboard executivo
+   */
+  async getExecutiveDashboard(period: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar dashboard executivo
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter margens por produto
+   */
+  async getProductMargins(filters: {
+    category?: string;
+    brand?: string;
+    min_margin?: number;
+  } = {}, tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de margens
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance da matriz tamanho/cor
+   */
+  async getSizeMatrixPerformance(productId: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar análise de matriz
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter performance por coleção
+   */
+  async getCollectionPerformance(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar performance por coleção
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter previsões
+   */
+  async getForecast(type: string, period: string, tenantId: string): Promise<Record<string, any>> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar previsões
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter tendências de crescimento
+   */
+  async getGrowthTrends(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar tendências
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Obter alertas de performance
+   */
+  async getPerformanceAlerts(tenantId: string): Promise<Record<string, any>[]> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar alertas
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Forçar recálculo de métricas
+   */
+  async refreshMetrics(tenantId: string): Promise<{ success: boolean; message: string }> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar refresh
+    throw new Error('Method not implemented');
+  }
+
+  /**
+   * Exportar dados
+   */
+  async exportData(format: 'excel' | 'csv' | 'pdf', filters: Record<string, any>, tenantId: string): Promise<Buffer> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar export
+    throw new Error('Method not implemented');
+  }
+
+  // =====================================================
+  // INTERNAL METHODS
+  // =====================================================
+
+  private ensureInitialized(): void {
+    if (!this.initialized) {
+      throw new Error('Performance module not initialized. Call initialize() first.');
+    }
+  }
+
+  /**
+   * Calcular métricas de performance
+   */
+  async calculateMetrics(tenantId: string, period: string): Promise<void> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar cálculo de métricas
+    // Calcular turnover de inventário
+    // Calcular margens por produto
+    // Calcular performance sazonal
+    // Calcular performance por marca
+    // Atualizar cache
+  }
+
+  /**
+   * Atualizar configurações
+   */
+  async updateConfig(newConfig: Partial<PerformanceModuleConfig>, tenantId: string): Promise<void> {
+    this.ensureInitialized();
+    
+    // TODO: Implementar atualização de config
+    throw new Error('Method not implemented');
+  }
+}
+
+// =====================================================
+// FACTORY FUNCTIONS
+// =====================================================
+
+/**
+ * Criar e inicializar módulo de performance
+ */
+export async function initializePerformanceModule(config?: Partial<PerformanceModuleConfig>): Promise<BanbanPerformanceModule> {
+  const performanceModule = new BanbanPerformanceModule(config);
+  const result = await performanceModule.initialize();
+  
+  if (!result.success) {
+    throw new Error(`Failed to initialize performance module: ${result.message}`);
+  }
+  
+  return performanceModule;
+}
+
+/**
+ * Registrar módulo no sistema
+ */
+export async function register(): Promise<ModuleInterface> {
+  return new BanbanPerformanceModule();
+}
+
+// =====================================================
+// EXPORTS
+// =====================================================
+
+export default BanbanPerformanceModule;
+export { PerformanceConfigSchema, MetricsQuerySchema };
+export type { 
+  PerformanceModuleConfig, 
+  FashionMetrics, 
+  InventoryTurnover, 
+  SeasonalAnalysis,
+  BrandPerformance
+}; 

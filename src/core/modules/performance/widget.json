@@ -1,0 +1,416 @@
+{
+  "moduleId": "performance",
+  "version": "1.0.0",
+  "description": "Módulo de monitoramento de performance com widgets de métricas de sistema, uptime e tempo de resposta",
+  "widgets": [
+    {
+      "id": "system-metrics",
+      "title": "Métricas do Sistema",
+      "description": "CPU, memória, disco e outras métricas de sistema",
+      "componentPath": "/widgets/performance/system-metrics",
+      "category": "performance",
+      "tags": ["system", "metrics", "cpu", "memory", "monitoring"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_system_metrics",
+        "params": {
+          "period": "1h",
+          "metrics": ["cpu", "memory", "disk", "network"]
+        }
+      },
+      "defaultParams": {
+        "period": "1h",
+        "metrics": ["cpu", "memory", "disk", "network"],
+        "refresh_rate": "real-time"
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["5m", "15m", "1h", "6h", "24h"],
+            "default": "1h"
+          },
+          "metrics": {
+            "type": "array",
+            "title": "Métricas",
+            "items": {
+              "type": "string",
+              "enum": ["cpu", "memory", "disk", "network", "load", "swap"]
+            },
+            "default": ["cpu", "memory", "disk", "network"]
+          },
+          "refresh_rate": {
+            "type": "string",
+            "title": "Taxa de Atualização",
+            "enum": ["real-time", "5s", "30s", "1m", "5m"],
+            "default": "real-time"
+          },
+          "alert_thresholds": {
+            "type": "object",
+            "title": "Limites de Alerta",
+            "properties": {
+              "cpu": {
+                "type": "number",
+                "title": "CPU (%)",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 80
+              },
+              "memory": {
+                "type": "number",
+                "title": "Memória (%)",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 85
+              },
+              "disk": {
+                "type": "number",
+                "title": "Disco (%)",
+                "minimum": 0,
+                "maximum": 100,
+                "default": 90
+              }
+            }
+          }
+        },
+        "required": ["period", "metrics"]
+      },
+      "refreshInterval": 30,
+      "permissions": ["performance:read", "system:monitor"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "uptime-status",
+      "title": "Status de Uptime",
+      "description": "Disponibilidade dos serviços e tempo de atividade",
+      "componentPath": "/widgets/performance/uptime-status",
+      "category": "performance",
+      "tags": ["uptime", "availability", "services", "status"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_uptime_stats",
+        "params": {
+          "period": "30d",
+          "services": ["api", "web", "database", "cache"]
+        }
+      },
+      "defaultParams": {
+        "period": "30d",
+        "services": ["api", "web", "database", "cache"]
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 3
+      },
+      "minSize": {
+        "width": 6,
+        "height": 2
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 5
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["24h", "7d", "30d", "90d"],
+            "default": "30d"
+          },
+          "services": {
+            "type": "array",
+            "title": "Serviços",
+            "items": {
+              "type": "string",
+              "enum": ["api", "web", "database", "cache", "cdn", "queue"]
+            },
+            "default": ["api", "web", "database", "cache"]
+          },
+          "show_incidents": {
+            "type": "boolean",
+            "title": "Mostrar Incidentes",
+            "default": true
+          },
+          "target_uptime": {
+            "type": "number",
+            "title": "Meta de Uptime (%)",
+            "minimum": 90,
+            "maximum": 100,
+            "default": 99.9
+          }
+        },
+        "required": ["period", "services"]
+      },
+      "refreshInterval": 60,
+      "permissions": ["performance:read", "uptime:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "response-time",
+      "title": "Tempo de Resposta",
+      "description": "Análise de latência e tempo de resposta das APIs",
+      "componentPath": "/widgets/performance/response-time",
+      "category": "performance",
+      "tags": ["response", "latency", "api", "performance"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_response_times",
+        "params": {
+          "period": "24h",
+          "endpoints": ["all"],
+          "percentiles": [50, 95, 99]
+        }
+      },
+      "defaultParams": {
+        "period": "24h",
+        "endpoints": ["all"],
+        "percentiles": [50, 95, 99]
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 5
+      },
+      "minSize": {
+        "width": 6,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 7
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["1h", "6h", "24h", "7d", "30d"],
+            "default": "24h"
+          },
+          "endpoints": {
+            "type": "array",
+            "title": "Endpoints",
+            "items": {
+              "type": "string"
+            },
+            "default": ["all"]
+          },
+          "percentiles": {
+            "type": "array",
+            "title": "Percentis",
+            "items": {
+              "type": "number",
+              "enum": [50, 75, 90, 95, 99, 99.9]
+            },
+            "default": [50, 95, 99]
+          },
+          "alert_threshold": {
+            "type": "number",
+            "title": "Limite de Alerta (ms)",
+            "minimum": 100,
+            "maximum": 10000,
+            "default": 2000
+          },
+          "chart_type": {
+            "type": "string",
+            "title": "Tipo de Gráfico",
+            "enum": ["line", "heatmap", "histogram"],
+            "default": "line"
+          }
+        },
+        "required": ["period", "percentiles"]
+      },
+      "refreshInterval": 120,
+      "permissions": ["performance:read", "api:monitor"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    },
+    {
+      "id": "error-rate",
+      "title": "Taxa de Erro",
+      "description": "Monitoramento de erros e falhas do sistema",
+      "componentPath": "/widgets/performance/error-rate",
+      "category": "performance",
+      "tags": ["errors", "failures", "monitoring", "quality"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_error_rates",
+        "params": {
+          "period": "24h",
+          "group_by": "endpoint",
+          "error_types": ["4xx", "5xx", "timeout"]
+        }
+      },
+      "defaultParams": {
+        "period": "24h",
+        "group_by": "endpoint",
+        "error_types": ["4xx", "5xx", "timeout"]
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["1h", "6h", "24h", "7d", "30d"],
+            "default": "24h"
+          },
+          "group_by": {
+            "type": "string",
+            "title": "Agrupar Por",
+            "enum": ["endpoint", "service", "status_code", "user_agent"],
+            "default": "endpoint"
+          },
+          "error_types": {
+            "type": "array",
+            "title": "Tipos de Erro",
+            "items": {
+              "type": "string",
+              "enum": ["4xx", "5xx", "timeout", "connection", "validation"]
+            },
+            "default": ["4xx", "5xx", "timeout"]
+          },
+          "target_error_rate": {
+            "type": "number",
+            "title": "Meta de Taxa de Erro (%)",
+            "minimum": 0,
+            "maximum": 10,
+            "default": 1
+          }
+        },
+        "required": ["period", "group_by"]
+      },
+      "refreshInterval": 180,
+      "permissions": ["performance:read", "errors:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "throughput",
+      "title": "Throughput",
+      "description": "Volume de requisições e transações por segundo",
+      "componentPath": "/widgets/performance/throughput",
+      "category": "performance",
+      "tags": ["throughput", "rps", "volume", "traffic"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_throughput_metrics",
+        "params": {
+          "period": "24h",
+          "granularity": "5m",
+          "services": ["api", "web"]
+        }
+      },
+      "defaultParams": {
+        "period": "24h",
+        "granularity": "5m",
+        "services": ["api", "web"]
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 4
+      },
+      "minSize": {
+        "width": 6,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["1h", "6h", "24h", "7d", "30d"],
+            "default": "24h"
+          },
+          "granularity": {
+            "type": "string",
+            "title": "Granularidade",
+            "enum": ["1m", "5m", "15m", "1h", "6h"],
+            "default": "5m"
+          },
+          "services": {
+            "type": "array",
+            "title": "Serviços",
+            "items": {
+              "type": "string",
+              "enum": ["api", "web", "worker", "cron"]
+            },
+            "default": ["api", "web"]
+          },
+          "metric_type": {
+            "type": "string",
+            "title": "Tipo de Métrica",
+            "enum": ["requests", "transactions", "events"],
+            "default": "requests"
+          }
+        },
+        "required": ["period", "granularity"]
+      },
+      "refreshInterval": 60,
+      "permissions": ["performance:read", "throughput:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    }
+  ],
+  "dependencies": []
+}

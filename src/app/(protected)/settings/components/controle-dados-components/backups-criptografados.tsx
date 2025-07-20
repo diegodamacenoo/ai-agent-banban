@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Switch } from "@/shared/ui/switch";
 import { DownloadIcon } from "lucide-react";
 
 interface BackupsCriptografadosProps {
@@ -25,7 +25,7 @@ export function BackupsCriptografados({ formatoBackup, setFormatoBackup }: Backu
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="sql">SQL (dump completo)</SelectItem>
-              <SelectItem value="csv">CSV (exportação por tabelas)</SelectItem>
+              <SelectItem value="csv">CSV (exportaÃ§Ã£o por tabelas)</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -39,7 +39,7 @@ export function BackupsCriptografados({ formatoBackup, setFormatoBackup }: Backu
             <Label htmlFor="backupCriptografado">Ativar criptografia para o backup</Label>
           </div>
           <p className="text-xs text-muted-foreground">
-            Os backups criptografados são protegidos com criptografia AES-256 e requerem uma chave para desbloquear.
+            Os backups criptografados sÃ£o protegidos com criptografia AES-256 e requerem uma chave para desbloquear.
           </p>
         </div>
         <div className="flex gap-3">

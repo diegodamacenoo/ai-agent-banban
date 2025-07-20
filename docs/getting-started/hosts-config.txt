@@ -1,0 +1,19 @@
+# Configuração do arquivo hosts para subdomínios locais
+# Localização: C:\Windows\System32\drivers\etc\hosts
+# 
+# INSTRUÇÕES:
+# 1. Abra o Prompt de Comando como Administrador
+# 2. Execute: notepad C:\Windows\System32\drivers\etc\hosts
+# 3. Adicione as linhas abaixo ao final do arquivo:
+
+# Subdomínios para desenvolvimento local - Axon Platform
+127.0.0.1    axon.localhost
+127.0.0.1    banban.axon.localhost
+127.0.0.1    riachuelo.axon.localhost  
+127.0.0.1    ca.axon.localhost
+
+# Após salvar, teste no navegador:
+# - http://axon.localhost:3000 (plataforma principal)
+# - http://banban.axon.localhost:3000 (cliente BanBan)
+# - http://riachuelo.axon.localhost:3000 (cliente Riachuelo)
+# - http://ca.axon.localhost:3000 (cliente CA) 

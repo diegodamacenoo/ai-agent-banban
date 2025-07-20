@@ -14,8 +14,8 @@ const mockSettingsDialog = jest.fn(({ open, onOpenChange }: SettingsDialogProps)
   return (
     <div data-testid="settings-dialog">
       <button data-testid="dialog-close" onClick={() => onOpenChange(false)}>Fechar</button>
-      <div data-testid="settings-conta">Configurações de Conta</div>
-      <div data-testid="settings-usuarios" className="hidden">Configurações de Usuários</div>
+      <div data-testid="settings-conta">ConfiguraÃ§Ãµes de Conta</div>
+      <div data-testid="settings-usuarios" className="hidden">ConfiguraÃ§Ãµes de UsuÃ¡rios</div>
       <div className="sidebar">
         <button
           data-testid="sidebar-menu-button-conta"
@@ -33,7 +33,7 @@ const mockSettingsDialog = jest.fn(({ open, onOpenChange }: SettingsDialogProps)
             if (usuariosElement) usuariosElement.classList.remove('hidden')
           }}
         >
-          Usuários
+          UsuÃ¡rios
         </button>
       </div>
     </div>
@@ -43,7 +43,7 @@ const mockSettingsDialog = jest.fn(({ open, onOpenChange }: SettingsDialogProps)
 // Mock do componente PerfilUsuarioProvider
 const MockPerfilUsuarioProvider = ({ children }: { children: ReactNode }) => <div>{children}</div>
 
-// Substitui as importações reais
+// Substitui as importaÃ§Ãµes reais
 jest.mock('../settings-dialog', () => ({
   SettingsDialog: (props: SettingsDialogProps) => mockSettingsDialog(props)
 }))
@@ -70,27 +70,27 @@ describe('SettingsDialog', () => {
       </PerfilUsuarioProvider>
     )
 
-    // Verifica se o dialog está visível
+    // Verifica se o dialog estÃ¡ visÃ­vel
     expect(screen.getByTestId('settings-dialog')).toBeInTheDocument()
-    // Verifica se o componente inicial está visível
+    // Verifica se o componente inicial estÃ¡ visÃ­vel
     expect(screen.getByTestId('settings-conta')).toBeInTheDocument()
-    // Verifica se o componente Usuários está oculto
+    // Verifica se o componente UsuÃ¡rios estÃ¡ oculto
     expect(screen.getByTestId('settings-usuarios')).toHaveClass('hidden')
   })
 
-  it('deve mudar o conteúdo ao selecionar um item', () => {
+  it('deve mudar o conteÃºdo ao selecionar um item', () => {
     render(
       <PerfilUsuarioProvider>
         <SettingsDialog open={true} onOpenChange={mockOnOpenChange} />
       </PerfilUsuarioProvider>
     )
 
-    // Clica no botão Usuários
+    // Clica no botÃ£o UsuÃ¡rios
     fireEvent.click(screen.getByTestId('sidebar-menu-button-usuarios'))
 
-    // Verifica se o componente Usuários está visível
+    // Verifica se o componente UsuÃ¡rios estÃ¡ visÃ­vel
     expect(screen.getByTestId('settings-usuarios')).not.toHaveClass('hidden')
-    // Verifica se o componente de Conta está oculto
+    // Verifica se o componente de Conta estÃ¡ oculto
     expect(screen.getByTestId('settings-conta')).toHaveClass('hidden')
   })
 
@@ -101,7 +101,7 @@ describe('SettingsDialog', () => {
       </PerfilUsuarioProvider>
     )
 
-    // Encontra o botão de fechar
+    // Encontra o botÃ£o de fechar
     const closeButton = screen.getByTestId('dialog-close')
     fireEvent.click(closeButton)
 

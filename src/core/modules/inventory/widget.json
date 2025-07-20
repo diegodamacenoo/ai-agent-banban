@@ -1,0 +1,371 @@
+{
+  "moduleId": "inventory",
+  "version": "1.0.0",
+  "description": "Módulo de gestão de inventário com widgets de estoque, movimentação e análise ABC",
+  "widgets": [
+    {
+      "id": "low-stock-alert",
+      "title": "Alertas de Estoque Baixo",
+      "description": "Produtos com estoque abaixo do limite mínimo",
+      "componentPath": "/widgets/inventory/low-stock-alert",
+      "category": "inventory",
+      "tags": ["stock", "alert", "inventory", "warning"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_low_stock_items",
+        "params": {
+          "threshold_days": 7,
+          "include_variants": true
+        }
+      },
+      "defaultParams": {
+        "threshold_days": 7,
+        "include_variants": true,
+        "sort_by": "stock_level"
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "threshold_days": {
+            "type": "number",
+            "title": "Dias de Estoque",
+            "description": "Limite em dias de estoque para alerta",
+            "minimum": 1,
+            "maximum": 30,
+            "default": 7
+          },
+          "include_variants": {
+            "type": "boolean",
+            "title": "Incluir Variações",
+            "description": "Incluir variações de produtos",
+            "default": true
+          },
+          "sort_by": {
+            "type": "string",
+            "title": "Ordenar Por",
+            "enum": ["stock_level", "days_remaining", "value", "priority"],
+            "default": "stock_level"
+          },
+          "max_items": {
+            "type": "number",
+            "title": "Máximo de Itens",
+            "description": "Número máximo de itens a exibir",
+            "minimum": 5,
+            "maximum": 50,
+            "default": 20
+          }
+        },
+        "required": ["threshold_days"]
+      },
+      "refreshInterval": 300,
+      "permissions": ["inventory:read", "stock:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "recent-movements",
+      "title": "Movimentações Recentes",
+      "description": "Últimas movimentações de estoque (entradas e saídas)",
+      "componentPath": "/widgets/inventory/recent-movements",
+      "category": "inventory",
+      "tags": ["movements", "stock", "transactions", "history"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_recent_movements",
+        "params": {
+          "limit": 10,
+          "period": "24h",
+          "movement_types": ["in", "out", "adjustment"]
+        }
+      },
+      "defaultParams": {
+        "limit": 10,
+        "period": "24h",
+        "movement_types": ["in", "out", "adjustment"]
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 5
+      },
+      "minSize": {
+        "width": 6,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 7
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "number",
+            "title": "Número de Movimentações",
+            "minimum": 5,
+            "maximum": 50,
+            "default": 10
+          },
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["1h", "6h", "24h", "7d", "30d"],
+            "default": "24h"
+          },
+          "movement_types": {
+            "type": "array",
+            "title": "Tipos de Movimentação",
+            "items": {
+              "type": "string",
+              "enum": ["in", "out", "adjustment", "transfer", "return"]
+            },
+            "default": ["in", "out", "adjustment"]
+          },
+          "show_value": {
+            "type": "boolean",
+            "title": "Mostrar Valor",
+            "default": true
+          }
+        },
+        "required": ["limit", "period"]
+      },
+      "refreshInterval": 180,
+      "permissions": ["inventory:read", "movements:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    },
+    {
+      "id": "abc-analysis",
+      "title": "Análise ABC",
+      "description": "Classificação ABC dos produtos por valor e rotatividade",
+      "componentPath": "/widgets/inventory/abc-analysis",
+      "category": "inventory",
+      "tags": ["abc", "analysis", "classification", "value"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_abc_analysis",
+        "params": {
+          "period": "90d",
+          "analysis_type": "revenue"
+        }
+      },
+      "defaultParams": {
+        "period": "90d",
+        "analysis_type": "revenue"
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 6
+      },
+      "minSize": {
+        "width": 4,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 8
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período de Análise",
+            "enum": ["30d", "90d", "180d", "1y"],
+            "default": "90d"
+          },
+          "analysis_type": {
+            "type": "string",
+            "title": "Tipo de Análise",
+            "enum": ["revenue", "quantity", "profit", "turnover"],
+            "default": "revenue"
+          },
+          "show_details": {
+            "type": "boolean",
+            "title": "Mostrar Detalhes",
+            "default": true
+          },
+          "categories": {
+            "type": "array",
+            "title": "Categorias",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          }
+        },
+        "required": ["period", "analysis_type"]
+      },
+      "refreshInterval": 1800,
+      "permissions": ["inventory:read", "analysis:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    },
+    {
+      "id": "stock-overview",
+      "title": "Visão Geral do Estoque",
+      "description": "Resumo geral dos níveis de estoque e distribuição",
+      "componentPath": "/widgets/inventory/stock-overview",
+      "category": "inventory",
+      "tags": ["stock", "overview", "summary", "levels"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_stock_overview",
+        "params": {
+          "include_locations": true,
+          "include_categories": true
+        }
+      },
+      "defaultParams": {
+        "include_locations": true,
+        "include_categories": true
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 4
+      },
+      "minSize": {
+        "width": 6,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "include_locations": {
+            "type": "boolean",
+            "title": "Incluir Localizações",
+            "default": true
+          },
+          "include_categories": {
+            "type": "boolean",
+            "title": "Incluir Categorias",
+            "default": true
+          },
+          "value_type": {
+            "type": "string",
+            "title": "Tipo de Valor",
+            "enum": ["cost", "retail", "wholesale"],
+            "default": "retail"
+          },
+          "show_trends": {
+            "type": "boolean",
+            "title": "Mostrar Tendências",
+            "default": true
+          }
+        }
+      },
+      "refreshInterval": 600,
+      "permissions": ["inventory:read", "stock:overview"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "turnover-rate",
+      "title": "Taxa de Giro",
+      "description": "Análise da taxa de giro dos produtos e categorias",
+      "componentPath": "/widgets/inventory/turnover-rate",
+      "category": "inventory",
+      "tags": ["turnover", "rotation", "velocity", "performance"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_turnover_rate",
+        "params": {
+          "period": "90d",
+          "group_by": "category"
+        }
+      },
+      "defaultParams": {
+        "period": "90d",
+        "group_by": "category"
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 5
+      },
+      "minSize": {
+        "width": 4,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 10,
+        "height": 7
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["30d", "90d", "180d", "1y"],
+            "default": "90d"
+          },
+          "group_by": {
+            "type": "string",
+            "title": "Agrupar Por",
+            "enum": ["category", "brand", "supplier", "location"],
+            "default": "category"
+          },
+          "min_turnover": {
+            "type": "number",
+            "title": "Giro Mínimo",
+            "description": "Filtrar apenas produtos com giro mínimo",
+            "minimum": 0,
+            "default": 0
+          },
+          "chart_type": {
+            "type": "string",
+            "title": "Tipo de Gráfico",
+            "enum": ["bar", "line", "scatter"],
+            "default": "bar"
+          }
+        },
+        "required": ["period", "group_by"]
+      },
+      "refreshInterval": 900,
+      "permissions": ["inventory:read", "turnover:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    }
+  ],
+  "dependencies": []
+}

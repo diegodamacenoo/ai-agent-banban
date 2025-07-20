@@ -16,7 +16,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -37,7 +37,7 @@ describe('Auth Server Actions', () => {
       // Mock implementation
       const mockChangePassword = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Senha atual é obrigatória',
+        error: 'Senha atual Ã© obrigatÃ³ria',
       });
 
       const result = await mockChangePassword({
@@ -47,13 +47,13 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('obrigatória');
+      expect(result.error).toContain('obrigatÃ³ria');
     });
 
     it('should require matching passwords', async () => {
       const mockChangePassword = jest.fn().mockResolvedValue({
         success: false,
-        error: 'As senhas não coincidem',
+        error: 'As senhas nÃ£o coincidem',
       });
 
       const result = await mockChangePassword({
@@ -63,7 +63,7 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('não coincidem');
+      expect(result.error).toContain('nÃ£o coincidem');
     });
   });
 
@@ -71,7 +71,7 @@ describe('Auth Server Actions', () => {
     it('should validate email format', async () => {
       const mockRequestReset = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Email inválido',
+        error: 'Email invÃ¡lido',
       });
 
       const result = await mockRequestReset({
@@ -79,13 +79,13 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('inválido');
+      expect(result.error).toContain('invÃ¡lido');
     });
 
     it('should handle valid email', async () => {
       const mockRequestReset = jest.fn().mockResolvedValue({
         success: true,
-        message: 'Email de recuperação enviado',
+        message: 'Email de recuperaÃ§Ã£o enviado',
       });
 
       const result = await mockRequestReset({
@@ -117,13 +117,13 @@ describe('Auth Server Actions', () => {
     it('should handle invalid session', async () => {
       const mockGetSession = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Sessão inválida',
+        error: 'SessÃ£o invÃ¡lida',
       });
 
       const result = await mockGetSession();
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('inválida');
+      expect(result.error).toContain('invÃ¡lida');
     });
   });
 }); 

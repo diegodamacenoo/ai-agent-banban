@@ -1,11 +1,11 @@
 'use server';
 
-import { cookies } from 'next/headers';
-import { createSupabaseClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
+import { createAuditLog } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { headers } from 'next/headers';
-import { verifyMFASchema, unenrollMFASchema, type VerifyMFAData, type UnenrollMFAData } from '@/lib/schemas/auth';
+import { verifyMFASchema, unenrollMFASchema, type VerifyMFAData, type UnenrollMFAData } from '@/core/schemas/auth';
 
 /**
  * Inicia o processo de inscrição em MFA
@@ -13,22 +13,21 @@ import { verifyMFASchema, unenrollMFASchema, type VerifyMFAData, type UnenrollMF
  */
 export async function enrollMFA(): Promise<{ success: boolean, error?: string, data?: any }> {
   try {
-    console.log("[DEBUG] Iniciando processo de inscrição MFA");
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    console.debug("[DEBUG] Iniciando processo de inscrição MFA");
+    const supabase = await createSupabaseServerClient();
     
     // Verificar o usuário atual para garantir que está autenticado
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (sessionError || !session) {
-      console.error("[DEBUG] Erro ao obter sessão atual:", sessionError);
+    if (authError || !user) {
+      console.error("[DEBUG] Erro ao obter usuário atual:", authError);
       return { 
         success: false, 
         error: "Usuário não está autenticado. Por favor, faça login novamente." 
       };
     }
     
-    console.log("[DEBUG] Usuário autenticado:", session.user.id);
+    console.debug("[DEBUG] Usuário autenticado:", user.id);
     
     // Listar fatores existentes para verificar se já existe um fator pendente
     const { data: factorsData, error: factorsError } = await supabase.auth.mfa.listFactors();
@@ -43,12 +42,12 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
     
     // Tentar remover fatores pendentes, se existirem
     if (factorsData && factorsData.totp && factorsData.totp.length > 0) {
-      console.log("[DEBUG] Fatores existentes encontrados:", factorsData.totp.length);
+      console.debug("[DEBUG] Fatores existentes encontrados:", factorsData.totp.length);
       
       // Verificar fatores pendentes
       const unverifiedFactors = factorsData.totp.filter(f => f.status === 'unverified');
       if (unverifiedFactors.length > 0) {
-        console.log("[DEBUG] Removendo fatores pendentes:", unverifiedFactors.length);
+        console.debug("[DEBUG] Removendo fatores pendentes:", unverifiedFactors.length);
         
         // Remover fatores pendentes
         for (const factor of unverifiedFactors) {
@@ -60,7 +59,7 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
             if (unenrollError) {
               console.error(`[DEBUG] Erro ao remover fator pendente ${factor.id}:`, unenrollError);
             } else {
-              console.log(`[DEBUG] Fator pendente removido com sucesso: ${factor.id}`);
+              console.debug(`[DEBUG] Fator pendente removido com sucesso: ${factor.id}`);
             }
           } catch (err) {
             console.error(`[DEBUG] Exceção ao remover fator pendente ${factor.id}:`, err);
@@ -69,14 +68,14 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
       }
     }
     
-    console.log("[DEBUG] Chamando supabase.auth.mfa.enroll");
+    console.debug("[DEBUG] Chamando supabase.auth.mfa.enroll");
     
     // Inicia o processo de inscrição em MFA/TOTP
     const enrollResponse = await supabase.auth.mfa.enroll({
       factorType: 'totp'
     });
     
-    console.log("[DEBUG] Resposta do enroll:", 
+    console.debug("[DEBUG] Resposta do enroll:", 
       enrollResponse.error ? `Erro: ${JSON.stringify(enrollResponse.error)}` : "Sucesso");
     
     const { data, error } = enrollResponse;
@@ -86,7 +85,7 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
       return { success: false, error: 'Não foi possível iniciar a configuração de autenticação de dois fatores.' };
     }
     
-    if (!data || !data.totp) {
+    if (!data?.totp) {
       console.error('[DEBUG] Resposta sem dados válidos:', data);
       return { 
         success: false, 
@@ -94,7 +93,7 @@ export async function enrollMFA(): Promise<{ success: boolean, error?: string, d
       };
     }
     
-    console.log('[DEBUG] Inscrição MFA iniciada com sucesso, retornando dados');
+    console.debug('[DEBUG] Inscrição MFA iniciada com sucesso, retornando dados');
     
     return { 
       success: true, 
@@ -129,8 +128,7 @@ export async function verifyMFA(data: VerifyMFAData): Promise<{ success: boolean
 
   const { factorId, code } = parsed.data;
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     // Cria um desafio para o fator
     const challengeResponse = await supabase.auth.mfa.challenge({
@@ -145,8 +143,8 @@ export async function verifyMFA(data: VerifyMFAData): Promise<{ success: boolean
     const challengeId = challengeResponse.data.id;
 
     // Verificar se o usuário está autenticado
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
     
@@ -166,20 +164,16 @@ export async function verifyMFA(data: VerifyMFAData): Promise<{ success: boolean
     await supabase.auth.refreshSession();
 
     // Registrar ativação do 2FA no audit log
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.USER_ENROLLED_MFA,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.MFA_ENABLED,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
-      resource_id: session.user.id,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-      organization_id: organizationId,
-        details: {
-          factor_id: factorId,
-          method: 'totp'
-        }
-      });
+      resource_id: user.id,
+      details: {
+        factor_id: factorId,
+        method: 'totp'
+      }
+    });
     
     revalidatePath('/settings');
     return { success: true };
@@ -195,8 +189,7 @@ export async function verifyMFA(data: VerifyMFAData): Promise<{ success: boolean
  */
 export async function listMFAFactors(): Promise<{ success: boolean, error?: string, data?: any }> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     const { data, error } = await supabase.auth.mfa.listFactors();
     
@@ -225,8 +218,7 @@ export async function listMFAFactors(): Promise<{ success: boolean, error?: stri
  */
 export async function unenrollMFA(factorId: string): Promise<{ success: boolean, error?: string }> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     const { error } = await supabase.auth.mfa.unenroll({
       factorId
@@ -243,20 +235,16 @@ export async function unenrollMFA(factorId: string): Promise<{ success: boolean,
     }
     
     // Registrar desativação do 2FA no audit log
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.USER_UNENROLLED_MFA,
+      action_type: AUDIT_ACTION_TYPES.MFA_DISABLED,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-      organization_id: organizationId,
-        details: {
-          factor_id: factorId,
-          method: 'totp'
-        }
-      });
+      details: {
+        factor_id: factorId,
+        method: 'totp'
+      }
+    });
     
     revalidatePath('/settings');
     return { success: true };
@@ -272,9 +260,7 @@ export async function unenrollMFA(factorId: string): Promise<{ success: boolean,
  */
 export async function getAuthLevel(): Promise<{ success: boolean, error?: string, data?: any }> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-    
+    const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     
     if (error) {

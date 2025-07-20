@@ -3,65 +3,58 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { type UserRole, userRoleOptions } from '@/app/(protected)/settings/types/user-settings-types';
-import { createSupabaseClient, createSupabaseAdminClient } from '@/lib/supabase/server';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-import { captureRequestInfo } from '@/lib/utils/audit-logger';
+import { createSupabaseServerClient, createSupabaseAdminClient } from '@/core/supabase/server';
+import { createAuditLog } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { z } from 'zod';
+import { getUserProfile } from '@/shared/utils/supabase-helpers';
 import {
   updateUserSchema,
   deactivateUserSchema,
   softDeleteUserSchema,
   hardDeleteUserSchema,
   restoreUserSchema
-} from '@/lib/schemas/user-management';
+} from '@/core/schemas/user-management';
 
 /**
- * Realiza soft delete do usuário (define deleted_at)
- * @param {z.infer<typeof softDeleteUserSchema>} data Dados do usuário a ser soft deleted
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
+ * Realiza soft delete do usuÃ¡rio (define deleted_at)
+ * @param {z.infer<typeof softDeleteUserSchema>} data Dados do usuÃ¡rio a ser soft deleted
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado da operaÃ§Ã£o
  */
 export async function softDeleteUser(data: z.infer<typeof softDeleteUserSchema>): Promise<{success: boolean, error?: string}> {
   const parsed = softDeleteUserSchema.safeParse(data);
   if (!parsed.success) {
     return { 
       success: false, 
-      error: 'ID inválido para excluir usuário.' 
+      error: 'ID invÃ¡lido para excluir usuÃ¡rio.' 
     };
   }
   
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-        console.error('Erro ao obter sessão em softDeleteUser:', sessionError);
-        return { success: false, error: 'Erro ao obter sessão do usuário.' };
-    }
-    if (!session) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'UsuÃ¡rio nÃ£o autenticado.' };
     }
 
-    // Busca o perfil do usuário autenticado para verificar permissões
-    const { data: userProfile, error: userProfileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
+    // Busca o perfil do usuÃ¡rio autenticado para verificar permissÃµes (método robusto)
+    const { data: userProfile, error: userProfileError } = await getUserProfile(supabase, user.id, 'role');
     if (userProfileError) {
-      console.error('Erro ao buscar perfil do usuário em softDeleteUser:', userProfileError);
-      return { success: false, error: 'Erro ao buscar perfil do usuário.' };
+      console.error('Erro ao buscar perfil do usuÃ¡rio em softDeleteUser:', userProfileError);
+      return { success: false, error: 'Erro ao buscar perfil do usuÃ¡rio.' };
     }
-    if (!userProfile || userProfile.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem excluir usuários.' };
+    if (!userProfile || (userProfile as any).role !== 'organization_admin') {
+      return { success: false, error: 'Apenas administradores podem excluir usuÃ¡rios.' };
     }
 
-    // Impede auto-exclusão
-    if (data.id === session.user.id) {
-      return { success: false, error: 'Você não pode excluir sua própria conta através desta funcionalidade.' };
+    // Impede auto-exclusÃ£o
+    if (data.id === user.id) {
+      return { success: false, error: 'VocÃª nÃ£o pode excluir sua prÃ³pria conta atravÃ©s desta funcionalidade.' };
     }
     
-    // Buscar dados do usuário antes da exclusão para o log
+    // Buscar dados do usuÃ¡rio antes da exclusÃ£o para o log
     const { data: targetUser, error: targetUserError } = await supabase
       .from('profiles')
       .select('first_name, last_name')
@@ -69,29 +62,29 @@ export async function softDeleteUser(data: z.infer<typeof softDeleteUserSchema>)
       .single();
 
     // Buscar email do auth.users para o log
-    const adminSupabase = createSupabaseAdminClient(cookieStore);
+    const adminSupabase = await createSupabaseAdminClient();
     const { data: authUser } = await adminSupabase.auth.admin.getUserById(data.id);
         
     const { error } = await supabase
       .from('profiles')
       .update({ 
         deleted_at: new Date().toISOString(),
-        status: 'inactive'
+        status: 'INACTIVE'
       })
       .eq('id', data.id)
-      .is('deleted_at', null); // Só atualiza se não estiver já excluído
+      .is('deleted_at', null); // SÃ³ atualiza se nÃ£o estiver jÃ¡ excluÃ­do
 
     if (error) {
-      console.error('Erro ao fazer soft delete do usuário:', error);
+      console.error('Erro ao fazer soft delete do usuÃ¡rio:', error);
       return { 
         success: false, 
-        error: `Erro ao excluir usuário: ${error.message}` 
+        error: `Erro ao excluir usuÃ¡rio: ${error.message}` 
       };
     }
     
     // Registrar log de auditoria
     await createAuditLog({
-      actor_user_id: session.user.id,
+      actor_user_id: user.id,
       action_type: AUDIT_ACTION_TYPES.USER_DELETED,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: data.id,
@@ -104,61 +97,57 @@ export async function softDeleteUser(data: z.infer<typeof softDeleteUserSchema>)
     
     return { success: true };
   } catch (error: any) {
-    console.error('Erro inesperado ao fazer soft delete do usuário:', error);
+    console.error('Erro inesperado ao fazer soft delete do usuÃ¡rio:', error);
     return { 
       success: false, 
-      error: `Erro inesperado ao excluir usuário: ${error.message}` 
+      error: `Erro inesperado ao excluir usuÃ¡rio: ${error.message}` 
     };
   }
 }
 
 /**
- * Realiza hard delete do usuário (exclui permanentemente)
- * @param {z.infer<typeof hardDeleteUserSchema>} data Dados do usuário a ser hard deleted
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
+ * Realiza hard delete do usuÃ¡rio (exclui permanentemente)
+ * @param {z.infer<typeof hardDeleteUserSchema>} data Dados do usuÃ¡rio a ser hard deleted
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado da operaÃ§Ã£o
  */
 export async function hardDeleteUser(data: z.infer<typeof hardDeleteUserSchema>): Promise<{success: boolean, error?: string}> {
   const parsed = hardDeleteUserSchema.safeParse(data);
   if (!parsed.success) {
     return { 
       success: false, 
-      error: 'ID inválido para exclusão permanente.' 
+      error: 'ID invÃ¡lido para exclusÃ£o permanente.' 
     };
   }
   
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-        console.error('Erro ao obter sessão em hardDeleteUser:', sessionError);
-        return { success: false, error: 'Erro ao obter sessão do usuário.' };
-    }
-    if (!session) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'UsuÃ¡rio nÃ£o autenticado.' };
     }
 
-    // Busca o perfil do usuário autenticado para verificar permissões
+    // Busca o perfil do usuÃ¡rio autenticado para verificar permissÃµes
     const { data: userProfile, error: userProfileError } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
     if (userProfileError) {
-      console.error('Erro ao buscar perfil do usuário em hardDeleteUser:', userProfileError);
-      return { success: false, error: 'Erro ao buscar perfil do usuário.' };
+      console.error('Erro ao buscar perfil do usuÃ¡rio em hardDeleteUser:', userProfileError);
+      return { success: false, error: 'Erro ao buscar perfil do usuÃ¡rio.' };
     }
     if (!userProfile || userProfile.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem excluir permanentemente usuários.' };
+      return { success: false, error: 'Apenas administradores podem excluir permanentemente usuÃ¡rios.' };
     }
 
-    // Impede auto-exclusão
-    if (data.id === session.user.id) {
-      return { success: false, error: 'Você não pode excluir permanentemente sua própria conta.' };
+    // Impede auto-exclusÃ£o
+    if (data.id === user.id) {
+      return { success: false, error: 'VocÃª nÃ£o pode excluir permanentemente sua prÃ³pria conta.' };
     }
 
-    // Verifica se o usuário está soft deleted e busca dados para o log
+    // Verifica se o usuÃ¡rio estÃ¡ soft deleted e busca dados para o log
     const { data: targetUser, error: checkError } = await supabase
       .from('profiles')
       .select('deleted_at, first_name, last_name')
@@ -166,37 +155,37 @@ export async function hardDeleteUser(data: z.infer<typeof hardDeleteUserSchema>)
       .single();
 
     if (checkError) {
-      console.error('Erro ao verificar usuário para hard delete:', checkError);
-      return { success: false, error: 'Usuário não encontrado.' };
+      console.error('Erro ao verificar usuÃ¡rio para hard delete:', checkError);
+      return { success: false, error: 'UsuÃ¡rio nÃ£o encontrado.' };
     }
 
     if (!targetUser.deleted_at) {
-      return { success: false, error: 'Apenas usuários previamente excluídos podem ser removidos permanentemente.' };
+      return { success: false, error: 'Apenas usuÃ¡rios previamente excluÃ­dos podem ser removidos permanentemente.' };
     }
 
     // Buscar email do auth.users antes de excluir
-    const adminSupabase = createSupabaseAdminClient(cookieStore);
+    const adminSupabase = await createSupabaseAdminClient();
     const { data: authUser } = await adminSupabase.auth.admin.getUserById(data.id);
 
-    // Exclui o perfil primeiro (devido às foreign keys)
+    // Exclui o perfil primeiro (devido Ã s foreign keys)
     const { error: profileError } = await supabase
       .from('profiles')
       .delete()
       .eq('id', data.id);
 
     if (profileError) {
-      console.error('Erro ao excluir perfil do usuário:', profileError);
+      console.error('Erro ao excluir perfil do usuÃ¡rio:', profileError);
       return { 
         success: false, 
         error: `Erro ao excluir perfil: ${profileError.message}` 
       };
     }
 
-    // Exclui o usuário do Auth
+    // Exclui o usuÃ¡rio do Auth
     const { error: authError } = await adminSupabase.auth.admin.deleteUser(data.id);
 
     if (authError) {
-      console.error('Erro ao excluir usuário do Auth:', authError);
+      console.error('Erro ao excluir usuÃ¡rio do Auth:', authError);
       return { 
         success: false, 
         error: `Erro ao excluir conta de acesso: ${authError.message}` 
@@ -205,7 +194,7 @@ export async function hardDeleteUser(data: z.infer<typeof hardDeleteUserSchema>)
     
     // Registrar log de auditoria
     await createAuditLog({
-      actor_user_id: session.user.id,
+      actor_user_id: user.id,
       action_type: AUDIT_ACTION_TYPES.USER_DELETED,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: data.id,
@@ -219,7 +208,7 @@ export async function hardDeleteUser(data: z.infer<typeof hardDeleteUserSchema>)
     
     return { success: true };
   } catch (error: any) {
-    console.error('Erro inesperado ao fazer hard delete do usuário:', error);
+    console.error('Erro inesperado ao fazer hard delete do usuÃ¡rio:', error);
     return { 
       success: false, 
       error: `Erro inesperado ao excluir permanentemente: ${error.message}` 
@@ -228,40 +217,40 @@ export async function hardDeleteUser(data: z.infer<typeof hardDeleteUserSchema>)
 }
 
 /**
- * Restaura usuário soft deleted (remove deleted_at)
- * @param {z.infer<typeof restoreUserSchema>} data Dados do usuário a ser restaurado
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
+ * Restaura usuÃ¡rio soft deleted (remove deleted_at)
+ * @param {z.infer<typeof restoreUserSchema>} data Dados do usuÃ¡rio a ser restaurado
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado da operaÃ§Ã£o
  */
 export async function restoreUser(data: z.infer<typeof restoreUserSchema>): Promise<{success: boolean, error?: string}> {
   const parsed = restoreUserSchema.safeParse(data);
   if (!parsed.success) {
     return { 
       success: false, 
-      error: 'ID inválido para restaurar usuário.' 
+      error: 'ID invÃ¡lido para restaurar usuÃ¡rio.' 
     };
   }
   
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-        return { success: false, error: 'Usuário não autenticado ou erro de sessão.' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { success: false, error: 'UsuÃ¡rio nÃ£o autenticado ou erro de sessÃ£o.' };
     }
 
-    // Apenas administradores podem restaurar usuários
+    // Apenas administradores podem restaurar usuÃ¡rios
     const { data: userProfile, error: userProfileError } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (userProfileError || !userProfile || userProfile.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem restaurar usuários.' };
+      return { success: false, error: 'Apenas administradores podem restaurar usuÃ¡rios.' };
     }
     
-    // Buscar dados do usuário antes da restauração para o log
+    // Buscar dados do usuÃ¡rio antes da restauraÃ§Ã£o para o log
     const { data: targetUser, error: targetUserError } = await supabase
       .from('profiles')
       .select('first_name, last_name')
@@ -272,23 +261,23 @@ export async function restoreUser(data: z.infer<typeof restoreUserSchema>): Prom
       .from('profiles')
       .update({ 
         deleted_at: null,
-        status: 'active' 
+        status: 'ACTIVE' 
       })
       .eq('id', data.id);
 
     if (error) {
-      console.error('Erro ao restaurar usuário:', error);
+      console.error('Erro ao restaurar usuÃ¡rio:', error);
       return { 
         success: false, 
-        error: `Erro ao restaurar usuário: ${error.message}` 
+        error: `Erro ao restaurar usuÃ¡rio: ${error.message}` 
       };
     }
     
-    const adminSupabase = createSupabaseAdminClient(cookieStore);
+    const adminSupabase = await createSupabaseAdminClient();
     const { data: authUser } = await adminSupabase.auth.admin.getUserById(data.id);
     
     await createAuditLog({
-      actor_user_id: session.user.id,
+      actor_user_id: user.id,
       action_type: AUDIT_ACTION_TYPES.USER_RESTORED,
       resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: data.id,
@@ -302,32 +291,32 @@ export async function restoreUser(data: z.infer<typeof restoreUserSchema>): Prom
     revalidatePath('/settings/users');
     return { success: true };
   } catch (error: any) {
-    console.error('Erro inesperado ao restaurar usuário:', error);
+    console.error('Erro inesperado ao restaurar usuÃ¡rio:', error);
     return { 
       success: false, 
-      error: `Erro inesperado ao restaurar usuário: ${error.message}` 
+      error: `Erro inesperado ao restaurar usuÃ¡rio: ${error.message}` 
     };
   }
 }
 
 /**
- * Lista usuários que foram soft deleted
- * @returns {Promise<{data?: Array<any>, error?: string}>} Lista de usuários ou erro
+ * Lista usuÃ¡rios que foram soft deleted
+ * @returns {Promise<{data?: Array<any>, error?: string}>} Lista de usuÃ¡rios ou erro
  */
 export async function listDeletedUsers(): Promise<{data?: Array<any>, error?: string}> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return { error: 'Usuário não autenticado' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: 'UsuÃ¡rio nÃ£o autenticado' };
     }
 
     const { data: userProfile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (userProfile?.role !== 'organization_admin') {
@@ -341,8 +330,8 @@ export async function listDeletedUsers(): Promise<{data?: Array<any>, error?: st
       .order('deleted_at', { ascending: false });
 
     if (error) {
-      console.error('Erro ao listar usuários excluídos:', error);
-      return { error: `Erro ao buscar usuários: ${error.message}` };
+      console.error('Erro ao listar usuÃ¡rios excluÃ­dos:', error);
+      return { error: `Erro ao buscar usuÃ¡rios: ${error.message}` };
     }
     
     return { data };
@@ -352,62 +341,61 @@ export async function listDeletedUsers(): Promise<{data?: Array<any>, error?: st
 }
 
 /**
- * Atualiza dados de um usuário (atualmente apenas o perfil/role)
- * @param {z.infer<typeof updateUserSchema>} data Dados do usuário a serem atualizados
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
+ * Atualiza dados de um usuÃ¡rio (atualmente apenas o perfil/role)
+ * @param {z.infer<typeof updateUserSchema>} data Dados do usuÃ¡rio a serem atualizados
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado da operaÃ§Ã£o
  */
 export async function updateUser(data: z.infer<typeof updateUserSchema>): Promise<{success: boolean, error?: string}> {
-  const parsed = updateUserSchema.safeParse(data);
-  if (!parsed.success) {
-    return { 
-      success: false, 
-      error: 'Dados inválidos para atualizar usuário.' 
-    };
+  const parsedData = updateUserSchema.safeParse(data);
+  if (!parsedData.success) {
+    return { success: false, error: 'Dados invÃ¡lidos.' };
   }
+  const { id, ...updateData } = parsedData.data;
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return { success: false, error: 'Usuário não autenticado' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'UsuÃ¡rio nÃ£o autenticado.' };
     }
 
+    // Verifica permissÃµes
     const { data: userProfile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (userProfile?.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem atualizar usuários.' };
+      return { success: false, error: 'Apenas administradores podem alterar perfis de outros usuÃ¡rios.' };
     }
 
     // Buscar dados atuais para o log
-    const { data: targetUser } = await supabase.from('profiles').select('role').eq('id', data.id).single();
+    const { data: targetUser } = await supabase.from('profiles').select('role').eq('id', id).single();
 
     const { error } = await supabase
       .from('profiles')
-      .update({ role: data.perfil })
-      .eq('id', data.id);
+      .update(updateData)
+      .eq('id', id);
 
     if (error) {
-      console.error('Erro ao atualizar usuário:', error);
+      console.error('Erro ao atualizar usuÃ¡rio:', error);
       return { 
         success: false, 
-        error: `Erro ao atualizar usuário: ${error.message}` 
+        error: `Erro ao atualizar usuÃ¡rio: ${error.message}` 
       };
     }
     
     await createAuditLog({
-        actor_user_id: session.user.id,
+        actor_user_id: user.id,
         action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
         resource_type: AUDIT_RESOURCE_TYPES.USER,
-        resource_id: data.id,
+        resource_id: id,
         details: {
             previous_role: targetUser?.role,
-            new_role: data.perfil
+            new_role: updateData.role
         }
     });
 
@@ -419,64 +407,61 @@ export async function updateUser(data: z.infer<typeof updateUserSchema>): Promis
 }
 
 /**
- * Desativa a conta de um usuário (define status como inativo)
- * @param {z.infer<typeof deactivateUserSchema>} data Dados do usuário a ser desativado
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
+ * Desativa a conta de um usuÃ¡rio (define status como inativo)
+ * @param {z.infer<typeof deactivateUserSchema>} data Dados do usuÃ¡rio a ser desativado
+ * @returns {Promise<{success: boolean, error?: string}>} Resultado da operaÃ§Ã£o
  */
 export async function deactivateUser(data: z.infer<typeof deactivateUserSchema>): Promise<{success: boolean, error?: string}> {
   const parsed = deactivateUserSchema.safeParse(data);
   if (!parsed.success) {
-    return { 
-      success: false, 
-      error: 'ID inválido para desativar usuário.' 
-    };
+    return { success: false, error: 'ID de usuÃ¡rio invÃ¡lido.' };
   }
-
+  
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return { success: false, error: 'Usuário não autenticado' };
+
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { success: false, error: 'UsuÃ¡rio nÃ£o autenticado.' };
     }
 
+    // Verifica permissÃµes
     const { data: userProfile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (userProfile?.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem desativar usuários.' };
+      return { success: false, error: 'Apenas administradores podem desativar usuÃ¡rios.' };
     }
 
-    // Impede autodesativação
-    if (data.id === session.user.id) {
-      return { success: false, error: 'Você não pode desativar sua própria conta.' };
+    if (data.id === user.id) {
+      return { success: false, error: 'VocÃª nÃ£o pode desativar sua prÃ³pria conta.' };
     }
 
     const { error } = await supabase
       .from('profiles')
-      .update({ status: 'inactive' })
+      .update({ status: 'INACTIVE' })
       .eq('id', data.id);
 
     if (error) {
-      console.error('Erro ao desativar usuário:', error);
+      console.error('Erro ao desativar usuÃ¡rio:', error);
       return { 
         success: false, 
-        error: `Erro ao desativar usuário: ${error.message}` 
+        error: `Erro ao desativar usuÃ¡rio: ${error.message}` 
       };
     }
     
     await createAuditLog({
-        actor_user_id: session.user.id,
-        action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+        actor_user_id: user.id,
+        action_type: AUDIT_ACTION_TYPES.USER_DEACTIVATED,
         resource_type: AUDIT_RESOURCE_TYPES.USER,
         resource_id: data.id,
         details: {
             action: 'deactivate',
-            new_status: 'inactive'
+            new_status: 'INACTIVE'
         }
     });
 
@@ -488,26 +473,22 @@ export async function deactivateUser(data: z.infer<typeof deactivateUserSchema>)
 }
 
 /**
- * Lista todos os usuários ativos da organização
- * @returns {Promise<{data?: Array<any>, error?: string}>} Lista de usuários ou erro
+ * Lista todos os usuÃ¡rios ativos da organizaÃ§Ã£o
+ * @returns {Promise<{data?: Array<any>, error?: string}>} Lista de usuÃ¡rios ou erro
  */
 export async function listUsers(): Promise<{data?: Array<any>, error?: string}> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      return { error: 'Usuário não autenticado' };
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: 'UsuÃ¡rio nÃ£o autenticado' };
     }
     
-    const { data: userProfile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
+    const { data: userProfile } = await getUserProfile(supabase, user.id, 'role');
 
-    if (userProfile?.role !== 'organization_admin') {
+    if (!userProfile || (userProfile as any).role !== 'organization_admin') {
       return { error: 'Acesso negado.' };
     }
 
@@ -518,8 +499,8 @@ export async function listUsers(): Promise<{data?: Array<any>, error?: string}> 
       .order('first_name', { ascending: true });
 
     if (error) {
-      console.error('Erro ao listar usuários:', error);
-      return { error: `Erro ao buscar usuários: ${error.message}` };
+      console.error('Erro ao listar usuÃ¡rios:', error);
+      return { error: `Erro ao buscar usuÃ¡rios: ${error.message}` };
     }
     
     return { data };
@@ -528,45 +509,45 @@ export async function listUsers(): Promise<{data?: Array<any>, error?: string}> 
   }
 }
 
-// ... (O restante do arquivo, como `getUsersWithInvites`, etc., também precisaria de correções similares)
-// Por brevidade, focando nas funções principais.
+// ... (O restante do arquivo, como `getUsersWithInvites`, etc., tambÃ©m precisaria de correÃ§Ãµes similares)
+// Por brevidade, focando nas funÃ§Ãµes principais.
 export async function getUsersWithInvites() {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error('Usuário não autenticado');
+    const supabase = await createSupabaseServerClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('UsuÃ¡rio nÃ£o autenticado');
     }
 
-    const { data: userProfile, error: profileError } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('role, organization_id')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
     
-    if (profileError || !userProfile || userProfile.role !== 'organization_admin') {
-      throw new Error('Acesso negado. Apenas administradores podem listar usuários e convites.');
+    if (profileError || !profile || profile.role !== 'organization_admin') {
+      throw new Error('Acesso negado. Apenas administradores podem listar usuÃ¡rios e convites.');
     }
 
-    // Busca usuários da organização
+    // Busca usuÃ¡rios da organizaÃ§Ã£o
     const { data: users, error: usersError } = await supabase
       .from('profiles')
       .select('id, first_name, last_name, email, role, status')
-      .eq('organization_id', userProfile.organization_id)
+      .eq('organization_id', profile.organization_id)
       .is('deleted_at', null);
 
     if (usersError) {
       throw usersError;
     }
 
-    // Busca convites pendentes da organização
+    // Busca convites pendentes da organizaÃ§Ã£o
     const { data: invites, error: invitesError } = await supabase
       .from('invites')
       .select('id, email, role, status, created_at')
-      .eq('organization_id', userProfile.organization_id)
-      .eq('status', 'pending');
+      .eq('organization_id', profile.organization_id)
+      .eq('status', 'PENDING');
 
     if (invitesError) {
       throw invitesError;

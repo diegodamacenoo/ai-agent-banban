@@ -1,14 +1,14 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
 import { PlusIcon, EditIcon, TrashIcon } from "lucide-react";
 import { GenericDialog } from "../common/dialog/generic-dialog";
 import { GenericTable } from "../common/table/generic-table";
 import { PerfilDialog } from "./components/perfil-dialog";
 import { usePerfilUsuario } from "../../contexts/perfis-context";
 import { UserProfile } from "../../types/perfis";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/shared/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 
 interface PerfisUsuariosState {
   dialogAberto: boolean;
@@ -28,7 +28,7 @@ export default function PerfisUsuarios() {
 
   const colunas = [
     {
-      header: "Usuário",
+      header: "UsuÃ¡rio",
       cell: (perfil: UserProfile) => (
         <div className="flex items-center space-x-4">
           <Avatar>
@@ -52,10 +52,10 @@ export default function PerfisUsuarios() {
       ),
     },
     {
-      header: "Função",
+      header: "FunÃ§Ã£o",
       cell: (perfil: UserProfile) => (
         <Badge variant={perfil.role === "organization_admin" ? "default" : "secondary"}>
-          {perfil.role === "organization_admin" ? "Administrador" : "Usuário Padrão"}
+          {perfil.role === "organization_admin" ? "Administrador" : "UsuÃ¡rio PadrÃ£o"}
         </Badge>
       ),
     },
@@ -81,7 +81,7 @@ export default function PerfisUsuarios() {
       ),
     },
     {
-      header: "Ações",
+      header: "AÃ§Ãµes",
       cell: (perfil: UserProfile) => (
         <div className="flex space-x-2">
           <Button
@@ -167,9 +167,9 @@ export default function PerfisUsuarios() {
       <CardContent className="p-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h3 className="text-lg font-medium">Perfis de Usuários</h3>
+            <h3 className="text-lg font-medium">Perfis de UsuÃ¡rios</h3>
             <p className="text-sm text-muted-foreground">
-              Gerencie os perfis e permissões dos usuários
+              Gerencie os perfis e permissÃµes dos usuÃ¡rios
             </p>
           </div>
           <Button onClick={abrirNovoPerfil} disabled={state.isLoading}>

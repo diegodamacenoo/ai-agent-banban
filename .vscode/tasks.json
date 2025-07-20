@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Claude 🚀 Quick Ubuntu Shell",
+            "type": "shell",
+            "command": "docker",
+            "args": [
+                "run",
+                "-it",
+                "--rm",
+                "-v",
+                "${workspaceFolder}:/workspace",
+                "-w",
+                "/workspace",
+                "ubuntu:22.04",
+                "bash",
+                "-c",
+                // Tudo em uma string só (abaixo):
+                "set -e && apt-get update && apt-get install -y curl git && curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && apt-get install -y nodejs && npm install -g @anthropic-ai/claude-code && echo 'Tudo instalado. Executando claude-code e abrindo shell interativo...' && claude-code && exec bash"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "clear": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

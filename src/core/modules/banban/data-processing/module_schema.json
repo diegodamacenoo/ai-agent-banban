@@ -1,0 +1,1037 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.axon-system.com/modules/banban/data-processing/v2.0.0",
+  "title": "BanBan Data Processing Module Configuration",
+  "description": "Schema de configuração para o módulo de processamento de dados BanBan Fashion",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do módulo de processamento de dados",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Módulo Habilitado",
+          "description": "Habilita ou desabilita o módulo de processamento de dados",
+          "default": true
+        },
+        "auto_processing": {
+          "type": "boolean",
+          "title": "Processamento Automático",
+          "description": "Habilita processamento automático de eventos recebidos",
+          "default": true
+        },
+        "debug_mode": {
+          "type": "boolean",
+          "title": "Modo Debug",
+          "description": "Habilita logs detalhados para depuração",
+          "default": false
+        },
+        "environment": {
+          "type": "string",
+          "title": "Ambiente",
+          "description": "Ambiente de execução do módulo",
+          "enum": ["development", "staging", "production"],
+          "default": "production"
+        }
+      },
+      "required": ["enabled", "auto_processing"],
+      "additionalProperties": false
+    },
+    "queue_management": {
+      "type": "object",
+      "title": "Gerenciamento de Fila",
+      "description": "Configurações para gerenciamento da fila de eventos",
+      "properties": {
+        "max_event_queue_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo da Fila",
+          "description": "Número máximo de eventos na fila de processamento",
+          "minimum": 100,
+          "maximum": 50000,
+          "default": 10000
+        },
+        "processing_timeout": {
+          "type": "integer",
+          "title": "Timeout de Processamento",
+          "description": "Timeout em milissegundos para processamento de eventos",
+          "minimum": 5000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Número de eventos processados por lote",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "queue_priority_enabled": {
+          "type": "boolean",
+          "title": "Priorização de Fila",
+          "description": "Habilita sistema de prioridades na fila",
+          "default": true
+        },
+        "max_concurrent_processors": {
+          "type": "integer",
+          "title": "Processadores Concorrentes",
+          "description": "Número máximo de processadores concorrentes",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 5
+        }
+      },
+      "required": ["max_event_queue_size", "processing_timeout", "batch_size"],
+      "additionalProperties": false
+    },
+    "retry_configuration": {
+      "type": "object",
+      "title": "Configuração de Retry",
+      "description": "Configurações para tentativas de reprocessamento",
+      "properties": {
+        "retry_attempts": {
+          "type": "integer",
+          "title": "Tentativas de Retry",
+          "description": "Número máximo de tentativas de reprocessamento",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        },
+        "initial_retry_delay": {
+          "type": "integer",
+          "title": "Delay Inicial",
+          "description": "Delay inicial entre tentativas em milissegundos",
+          "minimum": 100,
+          "maximum": 60000,
+          "default": 1000
+        },
+        "max_retry_delay": {
+          "type": "integer",
+          "title": "Delay Máximo",
+          "description": "Delay máximo entre tentativas em milissegundos",
+          "minimum": 1000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "backoff_multiplier": {
+          "type": "number",
+          "title": "Multiplicador de Backoff",
+          "description": "Multiplicador para aumentar delay entre tentativas",
+          "minimum": 1.0,
+          "maximum": 5.0,
+          "default": 2.0
+        },
+        "jitter_enabled": {
+          "type": "boolean",
+          "title": "Jitter Habilitado",
+          "description": "Adiciona variação aleatória ao delay",
+          "default": true
+        }
+      },
+      "required": ["retry_attempts", "initial_retry_delay", "max_retry_delay"],
+      "additionalProperties": false
+    },
+    "webhook_configuration": {
+      "type": "object",
+      "title": "Configuração de Webhooks",
+      "description": "Configurações para recebimento de webhooks do ERP",
+      "properties": {
+        "enable_webhooks": {
+          "type": "boolean",
+          "title": "Webhooks Habilitados",
+          "description": "Habilita recebimento de webhooks",
+          "default": true
+        },
+        "signature_validation": {
+          "type": "boolean",
+          "title": "Validação de Assinatura",
+          "description": "Valida assinatura dos webhooks recebidos",
+          "default": true
+        },
+        "timestamp_validation": {
+          "type": "boolean",
+          "title": "Validação de Timestamp",
+          "description": "Valida timestamp dos webhooks",
+          "default": true
+        },
+        "max_event_age": {
+          "type": "integer",
+          "title": "Idade Máxima do Evento",
+          "description": "Idade máxima aceita para eventos em milissegundos",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 3600000
+        },
+        "allowed_event_types": {
+          "type": "array",
+          "title": "Tipos de Evento Permitidos",
+          "description": "Lista de tipos de evento aceitos",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sale_completed",
+              "sale_cancelled",
+              "return_processed",
+              "inventory_adjustment",
+              "inventory_count",
+              "inventory_transfer",
+              "purchase_completed",
+              "purchase_cancelled",
+              "purchase_returned",
+              "transfer_initiated",
+              "transfer_completed",
+              "transfer_cancelled",
+              "product_created",
+              "product_updated",
+              "product_discontinued"
+            ]
+          },
+          "default": [
+            "sale_completed",
+            "inventory_adjustment",
+            "transfer_completed",
+            "product_updated"
+          ]
+        }
+      },
+      "required": ["enable_webhooks", "signature_validation"],
+      "additionalProperties": false
+    },
+    "validation_rules": {
+      "type": "object",
+      "title": "Regras de Validação",
+      "description": "Configurações para validação de eventos",
+      "properties": {
+        "enable_validation": {
+          "type": "boolean",
+          "title": "Validação Habilitada",
+          "description": "Habilita validação de eventos",
+          "default": true
+        },
+        "strict_mode": {
+          "type": "boolean",
+          "title": "Modo Estrito",
+          "description": "Rejeita eventos com campos extras não definidos",
+          "default": false
+        },
+        "required_fields": {
+          "type": "array",
+          "title": "Campos Obrigatórios",
+          "description": "Lista de campos obrigatórios em todos os eventos",
+          "items": {
+            "type": "string"
+          },
+          "default": ["event_type", "timestamp", "tenant_id", "data"]
+        },
+        "max_payload_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo do Payload",
+          "description": "Tamanho máximo do payload em bytes",
+          "minimum": 1024,
+          "maximum": 10485760,
+          "default": 1048576
+        },
+        "custom_validators": {
+          "type": "object",
+          "title": "Validadores Customizados",
+          "description": "Validadores específicos por tipo de evento",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "schema": { "type": "object" }
+            }
+          }
+        }
+      },
+      "required": ["enable_validation"],
+      "additionalProperties": false
+    },
+    "batch_processing": {
+      "type": "object",
+      "title": "Processamento em Lote",
+      "description": "Configurações para processamento em lote",
+      "properties": {
+        "enable_batch_processing": {
+          "type": "boolean",
+          "title": "Processamento em Lote Habilitado",
+          "description": "Habilita processamento de eventos em lote",
+          "default": true
+        },
+        "batch_timeout": {
+          "type": "integer",
+          "title": "Timeout do Lote",
+          "description": "Timeout para formar um lote completo em milissegundos",
+          "minimum": 1000,
+          "maximum": 60000,
+          "default": 5000
+        },
+        "min_batch_size": {
+          "type": "integer",
+          "title": "Tamanho Mínimo do Lote",
+          "description": "Número mínimo de eventos para formar um lote",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 5
+        },
+        "max_batch_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo do Lote",
+          "description": "Número máximo de eventos em um lote",
+          "minimum": 10,
+          "maximum": 1000,
+          "default": 100
+        },
+        "parallel_batches": {
+          "type": "integer",
+          "title": "Lotes Paralelos",
+          "description": "Número de lotes processados em paralelo",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        }
+      },
+      "required": ["enable_batch_processing"],
+      "additionalProperties": false
+    },
+    "monitoring_metrics": {
+      "type": "object",
+      "title": "Monitoramento e Métricas",
+      "description": "Configurações para coleta de métricas e monitoramento",
+      "properties": {
+        "enable_metrics": {
+          "type": "boolean",
+          "title": "Métricas Habilitadas",
+          "description": "Habilita coleta de métricas de performance",
+          "default": true
+        },
+        "metrics_interval": {
+          "type": "integer",
+          "title": "Intervalo de Métricas",
+          "description": "Intervalo de coleta de métricas em segundos",
+          "minimum": 10,
+          "maximum": 3600,
+          "default": 60
+        },
+        "detailed_metrics": {
+          "type": "boolean",
+          "title": "Métricas Detalhadas",
+          "description": "Coleta métricas detalhadas por tipo de evento",
+          "default": true
+        },
+        "performance_tracking": {
+          "type": "boolean",
+          "title": "Rastreamento de Performance",
+          "description": "Rastreia performance de processamento",
+          "default": true
+        },
+        "error_tracking": {
+          "type": "boolean",
+          "title": "Rastreamento de Erros",
+          "description": "Rastreia e categoriza erros",
+          "default": true
+        }
+      },
+      "required": ["enable_metrics"],
+      "additionalProperties": false
+    },
+    "logging_audit": {
+      "type": "object",
+      "title": "Logging e Auditoria",
+      "description": "Configurações para logs e auditoria",
+      "properties": {
+        "enable_audit_logging": {
+          "type": "boolean",
+          "title": "Log de Auditoria Habilitado",
+          "description": "Habilita logs de auditoria para todos os eventos",
+          "default": true
+        },
+        "log_level": {
+          "type": "string",
+          "title": "Nível de Log",
+          "description": "Nível de detalhamento dos logs",
+          "enum": ["error", "warn", "info", "debug"],
+          "default": "info"
+        },
+        "log_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Logs",
+          "description": "Número de dias para manter logs",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 90
+        },
+        "sensitive_data_masking": {
+          "type": "boolean",
+          "title": "Mascaramento de Dados Sensíveis",
+          "description": "Mascara dados sensíveis nos logs",
+          "default": true
+        },
+        "structured_logging": {
+          "type": "boolean",
+          "title": "Logging Estruturado",
+          "description": "Usa formato estruturado para logs",
+          "default": true
+        }
+      },
+      "required": ["enable_audit_logging", "log_level"],
+      "additionalProperties": false
+    },
+    "integration_settings": {
+      "type": "object",
+      "title": "Configurações de Integração",
+      "description": "Configurações para integração com outros módulos e sistemas",
+      "properties": {
+        "enable_module_integration": {
+          "type": "boolean",
+          "title": "Integração de Módulos Habilitada",
+          "description": "Habilita integração com outros módulos BanBan",
+          "default": true
+        },
+        "insights_integration": {
+          "type": "boolean",
+          "title": "Integração com Insights",
+          "description": "Envia eventos para módulo de insights",
+          "default": true
+        },
+        "performance_integration": {
+          "type": "boolean",
+          "title": "Integração com Performance",
+          "description": "Envia métricas para módulo de performance",
+          "default": true
+        },
+        "inventory_integration": {
+          "type": "boolean",
+          "title": "Integração com Inventory",
+          "description": "Sincroniza eventos de inventário",
+          "default": true
+        },
+        "edge_functions_integration": {
+          "type": "boolean",
+          "title": "Integração com Edge Functions",
+          "description": "Processa eventos das Edge Functions",
+          "default": true
+        },
+        "external_webhooks": {
+          "type": "array",
+          "title": "Webhooks Externos",
+          "description": "Lista de webhooks externos para notificações",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "events": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enabled": { "type": "boolean" }
+            },
+            "required": ["name", "url", "events"]
+          },
+          "default": []
+        }
+      },
+      "required": ["enable_module_integration"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "general",
+    "queue_management",
+    "retry_configuration",
+    "webhook_configuration",
+    "validation_rules"
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "general": {
+        "enabled": true,
+        "auto_processing": true,
+        "debug_mode": false,
+        "environment": "production"
+      },
+      "queue_management": {
+        "max_event_queue_size": 10000,
+        "processing_timeout": 30000,
+        "batch_size": 50,
+        "queue_priority_enabled": true,
+        "max_concurrent_processors": 5
+      },
+      "retry_configuration": {
+        "retry_attempts": 3,
+        "initial_retry_delay": 1000,
+        "max_retry_delay": 30000,
+        "backoff_multiplier": 2.0,
+        "jitter_enabled": true
+      },
+      "webhook_configuration": {
+        "enable_webhooks": true,
+        "signature_validation": true,
+        "timestamp_validation": true,
+        "max_event_age": 3600000,
+        "allowed_event_types": [
+          "sale_completed",
+          "inventory_adjustment",
+          "transfer_completed"
+        ]
+      },
+      "validation_rules": {
+        "enable_validation": true,
+        "strict_mode": false,
+        "required_fields": ["event_type", "timestamp", "tenant_id", "data"],
+        "max_payload_size": 1048576
+      },
+      "batch_processing": {
+        "enable_batch_processing": true,
+        "batch_timeout": 5000,
+        "min_batch_size": 5,
+        "max_batch_size": 100,
+        "parallel_batches": 3
+      },
+      "monitoring_metrics": {
+        "enable_metrics": true,
+        "metrics_interval": 60,
+        "detailed_metrics": true,
+        "performance_tracking": true,
+        "error_tracking": true
+      },
+      "logging_audit": {
+        "enable_audit_logging": true,
+        "log_level": "info",
+        "log_retention_days": 90,
+        "sensitive_data_masking": true,
+        "structured_logging": true
+      },
+      "integration_settings": {
+        "enable_module_integration": true,
+        "insights_integration": true,
+        "performance_integration": true,
+        "inventory_integration": true,
+        "edge_functions_integration": true,
+        "external_webhooks": []
+      }
+    }
+  ]
+} 
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.axon-system.com/modules/banban/data-processing/v2.0.0",
+  "title": "BanBan Data Processing Module Configuration",
+  "description": "Schema de configuração para o módulo de processamento de dados BanBan Fashion",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do módulo de processamento de dados",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Módulo Habilitado",
+          "description": "Habilita ou desabilita o módulo de processamento de dados",
+          "default": true
+        },
+        "auto_processing": {
+          "type": "boolean",
+          "title": "Processamento Automático",
+          "description": "Habilita processamento automático de eventos recebidos",
+          "default": true
+        },
+        "debug_mode": {
+          "type": "boolean",
+          "title": "Modo Debug",
+          "description": "Habilita logs detalhados para depuração",
+          "default": false
+        },
+        "environment": {
+          "type": "string",
+          "title": "Ambiente",
+          "description": "Ambiente de execução do módulo",
+          "enum": ["development", "staging", "production"],
+          "default": "production"
+        }
+      },
+      "required": ["enabled", "auto_processing"],
+      "additionalProperties": false
+    },
+    "queue_management": {
+      "type": "object",
+      "title": "Gerenciamento de Fila",
+      "description": "Configurações para gerenciamento da fila de eventos",
+      "properties": {
+        "max_event_queue_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo da Fila",
+          "description": "Número máximo de eventos na fila de processamento",
+          "minimum": 100,
+          "maximum": 50000,
+          "default": 10000
+        },
+        "processing_timeout": {
+          "type": "integer",
+          "title": "Timeout de Processamento",
+          "description": "Timeout em milissegundos para processamento de eventos",
+          "minimum": 5000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Número de eventos processados por lote",
+          "minimum": 1,
+          "maximum": 1000,
+          "default": 50
+        },
+        "queue_priority_enabled": {
+          "type": "boolean",
+          "title": "Priorização de Fila",
+          "description": "Habilita sistema de prioridades na fila",
+          "default": true
+        },
+        "max_concurrent_processors": {
+          "type": "integer",
+          "title": "Processadores Concorrentes",
+          "description": "Número máximo de processadores concorrentes",
+          "minimum": 1,
+          "maximum": 20,
+          "default": 5
+        }
+      },
+      "required": ["max_event_queue_size", "processing_timeout", "batch_size"],
+      "additionalProperties": false
+    },
+    "retry_configuration": {
+      "type": "object",
+      "title": "Configuração de Retry",
+      "description": "Configurações para tentativas de reprocessamento",
+      "properties": {
+        "retry_attempts": {
+          "type": "integer",
+          "title": "Tentativas de Retry",
+          "description": "Número máximo de tentativas de reprocessamento",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        },
+        "initial_retry_delay": {
+          "type": "integer",
+          "title": "Delay Inicial",
+          "description": "Delay inicial entre tentativas em milissegundos",
+          "minimum": 100,
+          "maximum": 60000,
+          "default": 1000
+        },
+        "max_retry_delay": {
+          "type": "integer",
+          "title": "Delay Máximo",
+          "description": "Delay máximo entre tentativas em milissegundos",
+          "minimum": 1000,
+          "maximum": 300000,
+          "default": 30000
+        },
+        "backoff_multiplier": {
+          "type": "number",
+          "title": "Multiplicador de Backoff",
+          "description": "Multiplicador para aumentar delay entre tentativas",
+          "minimum": 1.0,
+          "maximum": 5.0,
+          "default": 2.0
+        },
+        "jitter_enabled": {
+          "type": "boolean",
+          "title": "Jitter Habilitado",
+          "description": "Adiciona variação aleatória ao delay",
+          "default": true
+        }
+      },
+      "required": ["retry_attempts", "initial_retry_delay", "max_retry_delay"],
+      "additionalProperties": false
+    },
+    "webhook_configuration": {
+      "type": "object",
+      "title": "Configuração de Webhooks",
+      "description": "Configurações para recebimento de webhooks do ERP",
+      "properties": {
+        "enable_webhooks": {
+          "type": "boolean",
+          "title": "Webhooks Habilitados",
+          "description": "Habilita recebimento de webhooks",
+          "default": true
+        },
+        "signature_validation": {
+          "type": "boolean",
+          "title": "Validação de Assinatura",
+          "description": "Valida assinatura dos webhooks recebidos",
+          "default": true
+        },
+        "timestamp_validation": {
+          "type": "boolean",
+          "title": "Validação de Timestamp",
+          "description": "Valida timestamp dos webhooks",
+          "default": true
+        },
+        "max_event_age": {
+          "type": "integer",
+          "title": "Idade Máxima do Evento",
+          "description": "Idade máxima aceita para eventos em milissegundos",
+          "minimum": 60000,
+          "maximum": 86400000,
+          "default": 3600000
+        },
+        "allowed_event_types": {
+          "type": "array",
+          "title": "Tipos de Evento Permitidos",
+          "description": "Lista de tipos de evento aceitos",
+          "items": {
+            "type": "string",
+            "enum": [
+              "sale_completed",
+              "sale_cancelled",
+              "return_processed",
+              "inventory_adjustment",
+              "inventory_count",
+              "inventory_transfer",
+              "purchase_completed",
+              "purchase_cancelled",
+              "purchase_returned",
+              "transfer_initiated",
+              "transfer_completed",
+              "transfer_cancelled",
+              "product_created",
+              "product_updated",
+              "product_discontinued"
+            ]
+          },
+          "default": [
+            "sale_completed",
+            "inventory_adjustment",
+            "transfer_completed",
+            "product_updated"
+          ]
+        }
+      },
+      "required": ["enable_webhooks", "signature_validation"],
+      "additionalProperties": false
+    },
+    "validation_rules": {
+      "type": "object",
+      "title": "Regras de Validação",
+      "description": "Configurações para validação de eventos",
+      "properties": {
+        "enable_validation": {
+          "type": "boolean",
+          "title": "Validação Habilitada",
+          "description": "Habilita validação de eventos",
+          "default": true
+        },
+        "strict_mode": {
+          "type": "boolean",
+          "title": "Modo Estrito",
+          "description": "Rejeita eventos com campos extras não definidos",
+          "default": false
+        },
+        "required_fields": {
+          "type": "array",
+          "title": "Campos Obrigatórios",
+          "description": "Lista de campos obrigatórios em todos os eventos",
+          "items": {
+            "type": "string"
+          },
+          "default": ["event_type", "timestamp", "tenant_id", "data"]
+        },
+        "max_payload_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo do Payload",
+          "description": "Tamanho máximo do payload em bytes",
+          "minimum": 1024,
+          "maximum": 10485760,
+          "default": 1048576
+        },
+        "custom_validators": {
+          "type": "object",
+          "title": "Validadores Customizados",
+          "description": "Validadores específicos por tipo de evento",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "enabled": { "type": "boolean" },
+              "schema": { "type": "object" }
+            }
+          }
+        }
+      },
+      "required": ["enable_validation"],
+      "additionalProperties": false
+    },
+    "batch_processing": {
+      "type": "object",
+      "title": "Processamento em Lote",
+      "description": "Configurações para processamento em lote",
+      "properties": {
+        "enable_batch_processing": {
+          "type": "boolean",
+          "title": "Processamento em Lote Habilitado",
+          "description": "Habilita processamento de eventos em lote",
+          "default": true
+        },
+        "batch_timeout": {
+          "type": "integer",
+          "title": "Timeout do Lote",
+          "description": "Timeout para formar um lote completo em milissegundos",
+          "minimum": 1000,
+          "maximum": 60000,
+          "default": 5000
+        },
+        "min_batch_size": {
+          "type": "integer",
+          "title": "Tamanho Mínimo do Lote",
+          "description": "Número mínimo de eventos para formar um lote",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 5
+        },
+        "max_batch_size": {
+          "type": "integer",
+          "title": "Tamanho Máximo do Lote",
+          "description": "Número máximo de eventos em um lote",
+          "minimum": 10,
+          "maximum": 1000,
+          "default": 100
+        },
+        "parallel_batches": {
+          "type": "integer",
+          "title": "Lotes Paralelos",
+          "description": "Número de lotes processados em paralelo",
+          "minimum": 1,
+          "maximum": 10,
+          "default": 3
+        }
+      },
+      "required": ["enable_batch_processing"],
+      "additionalProperties": false
+    },
+    "monitoring_metrics": {
+      "type": "object",
+      "title": "Monitoramento e Métricas",
+      "description": "Configurações para coleta de métricas e monitoramento",
+      "properties": {
+        "enable_metrics": {
+          "type": "boolean",
+          "title": "Métricas Habilitadas",
+          "description": "Habilita coleta de métricas de performance",
+          "default": true
+        },
+        "metrics_interval": {
+          "type": "integer",
+          "title": "Intervalo de Métricas",
+          "description": "Intervalo de coleta de métricas em segundos",
+          "minimum": 10,
+          "maximum": 3600,
+          "default": 60
+        },
+        "detailed_metrics": {
+          "type": "boolean",
+          "title": "Métricas Detalhadas",
+          "description": "Coleta métricas detalhadas por tipo de evento",
+          "default": true
+        },
+        "performance_tracking": {
+          "type": "boolean",
+          "title": "Rastreamento de Performance",
+          "description": "Rastreia performance de processamento",
+          "default": true
+        },
+        "error_tracking": {
+          "type": "boolean",
+          "title": "Rastreamento de Erros",
+          "description": "Rastreia e categoriza erros",
+          "default": true
+        }
+      },
+      "required": ["enable_metrics"],
+      "additionalProperties": false
+    },
+    "logging_audit": {
+      "type": "object",
+      "title": "Logging e Auditoria",
+      "description": "Configurações para logs e auditoria",
+      "properties": {
+        "enable_audit_logging": {
+          "type": "boolean",
+          "title": "Log de Auditoria Habilitado",
+          "description": "Habilita logs de auditoria para todos os eventos",
+          "default": true
+        },
+        "log_level": {
+          "type": "string",
+          "title": "Nível de Log",
+          "description": "Nível de detalhamento dos logs",
+          "enum": ["error", "warn", "info", "debug"],
+          "default": "info"
+        },
+        "log_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Logs",
+          "description": "Número de dias para manter logs",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 90
+        },
+        "sensitive_data_masking": {
+          "type": "boolean",
+          "title": "Mascaramento de Dados Sensíveis",
+          "description": "Mascara dados sensíveis nos logs",
+          "default": true
+        },
+        "structured_logging": {
+          "type": "boolean",
+          "title": "Logging Estruturado",
+          "description": "Usa formato estruturado para logs",
+          "default": true
+        }
+      },
+      "required": ["enable_audit_logging", "log_level"],
+      "additionalProperties": false
+    },
+    "integration_settings": {
+      "type": "object",
+      "title": "Configurações de Integração",
+      "description": "Configurações para integração com outros módulos e sistemas",
+      "properties": {
+        "enable_module_integration": {
+          "type": "boolean",
+          "title": "Integração de Módulos Habilitada",
+          "description": "Habilita integração com outros módulos BanBan",
+          "default": true
+        },
+        "insights_integration": {
+          "type": "boolean",
+          "title": "Integração com Insights",
+          "description": "Envia eventos para módulo de insights",
+          "default": true
+        },
+        "performance_integration": {
+          "type": "boolean",
+          "title": "Integração com Performance",
+          "description": "Envia métricas para módulo de performance",
+          "default": true
+        },
+        "inventory_integration": {
+          "type": "boolean",
+          "title": "Integração com Inventory",
+          "description": "Sincroniza eventos de inventário",
+          "default": true
+        },
+        "edge_functions_integration": {
+          "type": "boolean",
+          "title": "Integração com Edge Functions",
+          "description": "Processa eventos das Edge Functions",
+          "default": true
+        },
+        "external_webhooks": {
+          "type": "array",
+          "title": "Webhooks Externos",
+          "description": "Lista de webhooks externos para notificações",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "events": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "enabled": { "type": "boolean" }
+            },
+            "required": ["name", "url", "events"]
+          },
+          "default": []
+        }
+      },
+      "required": ["enable_module_integration"],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "general",
+    "queue_management",
+    "retry_configuration",
+    "webhook_configuration",
+    "validation_rules"
+  ],
+  "additionalProperties": false,
+  "examples": [
+    {
+      "general": {
+        "enabled": true,
+        "auto_processing": true,
+        "debug_mode": false,
+        "environment": "production"
+      },
+      "queue_management": {
+        "max_event_queue_size": 10000,
+        "processing_timeout": 30000,
+        "batch_size": 50,
+        "queue_priority_enabled": true,
+        "max_concurrent_processors": 5
+      },
+      "retry_configuration": {
+        "retry_attempts": 3,
+        "initial_retry_delay": 1000,
+        "max_retry_delay": 30000,
+        "backoff_multiplier": 2.0,
+        "jitter_enabled": true
+      },
+      "webhook_configuration": {
+        "enable_webhooks": true,
+        "signature_validation": true,
+        "timestamp_validation": true,
+        "max_event_age": 3600000,
+        "allowed_event_types": [
+          "sale_completed",
+          "inventory_adjustment",
+          "transfer_completed"
+        ]
+      },
+      "validation_rules": {
+        "enable_validation": true,
+        "strict_mode": false,
+        "required_fields": ["event_type", "timestamp", "tenant_id", "data"],
+        "max_payload_size": 1048576
+      },
+      "batch_processing": {
+        "enable_batch_processing": true,
+        "batch_timeout": 5000,
+        "min_batch_size": 5,
+        "max_batch_size": 100,
+        "parallel_batches": 3
+      },
+      "monitoring_metrics": {
+        "enable_metrics": true,
+        "metrics_interval": 60,
+        "detailed_metrics": true,
+        "performance_tracking": true,
+        "error_tracking": true
+      },
+      "logging_audit": {
+        "enable_audit_logging": true,
+        "log_level": "info",
+        "log_retention_days": 90,
+        "sensitive_data_masking": true,
+        "structured_logging": true
+      },
+      "integration_settings": {
+        "enable_module_integration": true,
+        "insights_integration": true,
+        "performance_integration": true,
+        "inventory_integration": true,
+        "edge_functions_integration": true,
+        "external_webhooks": []
+      }
+    }
+  ]
+} 

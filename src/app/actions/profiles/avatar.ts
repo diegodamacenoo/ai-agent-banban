@@ -1,15 +1,20 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { captureRequestInfo } from '@/lib/utils/audit-logger';
-import { createAuditLog } from '@/lib/utils/audit-logger';
-import { AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-import { AUDIT_ACTION_TYPES } from '@/lib/utils/audit-logger';
-import { UploadAvatarSchema } from '@/lib/schemas/profiles';
+import { 
+  captureRequestInfo, 
+  createAuditLog 
+} from '@/features/security/audit-logger';
+import { 
+  AUDIT_ACTION_TYPES,
+  AUDIT_RESOURCE_TYPES,
+  type AuditActionType,
+  type AuditResourceType 
+} from '@/core/schemas/audit';
+import { UploadAvatarSchema } from '@/core/schemas/profiles';
 
 /**
  * Atualiza a URL do avatar no perfil do usuário
@@ -18,15 +23,12 @@ import { UploadAvatarSchema } from '@/lib/schemas/profiles';
  */
 export async function updateAvatar(url: string | null): Promise<{success: boolean, error?: string}> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
     
     const { error } = await supabase
       .from('profiles')
@@ -57,15 +59,12 @@ export async function updateAvatar(url: string | null): Promise<{success: boolea
  */
 export async function uploadAvatar(formData: FormData): Promise<{success: boolean, url?: string, error?: string}> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
     
     const file = formData.get('avatar') as File;
     const validation = UploadAvatarSchema.safeParse({ avatar: file });
@@ -73,7 +72,7 @@ export async function uploadAvatar(formData: FormData): Promise<{success: boolea
     if (!validation.success) {
       return { 
         success: false,
-        error: validation.error.errors.map(e => e.message).join(', ') 
+        error: validation.error.errors.map((e: { message: string }) => e.message).join(', ') 
       };
     }
     
@@ -119,16 +118,17 @@ export async function uploadAvatar(formData: FormData): Promise<{success: boolea
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.PROFILE_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.PROFILE,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
+      organization_id: organizationId,
       ip_address: ipAddress,
       user_agent: userAgent,
-      organization_id: organizationId,
       details: {
-        changes: formData
+        field: 'avatar',
+        action: 'upload'
       }
-    }); 
+    });
     
     revalidatePath('/');
     revalidatePath('/settings');
@@ -137,4 +137,9 @@ export async function uploadAvatar(formData: FormData): Promise<{success: boolea
     console.error('Erro inesperado ao fazer upload do avatar:', error);
     return { success: false, error: 'Falha ao processar o avatar' };
   }
+}
+
+export async function deleteAvatar(userId: string) {
+    const supabase = await createSupabaseServerClient();
+    // ...
 } 

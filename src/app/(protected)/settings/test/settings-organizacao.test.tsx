@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+﻿import { render, screen, fireEvent, within } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import React, { ReactNode } from 'react'
 import SettingsOrganizacao from '../components/settings-organizacao'
@@ -47,7 +47,7 @@ interface SelectItemProps {
 }
 
 // Mock dos componentes de UI para simplificar o teste
-jest.mock('@/components/ui/card', () => ({
+jest.mock('@/shared/ui/card', () => ({
   Card: ({ className, children }: CardProps) => (
     <div data-testid="card" className={className}>{children}</div>
   ),
@@ -56,7 +56,7 @@ jest.mock('@/components/ui/card', () => ({
   )
 }))
 
-jest.mock('@/components/ui/button', () => ({
+jest.mock('@/shared/ui/button', () => ({
   Button: ({ size, variant, className, children, onClick }: ButtonProps) => (
     <button 
       data-testid="button" 
@@ -70,7 +70,7 @@ jest.mock('@/components/ui/button', () => ({
   )
 }))
 
-jest.mock('@/components/ui/input', () => ({
+jest.mock('@/shared/ui/input', () => ({
   Input: ({ id, placeholder, type, className }: InputProps) => (
     <input 
       data-testid={`input-${id}`}
@@ -82,7 +82,7 @@ jest.mock('@/components/ui/input', () => ({
   )
 }))
 
-jest.mock('@/components/ui/label', () => ({
+jest.mock('@/shared/ui/label', () => ({
   Label: ({ htmlFor, className, children }: LabelProps) => (
     <label
       data-testid={`label-${htmlFor}`}
@@ -94,7 +94,7 @@ jest.mock('@/components/ui/label', () => ({
   )
 }))
 
-jest.mock('@/components/ui/select', () => ({
+jest.mock('@/shared/ui/select', () => ({
   Select: ({ value, onValueChange, children }: SelectProps) => (
     <div data-testid="select" data-value={value}>
       {children}
@@ -120,7 +120,7 @@ jest.mock('@/components/ui/select', () => ({
   )
 }))
 
-jest.mock('@/components/ui/separator', () => ({
+jest.mock('@/shared/ui/separator', () => ({
   Separator: () => <hr data-testid="separator" />
 }))
 
@@ -129,7 +129,7 @@ jest.mock('lucide-react', () => ({
   CopyIcon: () => <div data-testid="copy-icon"></div>
 }))
 
-// Mock da função de clipboard
+// Mock da funÃ§Ã£o de clipboard
 const mockCopyToClipboard = jest.fn()
 Object.assign(navigator, {
   clipboard: {
@@ -145,42 +145,42 @@ describe('SettingsOrganizacao', () => {
   it('deve renderizar corretamente', () => {
     render(<SettingsOrganizacao />)
 
-    // Verifica o cabeçalho
-    expect(screen.getByText('Organização')).toBeInTheDocument()
+    // Verifica o cabeÃ§alho
+    expect(screen.getByText('OrganizaÃ§Ã£o')).toBeInTheDocument()
     
-    // Verifica as seções principais
-    expect(screen.getByText('Informações Básicas')).toBeInTheDocument()
-    expect(screen.getByText('Parâmetros Globais de Estoque')).toBeInTheDocument()
-    expect(screen.getByText('Exportação')).toBeInTheDocument()
+    // Verifica as seÃ§Ãµes principais
+    expect(screen.getByText('InformaÃ§Ãµes BÃ¡sicas')).toBeInTheDocument()
+    expect(screen.getByText('ParÃ¢metros Globais de Estoque')).toBeInTheDocument()
+    expect(screen.getByText('ExportaÃ§Ã£o')).toBeInTheDocument()
     
-    // Verifica campos específicos
+    // Verifica campos especÃ­ficos
     expect(screen.getByTestId('input-razaoSocial')).toBeInTheDocument()
     expect(screen.getByTestId('input-cnpj')).toBeInTheDocument()
     expect(screen.getByTestId('input-endereco')).toBeInTheDocument()
     expect(screen.getByTestId('select-trigger-fusoHorario')).toBeInTheDocument()
   })
 
-  it('deve permitir a alteração do fuso horário', () => {
+  it('deve permitir a alteraÃ§Ã£o do fuso horÃ¡rio', () => {
     render(<SettingsOrganizacao />)
 
-    // Encontra o contêiner do select de fuso horário
+    // Encontra o contÃªiner do select de fuso horÃ¡rio
     const fusoHorarioSelectContainer = screen.getByTestId('select-trigger-fusoHorario').closest('[data-testid="select"]');
     expect(fusoHorarioSelectContainer).toBeInTheDocument();
 
-    // Verifica que o valor inicial é 'america_fortaleza'
+    // Verifica que o valor inicial Ã© 'america_fortaleza'
     expect(fusoHorarioSelectContainer).toHaveAttribute('data-value', 'america_fortaleza')
 
-    // Encontra o select nativo dentro do contêiner específico
+    // Encontra o select nativo dentro do contÃªiner especÃ­fico
     const selectElement = within(fusoHorarioSelectContainer as HTMLElement).getByTestId('select-native');
     
-    // Muda o valor para um fuso horário diferente (ex: america_saopaulo)
-    // Certifique-se de que este valor exista nas opções do select-native mockado
+    // Muda o valor para um fuso horÃ¡rio diferente (ex: america_saopaulo)
+    // Certifique-se de que este valor exista nas opÃ§Ãµes do select-native mockado
     // No mock atual, temos: america_fortaleza, brl, csv, pdf. 
-    // Vamos usar 'america_fortaleza' para o estado inicial, e 'brl' como novo valor para testar a mudança.
-    // O ideal seria o mock do SelectItem refletir as opções reais ou o teste ser mais robusto quanto a isso.
+    // Vamos usar 'america_fortaleza' para o estado inicial, e 'brl' como novo valor para testar a mudanÃ§a.
+    // O ideal seria o mock do SelectItem refletir as opÃ§Ãµes reais ou o teste ser mais robusto quanto a isso.
     fireEvent.change(selectElement, { target: { value: 'brl' } })
     
-    // Verifica se o estado foi atualizado no contêiner do select específico
+    // Verifica se o estado foi atualizado no contÃªiner do select especÃ­fico
     expect(fusoHorarioSelectContainer).toHaveAttribute('data-value', 'brl')
   })
 }) 

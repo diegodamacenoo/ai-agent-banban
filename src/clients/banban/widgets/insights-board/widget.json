@@ -1,0 +1,26 @@
+{
+  "id": "banban-insights-board",
+  "title": "Insights Board",
+  "description": "Painel de insights automáticos com recomendações",
+  "component_path": "/widgets/banban/insights-board",
+  "module_id": "banban-insights",
+  "query_type": "rpc",
+  "query_config": {
+    "function": "get_latest_insights",
+    "params": {
+      "limit": 10,
+      "confidence_threshold": 70
+    }
+  },
+  "default_params": {
+    "maxInsights": 10,
+    "showFilters": true,
+    "confidenceThreshold": 70,
+    "categories": ["opportunity", "risk", "trend", "recommendation"]
+  },
+  "default_width": 6,
+  "default_height": 8,
+  "category": "insights",
+  "tags": ["insights", "recommendations", "ai", "analysis"],
+  "version": "1.0.0"
+} 

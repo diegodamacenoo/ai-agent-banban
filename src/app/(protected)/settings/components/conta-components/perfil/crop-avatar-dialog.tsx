@@ -16,9 +16,9 @@ import {
   DialogTitle,
   DialogFooter,
   DialogClose,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { useToast } from '@/components/ui/use-toast';
+} from '@/shared/ui/dialog';
+import { Button } from '@/shared/ui/button';
+import { useToast } from '@/shared/ui/toast';
 
 interface CropAvatarDialogProps {
   isOpen: boolean;
@@ -42,10 +42,8 @@ export function CropAvatarDialog({
 
   const handleCropImage = () => {
     if (!cropperRef.current) {
-      toast({
+      toast.error("NÃ£o foi possÃ­vel recortar a imagem.", {
         title: "Erro",
-        description: "Não foi possível recortar a imagem.",
-        variant: "destructive",
       });
       return;
     }
@@ -58,18 +56,14 @@ export function CropAvatarDialog({
           onCropComplete(blob);
           onClose();
         } else {
-          toast({
+          toast.error("Falha ao criar blob da imagem recortada.", {
             title: "Erro",
-            description: "Falha ao criar blob da imagem recortada.",
-            variant: "destructive",
           });
         }
       }, 'image/png', 0.9);
     } else {
-      toast({
+      toast.error("NÃ£o foi possÃ­vel obter o canvas do cropper.", {
         title: "Erro",
-        description: "Não foi possível obter o canvas do cropper.",
-        variant: "destructive",
       });
     }
   };

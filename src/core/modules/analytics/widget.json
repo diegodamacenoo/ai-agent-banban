@@ -1,0 +1,301 @@
+{
+  "moduleId": "analytics",
+  "version": "1.0.0",
+  "description": "Módulo de analytics com widgets de performance, vendas e análise de dados",
+  "widgets": [
+    {
+      "id": "performance-kpis",
+      "title": "Performance KPIs",
+      "description": "Indicadores-chave de performance do negócio",
+      "componentPath": "/widgets/analytics/performance-kpis",
+      "category": "analytics",
+      "tags": ["kpi", "performance", "metrics", "dashboard"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_performance_kpis",
+        "params": {
+          "period": "30d",
+          "include_trends": true
+        }
+      },
+      "defaultParams": {
+        "period": "30d",
+        "currency": "BRL",
+        "show_comparison": true
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "description": "Período para análise dos KPIs",
+            "enum": ["7d", "30d", "90d", "1y"],
+            "default": "30d"
+          },
+          "currency": {
+            "type": "string",
+            "title": "Moeda",
+            "description": "Moeda para exibição de valores",
+            "enum": ["BRL", "USD", "EUR"],
+            "default": "BRL"
+          },
+          "show_comparison": {
+            "type": "boolean",
+            "title": "Mostrar Comparação",
+            "description": "Exibir comparação com período anterior",
+            "default": true
+          },
+          "metrics": {
+            "type": "array",
+            "title": "Métricas",
+            "description": "Métricas a serem exibidas",
+            "items": {
+              "type": "string",
+              "enum": ["revenue", "orders", "conversion", "aov", "customers"]
+            },
+            "default": ["revenue", "orders", "conversion", "aov"]
+          }
+        },
+        "required": ["period"]
+      },
+      "refreshInterval": 300,
+      "permissions": ["analytics:read", "dashboard:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "sales-overview",
+      "title": "Visão Geral de Vendas",
+      "description": "Resumo das vendas e tendências do período",
+      "componentPath": "/widgets/analytics/sales-overview",
+      "category": "analytics",
+      "tags": ["sales", "revenue", "overview", "trends"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_sales_overview",
+        "params": {
+          "date_range": "30d",
+          "granularity": "daily"
+        }
+      },
+      "defaultParams": {
+        "date_range": "30d",
+        "granularity": "daily",
+        "show_goals": true
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 5
+      },
+      "minSize": {
+        "width": 6,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 8
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "date_range": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["7d", "30d", "90d", "1y"],
+            "default": "30d"
+          },
+          "granularity": {
+            "type": "string",
+            "title": "Granularidade",
+            "enum": ["hourly", "daily", "weekly", "monthly"],
+            "default": "daily"
+          },
+          "show_goals": {
+            "type": "boolean",
+            "title": "Mostrar Metas",
+            "default": true
+          },
+          "chart_type": {
+            "type": "string",
+            "title": "Tipo de Gráfico",
+            "enum": ["line", "bar", "area"],
+            "default": "line"
+          }
+        },
+        "required": ["date_range", "granularity"]
+      },
+      "refreshInterval": 600,
+      "permissions": ["analytics:read", "sales:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    },
+    {
+      "id": "trend-chart",
+      "title": "Gráfico de Tendências",
+      "description": "Análise de tendências customizável por métrica",
+      "componentPath": "/widgets/analytics/trend-chart",
+      "category": "analytics",
+      "tags": ["trends", "chart", "analysis", "metrics"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_trend_data",
+        "params": {
+          "metric": "revenue",
+          "period": "90d",
+          "granularity": "daily"
+        }
+      },
+      "defaultParams": {
+        "metric": "revenue",
+        "period": "90d",
+        "granularity": "daily"
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 6
+      },
+      "minSize": {
+        "width": 6,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 10
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "metric": {
+            "type": "string",
+            "title": "Métrica",
+            "enum": ["revenue", "orders", "customers", "conversion", "aov"],
+            "default": "revenue"
+          },
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["30d", "90d", "180d", "1y"],
+            "default": "90d"
+          },
+          "granularity": {
+            "type": "string",
+            "title": "Granularidade",
+            "enum": ["daily", "weekly", "monthly"],
+            "default": "daily"
+          },
+          "show_average": {
+            "type": "boolean",
+            "title": "Mostrar Média",
+            "default": true
+          },
+          "show_forecast": {
+            "type": "boolean",
+            "title": "Mostrar Previsão",
+            "default": false
+          }
+        },
+        "required": ["metric", "period"]
+      },
+      "refreshInterval": 900,
+      "permissions": ["analytics:read", "trends:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "conversion-funnel",
+      "title": "Funil de Conversão",
+      "description": "Análise do funil de vendas e conversão",
+      "componentPath": "/widgets/analytics/conversion-funnel",
+      "category": "analytics",
+      "tags": ["conversion", "funnel", "sales", "analysis"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_conversion_funnel",
+        "params": {
+          "period": "30d",
+          "include_segments": true
+        }
+      },
+      "defaultParams": {
+        "period": "30d",
+        "include_segments": true
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 5
+      },
+      "minSize": {
+        "width": 4,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 7
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["7d", "30d", "90d"],
+            "default": "30d"
+          },
+          "include_segments": {
+            "type": "boolean",
+            "title": "Incluir Segmentos",
+            "default": true
+          },
+          "funnel_steps": {
+            "type": "array",
+            "title": "Etapas do Funil",
+            "items": {
+              "type": "string",
+              "enum": ["visit", "view", "cart", "checkout", "purchase"]
+            },
+            "default": ["visit", "view", "cart", "purchase"]
+          }
+        },
+        "required": ["period"]
+      },
+      "refreshInterval": 600,
+      "permissions": ["analytics:read", "conversion:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    }
+  ],
+  "dependencies": []
+}

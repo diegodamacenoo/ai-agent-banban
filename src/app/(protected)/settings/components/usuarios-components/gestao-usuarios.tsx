@@ -1,18 +1,18 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/shared/ui/table";
 import EditarUsuarioButton from "./usuarios-client-actions/editar-usuario-button";
 import DesativarUsuarioButton from "./usuarios-client-actions/desativar-usuario-button";
 import SoftDeleteUsuarioButton from "./usuarios-client-actions/soft-delete-usuario-button";
 import ReenviarConviteButton from "./usuarios-client-actions/reenviar-convite-button";
 import CancelarConviteButton from "./usuarios-client-actions/cancelar-convite-button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SkeletonUserTable, SkeletonInviteTable } from "@/components/ui/skeleton-loader";
+import { Badge } from "@/shared/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { SkeletonUserTable, SkeletonInviteTable } from "@/shared/ui/skeleton-loader";
 
-// Componente de gestão de usuários e convites
+// Componente de gestÃ£o de usuÃ¡rios e convites
 
 interface GestaoUsuariosProps {
   users: any[];
@@ -23,42 +23,42 @@ interface GestaoUsuariosProps {
 }
 
 /**
- * Componente de gestão de usuários (Client Component)
- * Espera receber a lista de usuários via props
+ * Componente de gestÃ£o de usuÃ¡rios (Client Component)
+ * Espera receber a lista de usuÃ¡rios via props
  */
 export function GestaoUsuarios({ users, onUserUpdate, onSoftDeleteOptimistic, onUserUpdateOptimistic, isLoading }: GestaoUsuariosProps) {
   
    /**
-   * Função para tratar o soft delete otimista
+   * FunÃ§Ã£o para tratar o soft delete otimista
    * 
-   * Esta função é chamada quando o usuário solicita um soft delete.
-   * Ela remove o usuário da lista de ativos e adiciona na lista de excluídos.
+   * Esta funÃ§Ã£o Ã© chamada quando o usuÃ¡rio solicita um soft delete.
+   * Ela remove o usuÃ¡rio da lista de ativos e adiciona na lista de excluÃ­dos.
    * 
    */
   const handleSoftDeleteWithOptimistic = (userId: string, userName: string) => {
     // Update otimista primeiro
     onSoftDeleteOptimistic?.(userId);
-    // Callback para sincronização se necessário
+    // Callback para sincronizaÃ§Ã£o se necessÃ¡rio
     onUserUpdate?.();
   };
 
   /**
-   * Função para tratar o update otimista
+   * FunÃ§Ã£o para tratar o update otimista
    * 
-   * Esta função é chamada quando o usuário solicita um update.
-   * Ela atualiza o usuário na lista de ativos.
+   * Esta funÃ§Ã£o Ã© chamada quando o usuÃ¡rio solicita um update.
+   * Ela atualiza o usuÃ¡rio na lista de ativos.
    */ 
   const handleUserUpdateWithOptimistic = (userId: string, updates: any) => {
     // Update otimista primeiro
     onUserUpdateOptimistic?.(userId, updates);
-    // Callback para sincronização se necessário
+    // Callback para sincronizaÃ§Ã£o se necessÃ¡rio
     onUserUpdate?.();
   };
 
   return (
     <Card className="shadow-none">
       <CardContent className="p-6">
-        {/* Tabela de usuários */}
+        {/* Tabela de usuÃ¡rios */}
         {isLoading ? (
           <SkeletonUserTable rows={5} />
         ) : (
@@ -69,16 +69,16 @@ export function GestaoUsuarios({ users, onUserUpdate, onSoftDeleteOptimistic, on
               <TableHead>Email</TableHead>
               <TableHead>Perfil</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="text-right">AÃ§Ãµes</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Renderiza cada usuário */}
+            {/* Renderiza cada usuÃ¡rio */}
             {users.map((user) => (
               <TableRow key={user.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    {/* Avatar do usuário */}
+                    {/* Avatar do usuÃ¡rio */}
                     <Avatar>
                       <AvatarImage src={user.avatar_url || undefined} />
                       <AvatarFallback>{`${user.first_name?.[0] || ""}${user.last_name?.[0] || ""}`}</AvatarFallback>
@@ -102,12 +102,12 @@ export function GestaoUsuarios({ users, onUserUpdate, onSoftDeleteOptimistic, on
                 {/* Badge de status */}
                 <TableCell>
                   <Badge
-                    variant={user.status === "active" ? "outline" : "secondary"}
+                    variant={user.status === "ACTIVE" ? "outline" : "secondary"}
                   >
-                    {user.status === "active" ? "Ativo" : "Inativo"}
+                    {user.status === "ACTIVE" ? "Ativo" : user.status === "INACTIVE" ? "Inativo" : "Suspenso"}
                   </Badge>
                 </TableCell>
-                {/* Botões de ação */}
+                {/* BotÃµes de aÃ§Ã£o */}
                 <TableCell className="flex flex-row items-center justify-end min-w-[120px]">
                   <EditarUsuarioButton
                     user={user}
@@ -136,14 +136,14 @@ export function GestaoUsuarios({ users, onUserUpdate, onSoftDeleteOptimistic, on
 }
 
 /**
- * Componente de gestão de convites (Client Component)
+ * Componente de gestÃ£o de convites (Client Component)
  * Espera receber a lista de convites via props
  */
 export function ConvitesUsuario({ invites, onInviteUpdate, isLoading }: { invites: any[], onInviteUpdate?: () => void, isLoading: boolean }) {
   return (
     <Card className="shadow-none">
       <CardContent className="p-6">
-        {/* Exibe mensagem se não houver convites */}
+        {/* Exibe mensagem se nÃ£o houver convites */}
         {invites.length === 0 && !isLoading && (
           <div className="text-center text-muted-foreground py-8">
             Nenhum convite encontrado.
@@ -156,8 +156,8 @@ export function ConvitesUsuario({ invites, onInviteUpdate, isLoading }: { invite
                 <TableHead>Email</TableHead>
                 <TableHead>Data de Envio</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Expiração</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
+                <TableHead>ExpiraÃ§Ã£o</TableHead>
+                <TableHead className="text-right">AÃ§Ãµes</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -171,10 +171,10 @@ export function ConvitesUsuario({ invites, onInviteUpdate, isLoading }: { invite
                   <TableCell>
                     <Badge
                       variant={
-                        invite.status === "pending" ? "outline" : "secondary"
+                        invite.status === "PENDING" ? "outline" : "secondary"
                       }
                     >
-                      {invite.status === "pending"
+                      {invite.status === "PENDING"
                         ? "Pendente"
                         : invite.status === "accepted"
                           ? "Aceito"
@@ -186,7 +186,7 @@ export function ConvitesUsuario({ invites, onInviteUpdate, isLoading }: { invite
                   <TableCell>
                     {new Date(invite.expires_at).toLocaleDateString()}
                   </TableCell>
-                  {/* Botões de ação para convite */}
+                  {/* BotÃµes de aÃ§Ã£o para convite */}
                   <TableCell className="flex flex-row items-center justify-end min-w-[120px]">
                     <ReenviarConviteButton
                       inviteId={invite.id}

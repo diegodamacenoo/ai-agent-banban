@@ -2,29 +2,29 @@ import * as React from "react";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/ui/select";
 import { MessageSquareIcon, MailIcon, FileTextIcon, RefreshCcwIcon, InfoIcon, Loader2, XCircleIcon, AlertTriangleIcon } from "lucide-react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/shared/ui/separator";
 import { useEffect, useState, useRef } from "react";
 import { useUser } from "@/app/contexts/UserContext";
 import { enrollMFA, getAuthLevel, listMFAFactors, unenrollMFA, verifyMFA } from "@/app/actions/auth/mfa";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
+import { Input } from "@/shared/ui/input";
 import Image from "next/image";
-import { useToast } from "@/components/ui/use-toast";
-import { createLogger } from "@/lib/utils/logger";
-import { DEBUG_MODULES } from "@/lib/utils/debug-config";
-import { SectionErrorBoundary } from "@/components/ui/error-boundary";
+import { useToast } from '@/shared/ui/toast';
+import { createLogger } from "@/shared/utils/logger";
+import { DEBUG_MODULES } from "@/shared/utils/debug-config";
+import { SectionErrorBoundary } from "@/shared/ui/error-boundary";
 
 // Criar logger para o componente de autenticação de dois fatores
 const logger = createLogger(DEBUG_MODULES.UI_SETTINGS);
@@ -91,10 +91,8 @@ export default function AutenticacaoDoisFatores() {
             // Definir um novo timeout
             timeoutRef.current = setTimeout(() => {
                 setTempoLimiteAtivo(true);
-                toast({
+                toast.error("O tempo para configuração do 2FA expirou. Por favor, tente novamente.", {
                     title: "Tempo limite excedido",
-                    description: "O tempo para configuração do 2FA expirou. Por favor, tente novamente.",
-                    variant: "destructive",
                     duration: 5000,
                 });
                 
@@ -102,7 +100,7 @@ export default function AutenticacaoDoisFatores() {
                 cancelarSetup();
                 
                 // Se houver um fator pendente, tenta removê-lo
-                if (setupData && setupData.factorId) {
+                if (setupData?.factorId) {
                     unenrollMFA(setupData.factorId).catch(err => {
                         logger.error("Erro ao remover fator após timeout:", err);
                     });
@@ -110,7 +108,7 @@ export default function AutenticacaoDoisFatores() {
             }, CONFIG_TIMEOUT);
             
             // Registrar o fatorId pendente
-            if (setupData && setupData.factorId) {
+            if (setupData?.factorId) {
                 pendingFactorIdRef.current = setupData.factorId;
             }
         } else {
@@ -222,7 +220,7 @@ export default function AutenticacaoDoisFatores() {
         // Cancelar o processo de configuração sem salvar
         
         // Se houver um fator pendente no setupData, tenta removê-lo
-        if (setupData && setupData.factorId) {
+        if (setupData?.factorId) {
             const factorIdToRemove = setupData.factorId;
             
             // Limpar a referência ao fator pendente
@@ -248,9 +246,8 @@ export default function AutenticacaoDoisFatores() {
         setErro(null);
         setTempoLimiteAtivo(false);
         
-        toast({
+        toast.info("O processo de configuração do 2FA foi cancelado.", {
             title: "Configuração cancelada",
-            description: "O processo de configuração do 2FA foi cancelado.",
             duration: 3000,
         });
     };
@@ -289,7 +286,7 @@ export default function AutenticacaoDoisFatores() {
             if (success && data) {
                 logger.debug("MFA enrollment bem-sucedido, processando QR code");
                 // Limpar o prefixo data:image/svg+xml;utf-8, do QR code
-                if (data.qrCode && data.qrCode.startsWith('data:image/svg+xml;utf-8,')) {
+                if (data.qrCode?.startsWith('data:image/svg+xml;utf-8,')) {
                     data.qrCode = data.qrCode.substring('data:image/svg+xml;utf-8,'.length);
                 }
                 setSetupData(data);
@@ -303,10 +300,8 @@ export default function AutenticacaoDoisFatores() {
                 setMostrarSetup(false);
                 setStatus2FA(false); // Redefine status para false em caso de erro
                 
-                toast({
+                toast.error(error || "Não foi possível iniciar a configuração. Por favor, tente novamente mais tarde.", {
                     title: "Erro ao configurar 2FA",
-                    description: error || "Não foi possível iniciar a configuração. Por favor, tente novamente mais tarde.",
-                    variant: "destructive",
                     duration: 5000,
                 });
             }
@@ -314,14 +309,12 @@ export default function AutenticacaoDoisFatores() {
             logger.error("Exceção ao iniciar setup 2FA:", error);
             logger.error("Detalhes do erro:", error?.message);
             
-            setErro("Ocorreu um erro ao iniciar a configuração de autenticação de dois fatores: " + (error?.message || ""));
+            setErro(`Ocorreu um erro ao iniciar a configuração de autenticação de dois fatores: ${  error?.message || ""}`);
             setMostrarSetup(false);
             setStatus2FA(false); // Redefine status para false em caso de erro
             
-            toast({
+            toast.error("Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.", {
                 title: "Erro ao configurar 2FA",
-                description: "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
-                variant: "destructive",
                 duration: 5000,
             });
         } finally {
@@ -336,7 +329,7 @@ export default function AutenticacaoDoisFatores() {
         
         try {
             // Se já temos o ID do fator existente, usamos ele
-            if (fatorExistente && fatorExistente.id) {
+            if (fatorExistente?.id) {
                 logger.debug("Desativando fator existente:", fatorExistente.id);
                 const { success, error } = await unenrollMFA(fatorExistente.id);
                 
@@ -347,19 +340,16 @@ export default function AutenticacaoDoisFatores() {
                     setSetupData(null);
                     pendingFactorIdRef.current = null; // Limpar qualquer referência a fatores pendentes
                     
-                    toast({
+                    toast.success("A autenticação de dois fatores foi desativada com sucesso.", {
                         title: "2FA desativado",
-                        description: "A autenticação de dois fatores foi desativada com sucesso.",
                         duration: 5000,
                     });
                 } else if (error) {
                     logger.error("Erro ao desativar MFA:", error);
                     setErro(error);
                     
-                    toast({
+                    toast.error("Não foi possível desativar o 2FA. Por favor, tente novamente.", {
                         title: "Erro ao desativar 2FA",
-                        description: "Não foi possível desativar o 2FA. Por favor, tente novamente.",
-                        variant: "destructive",
                         duration: 5000,
                     });
                 }
@@ -393,16 +383,13 @@ export default function AutenticacaoDoisFatores() {
                     pendingFactorIdRef.current = null; // Limpar qualquer referência a fatores pendentes
                     
                     if (todosRemovidos) {
-                        toast({
+                        toast.success("A autenticação de dois fatores foi desativada com sucesso.", {
                             title: "2FA desativado",
-                            description: "A autenticação de dois fatores foi desativada com sucesso.",
                             duration: 5000,
                         });
                     } else {
-                        toast({
+                        toast.error("Alguns fatores podem não ter sido removidos. Por favor, atualize a página e tente novamente se necessário.", {
                             title: "2FA parcialmente desativado",
-                            description: "Alguns fatores podem não ter sido removidos. Por favor, atualize a página e tente novamente se necessário.",
-                            variant: "destructive",
                             duration: 8000,
                         });
                     }
@@ -410,10 +397,8 @@ export default function AutenticacaoDoisFatores() {
                     logger.error("Erro ao listar fatores MFA:", listError);
                     setErro(listError);
                     
-                    toast({
+                    toast.error("Não foi possível obter os fatores de autenticação para desativação.", {
                         title: "Erro ao desativar 2FA",
-                        description: "Não foi possível obter os fatores de autenticação para desativação.",
-                        variant: "destructive",
                         duration: 5000,
                     });
                 }
@@ -426,10 +411,8 @@ export default function AutenticacaoDoisFatores() {
             logger.error("Erro ao desativar 2FA:", error);
             setErro("Ocorreu um erro ao desativar a autenticação de dois fatores.");
             
-            toast({
+            toast.error("Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.", {
                 title: "Erro ao desativar 2FA",
-                description: "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
-                variant: "destructive",
                 duration: 5000,
             });
         }
@@ -468,9 +451,8 @@ export default function AutenticacaoDoisFatores() {
                 setCodigoVerificacao("");
                 setTempoLimiteAtivo(false);
                 
-                toast({
+                toast.success("A autenticação de dois fatores foi configurada com sucesso.", {
                     title: "2FA ativado",
-                    description: "A autenticação de dois fatores foi configurada com sucesso.",
                     duration: 5000,
                 });
             } else if (error) {
@@ -480,17 +462,13 @@ export default function AutenticacaoDoisFatores() {
                 
                 // Verificar se o erro indica código inválido ou expirado
                 if (error.includes("inválido") || error.includes("expirado")) {
-                    toast({
+                    toast.error("O código inserido é inválido ou expirou. Por favor, tente novamente.", {
                         title: "Código inválido",
-                        description: "O código inserido é inválido ou expirou. Por favor, tente novamente.",
-                        variant: "destructive",
                         duration: 5000,
                     });
                 } else {
-                    toast({
+                    toast.error("Ocorreu um erro ao verificar o código. Por favor, tente novamente.", {
                         title: "Erro na verificação",
-                        description: "Ocorreu um erro ao verificar o código. Por favor, tente novamente.",
-                        variant: "destructive",
                         duration: 5000,
                     });
                 }
@@ -500,10 +478,8 @@ export default function AutenticacaoDoisFatores() {
             setErro("Ocorreu um erro ao verificar o código de autenticação.");
             // Não alteramos o status pois ainda estamos no processo
             
-            toast({
+            toast.error("Ocorreu um erro inesperado. Por favor, tente novamente.", {
                 title: "Erro na verificação",
-                description: "Ocorreu um erro inesperado. Por favor, tente novamente.",
-                variant: "destructive",
                 duration: 5000,
             });
         } finally {
@@ -592,10 +568,18 @@ export default function AutenticacaoDoisFatores() {
                                             <Loader2 className="h-12 w-12 animate-spin text-muted-foreground" />
                                         </div>
                                     ) : setupData ? (
-                                        <div 
-                                            className="w-48 h-48 bg-white p-2 rounded-md" 
-                                            dangerouslySetInnerHTML={{ __html: setupData.qrCode }} 
-                                        />
+                                        <div className="w-48 h-48 bg-white p-2 rounded-md">
+                                            <img 
+                                                src={`data:image/svg+xml;base64,${btoa(setupData.qrCode)}`}
+                                                alt="QR Code para configuraÃ§Ã£o do 2FA"
+                                                className="w-full h-full object-contain"
+                                                onError={(e) => {
+                                                    // Fallback se o QR code nÃ£o carregar
+                                                    e.currentTarget.style.display = 'none';
+                                                    console.warn('Erro ao carregar QR code');
+                                                }}
+                                            />
+                                        </div>
                                     ) : null}
                                     
                                     {setupData && (
@@ -616,9 +600,8 @@ export default function AutenticacaoDoisFatores() {
                                                     size="sm"
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(setupData.secret);
-                                                        toast({
-                                                            title: "Copiado!",
-                                                            description: "A chave secreta foi copiada para a área de transferência.",
+                                                        toast.show({ title: "Copiado!",
+                                                            description: "A chave secreta foi copiada para a Ã¡rea de transferÃªncia.",
                                                             duration: 3000,
                                                         });
                                                     }}
@@ -632,7 +615,7 @@ export default function AutenticacaoDoisFatores() {
                             </div>
                             
                             <div className="space-y-2">
-                                <Label htmlFor="verification-code">Insira o código do aplicativo autenticador</Label>
+                                <Label htmlFor="verification-code">Insira o cÃ³digo do aplicativo autenticador</Label>
                                 <div className="flex space-x-2">
                                     <Input
                                         id="verification-code"
@@ -656,9 +639,9 @@ export default function AutenticacaoDoisFatores() {
                                     </Button>
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                    Digite o código de 6 dígitos exibido no seu aplicativo autenticador.
+                                    Digite o cÃ³digo de 6 dÃ­gitos exibido no seu aplicativo autenticador.
                                     {setupData && (
-                                        <span className="block mt-1">Você tem 10 minutos para completar esta configuração.</span>
+                                        <span className="block mt-1">VocÃª tem 10 minutos para completar esta configuraÃ§Ã£o.</span>
                                     )}
                                 </p>
                             </div>
@@ -670,7 +653,7 @@ export default function AutenticacaoDoisFatores() {
                                     onClick={cancelarSetup}
                                     disabled={verificando}
                                 >
-                                    Cancelar configuração
+                                    Cancelar configuraÃ§Ã£o
                                 </Button>
                             </div>
                         </div>
@@ -680,9 +663,9 @@ export default function AutenticacaoDoisFatores() {
                         <div className="space-y-3 pt-4 border-t">
                             <Alert className="bg-green-50 border-green-200">
                                 <InfoIcon className="h-4 w-4 text-green-600" />
-                                <AlertTitle className="text-green-600">2FA está ativo</AlertTitle>
+                                <AlertTitle className="text-green-600">2FA estÃ¡ ativo</AlertTitle>
                                 <AlertDescription className="text-green-700">
-                                    Sua conta está protegida com autenticação de dois fatores.
+                                    Sua conta estÃ¡ protegida com autenticaÃ§Ã£o de dois fatores.
                                 </AlertDescription>
                             </Alert>
                             

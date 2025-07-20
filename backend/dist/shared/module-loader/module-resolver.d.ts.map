@@ -1,0 +1,1 @@
+{"version":3,"file":"module-resolver.d.ts","sourceRoot":"","sources":["../../../src/shared/module-loader/module-resolver.ts"],"names":[],"mappings":"AAUA,OAAO,EAAc,YAAY,EAAE,MAAM,uBAAuB,CAAC;AAGjE,qBAAa,cAAc;IACzB,OAAO,CAAC,WAAW,CAAmD;;IAShE,uBAAuB,CAAC,QAAQ,EAAE,MAAM,GAAG,OAAO,CAAC,MAAM,CAAC,MAAM,EAAE,YAAY,CAAC,CAAC;IA6CtF,UAAU,CAAC,QAAQ,CAAC,EAAE,MAAM,GAAG,IAAI;CASpC"}

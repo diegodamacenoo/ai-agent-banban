@@ -1,0 +1,316 @@
+{
+  "name": "{{MODULE_NAME}}",
+  "slug": "{{MODULE_SLUG}}",
+  "version": "1.0.0",
+  "description": "{{MODULE_DESCRIPTION}}",
+  "category": "custom",
+  "maturity_status": "GA",
+  "pricing_tier": "premium",
+  "author": "{{CLIENT_NAME}}",
+  "vendor": "{{CLIENT_ORGANIZATION}}",
+  "entrypoint": "src/index.ts",
+  "dependencies": {
+    "required": [
+      "@supabase/supabase-js",
+      "zod"
+    ],
+    "optional": [
+      "date-fns",
+      "lodash",
+      "recharts"
+    ]
+  },
+  "compatibility_matrix": {
+    "min_axon_version": "1.0.0",
+    "max_axon_version": "2.0.0",
+    "supported_client_types": [
+      "{{CLIENT_SLUG}}"
+    ],
+    "supported_features": [
+      "multi-tenant",
+      "rls",
+      "audit-logging",
+      "custom-billing",
+      "advanced-analytics",
+      "real-time",
+      "ml-insights"
+    ]
+  },
+  "usage_based_pricing": {
+    "enabled": true,
+    "per_call": 0.001,
+    "per_token": 0.0001,
+    "per_gb": 0.10,
+    "minimum_monthly": 50.00,
+    "currency": "USD"
+  },
+  "repository_url": "https://github.com/{{CLIENT_SLUG}}/modules/{{MODULE_SLUG}}",
+  "documentation_url": "https://docs.{{CLIENT_DOMAIN}}/modules/{{MODULE_SLUG}}",
+  "is_internal_only": true,
+  "requires_approval": true,
+  "api_endpoints": [
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/health",
+      "method": "GET",
+      "description": "Health check endpoint",
+      "authenticated": false,
+      "handler": "healthCheck"
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/data",
+      "method": "GET",
+      "description": "Get module data",
+      "authenticated": true,
+      "handler": "getData",
+      "permissions": ["{{MODULE_SLUG}}.read"]
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/data",
+      "method": "POST",
+      "description": "Create module data",
+      "authenticated": true,
+      "handler": "createData",
+      "permissions": ["{{MODULE_SLUG}}.write"]
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/analytics",
+      "method": "GET",
+      "description": "Get advanced analytics",
+      "authenticated": true,
+      "handler": "getAnalytics",
+      "permissions": ["{{MODULE_SLUG}}.analytics"]
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/insights",
+      "method": "GET",
+      "description": "Get AI-powered insights",
+      "authenticated": true,
+      "handler": "getInsights",
+      "permissions": ["{{MODULE_SLUG}}.insights"]
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/config",
+      "method": "GET",
+      "description": "Get module configuration",
+      "authenticated": true,
+      "handler": "getConfig",
+      "permissions": ["{{MODULE_SLUG}}.configure"]
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/config",
+      "method": "PUT",
+      "description": "Update module configuration",
+      "authenticated": true,
+      "handler": "updateConfig",
+      "permissions": ["{{MODULE_SLUG}}.admin"]
+    }
+  ],
+  "database_tables": [
+    "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_data",
+    "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_config",
+    "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_audit",
+    "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_insights",
+    "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_metrics"
+  ],
+  "environment_variables": [
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_LOG_LEVEL",
+      "description": "Log level for the module",
+      "required": false,
+      "default_value": "info",
+      "validation": {
+        "type": "enum",
+        "values": ["error", "warn", "info", "debug", "trace"]
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_API_KEY",
+      "description": "API key for external integrations",
+      "required": true,
+      "validation": {
+        "type": "string",
+        "min_length": 32
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_WEBHOOK_URL",
+      "description": "Webhook URL for notifications",
+      "required": false,
+      "validation": {
+        "type": "url"
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_ML_MODEL_ENDPOINT",
+      "description": "Machine Learning model endpoint",
+      "required": false,
+      "validation": {
+        "type": "url"
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_CACHE_TTL",
+      "description": "Cache TTL in seconds",
+      "required": false,
+      "default_value": "1800",
+      "validation": {
+        "type": "number",
+        "min": 60,
+        "max": 86400
+      }
+    }
+  ],
+  "health_check": {
+    "endpoint": "/health",
+    "interval_seconds": 180,
+    "timeout_seconds": 30,
+    "critical_dependencies": [
+      "database",
+      "cache",
+      "external_api",
+      "ml_service"
+    ]
+  },
+  "data_retention": {
+    "default_retention_days": 2555,
+    "auto_purge": true,
+    "export_before_purge": true,
+    "policies": {
+      "raw_data": 2555,
+      "insights": 1095,
+      "metrics": 365,
+      "audit_logs": 2555,
+      "cache": 30
+    }
+  },
+  "permissions": {
+    "read": ["{{MODULE_SLUG}}.read"],
+    "write": ["{{MODULE_SLUG}}.write"],
+    "admin": ["{{MODULE_SLUG}}.admin"],
+    "configure": ["{{MODULE_SLUG}}.configure"],
+    "analytics": ["{{MODULE_SLUG}}.analytics"],
+    "insights": ["{{MODULE_SLUG}}.insights"],
+    "billing": ["{{MODULE_SLUG}}.billing"]
+  },
+  "rls_policies": [
+    {
+      "table": "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_data",
+      "policy": "organization_isolation",
+      "description": "Users can only access their organization data"
+    },
+    {
+      "table": "{{CLIENT_SLUG}}_{{MODULE_SLUG}}_audit",
+      "policy": "audit_access",
+      "description": "Only admins can access audit data"
+    }
+  ],
+  "integrations": {
+    "supabase": {
+      "enabled": true,
+      "required_extensions": ["uuid-ossp", "pgcrypto"]
+    },
+    "webhooks": {
+      "enabled": true,
+      "events": [
+        "data.created",
+        "data.updated",
+        "insight.generated",
+        "alert.triggered"
+      ]
+    },
+    "realtime": {
+      "enabled": true,
+      "channels": [
+        "{{MODULE_SLUG}}-updates",
+        "{{MODULE_SLUG}}-insights",
+        "{{MODULE_SLUG}}-alerts"
+      ]
+    },
+    "external_apis": [
+      {
+        "name": "{{CLIENT_NAME}} API",
+        "base_url": "https://api.{{CLIENT_DOMAIN}}",
+        "auth_type": "bearer_token"
+      }
+    ]
+  },
+  "ui_components": {
+    "dashboard_widget": {
+      "component_path": "components/{{MODULE_CLASS}}DashboardWidget",
+      "default_size": "large",
+      "resizable": true,
+      "configurable": true
+    },
+    "analytics_panel": {
+      "component_path": "components/{{MODULE_CLASS}}Analytics",
+      "sections": ["overview", "trends", "insights", "forecasts"]
+    },
+    "config_panel": {
+      "component_path": "components/{{MODULE_CLASS}}Config",
+      "sections": ["general", "integrations", "ml_settings", "billing", "permissions"]
+    },
+    "insights_viewer": {
+      "component_path": "components/{{MODULE_CLASS}}InsightsViewer",
+      "features": ["filters", "export", "scheduling"]
+    }
+  },
+  "navigation": {
+    "primary": {
+      "title": "{{MODULE_NAME}}",
+      "icon": "TrendingUp",
+      "path": "/modules/{{MODULE_SLUG}}",
+      "order": 50
+    },
+    "submenu": [
+      {
+        "title": "Dashboard",
+        "path": "/modules/{{MODULE_SLUG}}/dashboard",
+        "icon": "BarChart3",
+        "order": 1
+      },
+      {
+        "title": "Analytics",
+        "path": "/modules/{{MODULE_SLUG}}/analytics",
+        "icon": "PieChart",
+        "order": 2
+      },
+      {
+        "title": "Insights",
+        "path": "/modules/{{MODULE_SLUG}}/insights",
+        "icon": "Brain",
+        "order": 3
+      },
+      {
+        "title": "Configurações",
+        "path": "/modules/{{MODULE_SLUG}}/config",
+        "icon": "Settings",
+        "order": 4
+      }
+    ]
+  },
+  "ml_features": {
+    "enabled": true,
+    "models": [
+      {
+        "name": "trend_analysis",
+        "type": "forecasting",
+        "endpoint": "/ml/trend-analysis"
+      },
+      {
+        "name": "anomaly_detection",
+        "type": "classification",
+        "endpoint": "/ml/anomaly-detection"
+      }
+    ]
+  },
+  "billing_config": {
+    "meter_events": true,
+    "track_usage": true,
+    "usage_dimensions": [
+      "api_calls",
+      "data_volume",
+      "ml_predictions",
+      "storage_gb"
+    ]
+  }
+} 

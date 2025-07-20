@@ -9,6 +9,19 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
+node_modules/
+backend/node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+pnpm-lock.yaml
+yarn-error.log
+.pnpm-store/
+.cursor/
+.claude/
+.gemini/
+backups/
+.windsurf*
 
 # testing
 /coverage
@@ -32,6 +45,9 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+backend/.env*
+frontend/.env*
 
 # vercel
 .vercel
@@ -39,3 +55,31 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Security files
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+
+# Database backups
+*.sql.backup
+*.dump
+
+# Configuration with secrets
+config/secrets.json
+config/private.json
+
+# IDE and system files
+.vscode/settings.json
+.idea/
+.cursor/logs/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.temp

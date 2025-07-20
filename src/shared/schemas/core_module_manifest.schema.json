@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axon.dev/schemas/core_module_manifest.schema.json",
+  "title": "Core Module Manifest",
+  "description": "Schema para validação de manifestos de módulos do sistema Axon",
+  "type": "object",
+  "required": [
+    "name",
+    "slug",
+    "version",
+    "description",
+    "category",
+    "author",
+    "entrypoint"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome amigável do módulo",
+      "minLength": 3,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9\\s\\-_]+$"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Identificador único do módulo (kebab-case)",
+      "minLength": 3,
+      "maxLength": 50,
+      "pattern": "^[a-z0-9\\-]+$"
+    },
+    "version": {
+      "type": "string",
+      "description": "Versão semântica do módulo (SemVer)",
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descrição detalhada do módulo",
+      "minLength": 10,
+      "maxLength": 500
+    },
+    "category": {
+      "type": "string",
+      "description": "Categoria do módulo",
+      "enum": ["standard", "custom", "industry"]
+    },
+    "maturity_status": {
+      "type": "string",
+      "description": "Status de maturidade do módulo",
+      "enum": ["PLANNED", "IN_DEVELOPMENT", "ALPHA", "BETA", "RC", "GA", "MAINTENANCE", "DEPRECATED", "RETIRED"],
+      "default": "PLANNED"
+    },
+    "pricing_tier": {
+      "type": "string",
+      "description": "Nível de preço do módulo",
+      "enum": ["free", "basic", "premium", "enterprise"],
+      "default": "free"
+    },
+    "author": {
+      "type": "string",
+      "description": "Autor do módulo",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "vendor": {
+      "type": "string",
+      "description": "Empresa/organização responsável",
+      "minLength": 2,
+      "maxLength": 100
+    },
+    "entrypoint": {
+      "type": "string",
+      "description": "Arquivo de entrada principal",
+      "pattern": "^src/index\\.(ts|js)$",
+      "default": "src/index.ts"
+    },
+    "dependencies": {
+      "type": "array",
+      "description": "Dependências de outros módulos",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9\\-]+$"
+      },
+      "uniqueItems": true,
+      "default": []
+    },
+    "compatibility_matrix": {
+      "type": "object",
+      "description": "Matriz de compatibilidade com versões do Axon",
+      "properties": {
+        "min_axon_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+        },
+        "max_axon_version": {
+          "type": "string",
+          "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)$"
+        },
+        "supported_features": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "default": {}
+    },
+    "usage_based_pricing": {
+      "type": "object",
+      "description": "Configuração de preços baseados em uso",
+      "properties": {
+        "per_call": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Custo por chamada de API"
+        },
+        "per_token": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Custo por token processado"
+        },
+        "per_gb": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Custo por GB de dados processados"
+        }
+      },
+      "default": {}
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL do repositório do código"
+    },
+    "documentation_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL da documentação"
+    },
+    "is_internal_only": {
+      "type": "boolean",
+      "description": "Se o módulo é apenas para uso interno",
+      "default": false
+    },
+    "requires_approval": {
+      "type": "boolean",
+      "description": "Se o módulo requer aprovação para uso",
+      "default": false
+    },
+    "api_endpoints": {
+      "type": "array",
+      "description": "Endpoints de API expostos pelo módulo",
+      "items": {
+        "type": "object",
+        "required": ["path", "method"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "pattern": "^/api/.*"
+          },
+          "method": {
+            "type": "string",
+            "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "authenticated": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "default": []
+    },
+    "database_tables": {
+      "type": "array",
+      "description": "Tabelas de banco de dados criadas pelo módulo",
+      "items": {
+        "type": "string",
+        "pattern": "^tenant_[a-z0-9_]+$"
+      },
+      "default": []
+    },
+    "environment_variables": {
+      "type": "array",
+      "description": "Variáveis de ambiente requeridas",
+      "items": {
+        "type": "object",
+        "required": ["name", "required"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "default_value": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    },
+    "health_check": {
+      "type": "object",
+      "description": "Configuração de health check",
+      "properties": {
+        "endpoint": {
+          "type": "string",
+          "pattern": "^/health.*"
+        },
+        "interval_seconds": {
+          "type": "integer",
+          "minimum": 30,
+          "maximum": 3600,
+          "default": 300
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 60,
+          "default": 30
+        }
+      },
+      "default": {
+        "endpoint": "/health",
+        "interval_seconds": 300,
+        "timeout_seconds": 30
+      }
+    },
+    "data_retention": {
+      "type": "object",
+      "description": "Configuração de retenção de dados",
+      "properties": {
+        "default_retention_days": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3650,
+          "default": 365
+        },
+        "auto_purge": {
+          "type": "boolean",
+          "default": true
+        },
+        "export_before_purge": {
+          "type": "boolean",
+          "default": true
+        }
+      },
+      "default": {
+        "default_retention_days": 365,
+        "auto_purge": true,
+        "export_before_purge": true
+      }
+    }
+  },
+  "additionalProperties": false
+} 

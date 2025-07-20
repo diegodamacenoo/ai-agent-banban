@@ -1,9 +1,11 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { createSupabaseAdminClient } from '@/lib/supabase/server';
-import { createAuditLog, captureRequestInfo, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-import { processDataExportSchema, type ProcessDataExportData } from '@/lib/schemas/auth';
+import { createSupabaseAdminClient } from '@/core/supabase/server';
+import { createAuditLog } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { processDataExportSchema, type ProcessDataExportData } from '@/core/schemas/auth';
+import { captureRequestInfo } from '@/core/auth/request-info';
 
 /**
  * Processamento real de exportação de dados com Supabase Storage
@@ -39,7 +41,7 @@ export async function processDataExport(data: ProcessDataExportData): Promise<bo
 
   const { exportId } = parsed.data;
   try {
-    const supabase = createSupabaseAdminClient(await cookies());
+    const supabase = await createSupabaseAdminClient();
     
     // Buscar dados da exportação
     const { data: exportData, error: exportError } = await supabase
@@ -60,7 +62,7 @@ export async function processDataExport(data: ProcessDataExportData): Promise<bo
       .update({ status: 'processing' })
       .eq('id', exportId);
 
-    console.log(`Iniciando processamento da exportação ${exportId}`);
+    console.debug(`Iniciando processamento da exportação ${exportId}`);
 
     try {
       // Coletar dados do usuário
@@ -107,10 +109,10 @@ export async function processDataExport(data: ProcessDataExportData): Promise<bo
         .eq('id', exportId);
 
       // Registrar auditoria
-      const { ipAddress, userAgent, organizationId } = await captureRequestInfo(exportData.user_id, true);
+      const { ipAddress, userAgent, organizationId } = await captureRequestInfo(exportData.user_id);
       await createAuditLog({
         actor_user_id: exportData.user_id,
-        action_type: AUDIT_ACTION_TYPES.DATA_EXPORT_REQUESTED,
+        action_type: AUDIT_ACTION_TYPES.DATA_EXPORT_COMPLETED,
         resource_type: AUDIT_RESOURCE_TYPES.DATA_CONTROLLER,
         resource_id: exportData.user_id,
         ip_address: ipAddress,
@@ -132,7 +134,7 @@ export async function processDataExport(data: ProcessDataExportData): Promise<bo
       // que processa exportações em background. A UI será atualizada via polling
       // ou notificações quando o usuário acessar a página de configurações.
 
-      console.log(`Exportação ${exportId} processada com sucesso`);
+      console.debug(`Exportação ${exportId} processada com sucesso`);
       return true;
 
     } catch (processingError) {
@@ -161,7 +163,7 @@ export async function processDataExport(data: ProcessDataExportData): Promise<bo
  * Coleta todos os dados do usuário para exportação
  */
 async function collectUserData(userId: string): Promise<ExportData> {
-  const supabase = createSupabaseAdminClient(await cookies());
+  const supabase = await createSupabaseAdminClient();
   const currentDate = new Date().toISOString();
 
   try {
@@ -198,85 +200,35 @@ async function collectUserData(userId: string): Promise<ExportData> {
     // Buscar exportações anteriores
     const { data: previousExports } = await supabase
       .from('user_data_exports')
-      .select('id, format, created_at, status')
+      .select('*')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(10);
+      .order('created_at', { ascending: false });
 
+    // Retornar dados estruturados
     return {
       user_id: userId,
       export_date: currentDate,
       personal_data: {
-        id: profile?.id,
-        first_name: profile?.first_name,
-        last_name: profile?.last_name,
         email: authUser?.user?.email,
         phone: authUser?.user?.phone,
         created_at: authUser?.user?.created_at,
-        email_confirmed_at: authUser?.user?.email_confirmed_at,
-        last_sign_in_at: authUser?.user?.last_sign_in_at,
-        phone_confirmed_at: authUser?.user?.phone_confirmed_at,
-        confirmed_at: authUser?.user?.confirmed_at
+        last_sign_in: authUser?.user?.last_sign_in_at
       },
-      profile_data: {
-        bio: profile?.bio,
-        avatar_url: profile?.avatar_url,
-        location: profile?.location,
-        website: profile?.website,
-        social_links: profile?.social_links,
-        preferences: profile?.preferences,
-        role: profile?.role,
-        organization_id: profile?.organization_id,
-        status: profile?.status,
-        created_at: profile?.created_at,
-        updated_at: profile?.updated_at
-      },
+      profile_data: profile,
       activity_data: {
-        total_sessions: sessions?.length || 0,
-        recent_sessions: sessions?.map(session => ({
-          id: session.id,
-          created_at: session.created_at,
-          updated_at: session.updated_at,
-          ip_address: session.ip_address,
-          user_agent: session.user_agent
-        })) || [],
-        audit_summary: {
-          total_actions: auditLogs?.length || 0,
-          period_start: threeMonthsAgo.toISOString(),
-          period_end: currentDate,
-          action_types: auditLogs?.reduce((acc: any, log: any) => {
-            acc[log.action_type] = (acc[log.action_type] || 0) + 1;
-            return acc;
-          }, {}) || {},
-          recent_actions: auditLogs?.slice(0, 100).map(log => ({
-            action_type: log.action_type,
-            created_at: log.created_at,
-            summary: log.details?.summary || 'Ação realizada'
-          })) || []
-        },
-        export_history: previousExports?.map(exp => ({
-          id: exp.id,
-          format: exp.format,
-          created_at: exp.created_at,
-          status: exp.status
-        })) || []
+        sessions,
+        audit_logs: auditLogs,
+        previous_exports: previousExports
       },
       system_data: {
-        export_metadata: {
-          generated_at: currentDate,
-          format_version: '2.0',
-          includes_sensitive_data: false,
-          retention_policy: 'User data exported as per request - GDPR Article 20',
-          legal_basis: 'Article 20 GDPR - Right to data portability',
-          data_controller: 'AI Agent BanBan',
-          export_scope: 'Complete user profile and activity data for the last 90 days',
-          contact_info: 'suporte@aiagentbanban.com'
-        }
+        export_timestamp: currentDate,
+        data_retention_period: '90 days'
       }
     };
+
   } catch (error) {
     console.error('Erro ao coletar dados do usuário:', error);
-    throw new Error('Falha na coleta de dados');
+    throw new Error('Falha ao coletar dados do usuário');
   }
 }
 
@@ -448,7 +400,7 @@ function getContentType(format: string): string {
  */
 async function sendExportNotification(userId: string, format: string, downloadToken: string): Promise<void> {
   try {
-    const supabase = createSupabaseAdminClient(await cookies());
+    const supabase = await createSupabaseAdminClient();
     
     // Buscar dados do usuário
     const { data: authUser } = await supabase.auth.admin.getUserById(userId);
@@ -473,7 +425,7 @@ async function sendExportNotification(userId: string, format: string, downloadTo
     const emailSent = await sendDataExportNotification(userEmail, firstName, format, downloadToken);
     
     // Registrar tentativa de notificação em auditoria
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(userId, true);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(userId);
     await createAuditLog({
       actor_user_id: userId,
       action_type: 'export_notification_sent',
@@ -485,16 +437,16 @@ async function sendExportNotification(userId: string, format: string, downloadTo
       details: {
         email: userEmail,
         format,
-        download_token: downloadToken.substring(0, 8) + '...',
+        download_token: `${downloadToken.substring(0, 8)  }...`,
         email_sent: emailSent,
         notification_method: 'resend'
       }
     });
 
     if (emailSent) {
-      console.log(`📧 Notificação de exportação enviada para: ${userEmail}`);
+      console.debug(`ðŸ“§ Notificação de exportação enviada para: ${userEmail}`);
     } else {
-      console.error(`❌ Falha ao enviar notificação para: ${userEmail}`);
+      console.error(`âŒ Falha ao enviar notificação para: ${userEmail}`);
     }
 
   } catch (error) {
@@ -510,7 +462,7 @@ async function sendExportNotification(userId: string, format: string, downloadTo
  */
 export async function scheduleExportProcessing(): Promise<void> {
   try {
-    const supabase = createSupabaseAdminClient(await cookies());
+    const supabase = await createSupabaseAdminClient();
     
     // Buscar exportações pendentes
     const { data: pendingExports, error } = await supabase
@@ -526,11 +478,11 @@ export async function scheduleExportProcessing(): Promise<void> {
     }
 
     if (!pendingExports || pendingExports.length === 0) {
-      console.log('Nenhuma exportação pendente encontrada');
+      console.debug('Nenhuma exportação pendente encontrada');
       return;
     }
 
-    console.log(`🔄 Processando ${pendingExports.length} exportações pendentes`);
+    console.debug(`ðŸ" Processando ${pendingExports.length} exportações pendentes`);
 
     // Processar cada exportação
     const results = await Promise.allSettled(
@@ -540,7 +492,7 @@ export async function scheduleExportProcessing(): Promise<void> {
     const successful = results.filter(r => r.status === 'fulfilled' && r.value).length;
     const failed = results.length - successful;
 
-    console.log(`✅ Exportações processadas: ${successful} sucesso, ${failed} falhas`);
+    console.debug(`âœ… Exportações processadas: ${successful} sucesso, ${failed} falhas`);
 
   } catch (error) {
     console.error('Erro crítico no agendamento de exportações:', error);
@@ -552,7 +504,7 @@ export async function scheduleExportProcessing(): Promise<void> {
  */
 export async function cleanupExpiredExports(): Promise<void> {
   try {
-    const supabase = createSupabaseAdminClient(await cookies());
+    const supabase = await createSupabaseAdminClient();
     
     // Buscar exportações expiradas
     const { data: expiredExports, error } = await supabase
@@ -568,11 +520,11 @@ export async function cleanupExpiredExports(): Promise<void> {
     }
 
     if (!expiredExports || expiredExports.length === 0) {
-      console.log('Nenhuma exportação expirada encontrada');
+      console.debug('Nenhuma exportação expirada encontrada');
       return;
     }
 
-    console.log(`🧹 Limpando ${expiredExports.length} exportações expiradas`);
+    console.debug(`ðŸ§¹ Limpando ${expiredExports.length} exportações expiradas`);
 
     for (const exp of expiredExports) {
       try {
@@ -591,7 +543,7 @@ export async function cleanupExpiredExports(): Promise<void> {
           })
           .eq('id', exp.id);
 
-        console.log(`🗑️ Exportação ${exp.id} limpa com sucesso`);
+        console.debug(`ðŸ—'ï¸ Exportação ${exp.id} limpa com sucesso`);
       } catch (cleanupError) {
         console.error(`Erro ao limpar exportação ${exp.id}:`, cleanupError);
       }

@@ -17,7 +17,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -64,7 +64,7 @@ describe('Alert Server Actions', () => {
     it('should export alerts to CSV format', async () => {
       const mockExportCSV = jest.fn().mockResolvedValue({
         success: true,
-        data: 'Product,Location,Status\nTest Product,Test Location,Active',
+        data: 'Product,Location,Status\nTest Product,Test Location,ACTIVE',
         filename: 'alertas_2024-01-01.csv',
       });
 

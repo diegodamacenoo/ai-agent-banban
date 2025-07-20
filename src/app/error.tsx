@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 export default function Error({
@@ -37,6 +37,7 @@ export default function Error({
         <div className="space-y-4">
           <Button 
             onClick={reset}
+            variant="destructive"
             className="w-full"
           >
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -57,7 +58,7 @@ export default function Error({
             <summary className="cursor-pointer text-sm font-medium">
               Detalhes do erro (desenvolvimento)
             </summary>
-            <pre className="mt-2 text-xs overflow-auto">
+            <pre className="mt-2 text-xs overflow-auto whitespace-pre-wrap break-words">
               {error.message}
               {error.digest && `\nDigest: ${error.digest}`}
             </pre>

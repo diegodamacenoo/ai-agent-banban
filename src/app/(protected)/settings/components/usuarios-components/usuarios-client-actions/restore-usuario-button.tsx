@@ -1,7 +1,7 @@
 'use client';
 
 import { RotateCcwIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,14 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
+} from "@/shared/ui/tooltip";
+import { useToast } from "@/shared/ui/toast";
 import { useState } from "react";
 
 interface RestoreUsuarioButtonProps {
@@ -35,7 +35,7 @@ export default function RestoreUsuarioButton({ userId, userName, onSuccess }: Re
   const handleRestore = async () => {
     setIsLoading(true);
     try {
-      // Chama a API Route para restaurar usuário
+      // Chama a API Route para restaurar usuÃ¡rio
       const result = await fetch('/api/user-management/users/restore', {
         method: 'POST',
         headers: {
@@ -48,22 +48,20 @@ export default function RestoreUsuarioButton({ userId, userName, onSuccess }: Re
       const data = await result.json();
 
       if (result.ok && data.success) {
-        toast({ 
-          title: "Usuário restaurado", 
+        toast.show({ 
+          title: "UsuÃ¡rio restaurado", 
           description: `${userName} foi restaurado com sucesso.`,
         });
         onSuccess?.();
       } else {
-        toast({
-          title: "Erro ao restaurar usuário",
+        toast.show({ title: "Erro ao restaurar usuÃ¡rio",
           description: data.error || "Ocorreu um erro inesperado.",
           variant: "destructive",
         });
       }
     } catch (error) {
-      toast({
-        title: "Erro ao restaurar usuário",
-        description: "Ocorreu um erro inesperado ao restaurar o usuário.",
+      toast.show({ title: "Erro ao restaurar usuÃ¡rio",
+        description: "Ocorreu um erro inesperado ao restaurar o usuÃ¡rio.",
         variant: "destructive",
       });
     } finally {
@@ -84,21 +82,21 @@ export default function RestoreUsuarioButton({ userId, userName, onSuccess }: Re
                 disabled={isLoading}
               >
                 <RotateCcwIcon className="h-4 w-4" />
-                <span className="sr-only">Restaurar usuário {userName}</span>
+                <span className="sr-only">Restaurar usuÃ¡rio {userName}</span>
               </Button>
             </AlertDialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Restaurar usuário</p>
+            <p>Restaurar usuÃ¡rio</p>
           </TooltipContent>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Restaurar usuário</AlertDialogTitle>
+              <AlertDialogTitle>Restaurar usuÃ¡rio</AlertDialogTitle>
               <AlertDialogDescription>
                 Tem certeza de que deseja restaurar <strong>{userName}</strong>?
                 <br />
                 <br />
-                O usuário será movido de volta para a lista de usuários ativos.
+                O usuÃ¡rio serÃ¡ movido de volta para a lista de usuÃ¡rios ativos.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

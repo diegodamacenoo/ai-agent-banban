@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { ScrollArea } from "@/shared/ui/scroll-area";
 import {
   Bell,
   AlertTriangle,
@@ -20,7 +20,7 @@ import {
   TrendingDown
 } from 'lucide-react';
 import Link from 'next/link';
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "@/shared/ui/separator";
 
 interface AlertItem {
   id: string;
@@ -40,51 +40,51 @@ const MOCK_ALERTS: AlertItem[] = [
   {
     id: '1',
     severity: 'critical',
-    title: 'Estoque Crítico - Tênis Running',
+    title: 'Estoque CrÃ­tico - TÃªnis Running',
     description: 'Produto com menos de 5 unidades em todas as lojas',
-    alert_ts: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h atrás
+    alert_ts: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h atrÃ¡s
     resolved: false
   },
   {
     id: '2',
     severity: 'high',
-    title: 'Pico de Devoluções Detectado',
-    description: 'Aumento de 300% nas devoluções nas últimas 4 horas',
-    alert_ts: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4h atrás
+    title: 'Pico de DevoluÃ§Ãµes Detectado',
+    description: 'Aumento de 300% nas devoluÃ§Ãµes nas Ãºltimas 4 horas',
+    alert_ts: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(), // 4h atrÃ¡s
     resolved: false
   },
   {
     id: '3',
     severity: 'low',
-    title: 'Reposição Recomendada - Categoria Roupas',
+    title: 'ReposiÃ§Ã£o Recomendada - Categoria Roupas',
     description: 'Produtos com estoque baixo em 2 lojas',
-    alert_ts: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6h atrás
+    alert_ts: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(), // 6h atrÃ¡s
     resolved: false
   },
   {
     id: '4',
     severity: 'medium',
-    title: 'Meta de Vendas - Atenção',
-    description: 'Vendas 15% abaixo da meta diária projetada',
-    alert_ts: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8h atrás
+    title: 'Meta de Vendas - AtenÃ§Ã£o',
+    description: 'Vendas 15% abaixo da meta diÃ¡ria projetada',
+    alert_ts: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(), // 8h atrÃ¡s
     resolved: false
   },
   {
     id: '5',
     severity: 'low',
     title: 'Produto Sem Movimento',
-    description: 'Produto sem vendas há mais de 7 dias',
-    alert_ts: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12h atrás
+    description: 'Produto sem vendas hÃ¡ mais de 7 dias',
+    alert_ts: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(), // 12h atrÃ¡s
     resolved: false
   }
 ];
 
 const getSeverityConfig = (severity: string, alertTitle?: string) => {
-  // Função auxiliar para escolher ícone baseado no contexto do alerta
+  // FunÃ§Ã£o auxiliar para escolher Ã­cone baseado no contexto do alerta
   const getContextualIcon = (severity: string, title: string) => {
     const titleLower = title.toLowerCase();
     
-    if (titleLower.includes('estoque') || titleLower.includes('reposição')) {
+    if (titleLower.includes('estoque') || titleLower.includes('reposiÃ§Ã£o')) {
       switch (severity) {
         case 'critical': return <AlertOctagon className="w-5 h-5" />;
         case 'high': return <AlertTriangle className="w-5 h-5" />;
@@ -93,7 +93,7 @@ const getSeverityConfig = (severity: string, alertTitle?: string) => {
       }
     }
     
-    if (titleLower.includes('devolução') || titleLower.includes('pico')) {
+    if (titleLower.includes('devoluÃ§Ã£o') || titleLower.includes('pico')) {
       return <TrendingUp className="w-5 h-5" />;
     }
     
@@ -109,7 +109,7 @@ const getSeverityConfig = (severity: string, alertTitle?: string) => {
       return <Zap className="w-5 h-5" />;
     }
     
-    // Ícones padrão por severidade
+    // Ãcones padrÃ£o por severidade
     switch (severity) {
       case 'critical': return <AlertTriangle className="w-5 h-5" />;
       case 'high': return <AlertCircle className="w-5 h-5" />;
@@ -164,20 +164,20 @@ const getRelativeTime = (dateString: string) => {
   const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
 
   if (diffInMinutes < 60) {
-    return `há ${diffInMinutes}min`;
+    return `hÃ¡ ${diffInMinutes}min`;
   } else if (diffInMinutes < 1440) { // 24 horas
     const hours = Math.floor(diffInMinutes / 60);
-    return `há ${hours}h`;
+    return `hÃ¡ ${hours}h`;
   } else {
     const days = Math.floor(diffInMinutes / 1440);
-    return `há ${days}d`;
+    return `hÃ¡ ${days}d`;
   }
 };
 
 export function AlertasDashboard({ alerts = MOCK_ALERTS }: AlertasDashboardProps) {
-  // Corrigir severidade para alertas específicos
+  // Corrigir severidade para alertas especÃ­ficos
   const correctedAlerts = alerts.map(alert => {
-    if (alert.title === 'Reposição Recomendada - Categoria Roupas') {
+    if (alert.title === 'ReposiÃ§Ã£o Recomendada - Categoria Roupas') {
       return { ...alert, severity: 'low' as const };
     }
     return alert;
@@ -196,7 +196,7 @@ export function AlertasDashboard({ alerts = MOCK_ALERTS }: AlertasDashboardProps
                 Insights
               </CardTitle>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Alertas e análises em tempo real
+                Alertas e anÃ¡lises em tempo real
               </p>
             </div>
           </div>
@@ -224,7 +224,7 @@ export function AlertasDashboard({ alerts = MOCK_ALERTS }: AlertasDashboardProps
                 Tudo funcionando bem
               </p>
               <p className="text-xs text-muted-foreground/70 text-center">
-                Nenhum insight crítico no momento
+                Nenhum insight crÃ­tico no momento
               </p>
             </div>
           ) : (
@@ -264,9 +264,9 @@ export function AlertasDashboard({ alerts = MOCK_ALERTS }: AlertasDashboardProps
                               variant={config.badge}
                               className={`text-xs px-2 py-0.5 font-semibold text-xs flex-shrink-0 ${config.badgeClass}`}
                             >
-                              {alert.severity === 'critical' ? 'CRÍTICO' :
+                              {alert.severity === 'critical' ? 'CRÃTICO' :
                                 alert.severity === 'high' ? 'ALTO' :
-                                  alert.severity === 'medium' ? 'MÉDIO' : 'BAIXO'}
+                                  alert.severity === 'medium' ? 'MÃ‰DIO' : 'BAIXO'}
                             </Badge>
                           </div>
                         </div>

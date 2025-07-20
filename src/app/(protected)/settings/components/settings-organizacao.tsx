@@ -1,21 +1,22 @@
 'use client';
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/shared/ui/toast';
 import { getOrganizationSettings } from "@/app/actions/organization/settings";
 import { updateOrganizationSettings } from "@/app/actions/organization/settings";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Separator } from "@/shared/ui/separator";
 import { SaveIcon, ShieldAlertIcon } from "lucide-react";
 import { useUser } from "@/app/contexts/UserContext";
-import { SkeletonSimple } from "@/components/ui/skeleton-loader";
+import { SkeletonSimple } from "@/shared/ui/skeleton-loader";
 
 export default function SettingsOrganizacao() {
-    const { toast } = useToast();
+  const { toast } = useToast();
+
     const { userData } = useUser();
     const [isLoading, setIsLoading] = useState(true);
     const [isCheckingPermissions, setIsCheckingPermissions] = useState(true);
@@ -106,7 +107,7 @@ export default function SettingsOrganizacao() {
                     const result = await getOrganizationSettings();
                     setIsLoading(false);
                     if (result.error) {
-                        toast({ title: "Erro ao carregar configurações da organização", description: result.error, variant: "destructive" });
+                        toast.error(result.error, { title: "Erro ao carregar configuraÃ§Ãµes da organizaÃ§Ã£o" });
                         return;
                     }
                     const s = result.data!;
@@ -164,7 +165,7 @@ export default function SettingsOrganizacao() {
 
     const handleSaveBasicInfo = async () => {
         if (userData?.role !== 'organization_admin') {
-            toast({ title: "Acesso Negado", description: "Você não tem permissão para alterar estas configurações.", variant: "destructive"});
+            toast.show({ title: "Acesso Negado", description: "VocÃª nÃ£o tem permissÃ£o para alterar estas configuraÃ§Ãµes.", variant: "destructive"});
             return;
         }
         setIsSavingBasic(true);
@@ -197,15 +198,15 @@ export default function SettingsOrganizacao() {
                 fusoHorario,
                 moedaPadrao,
             });
-            toast({ title: "Configurações salvas com sucesso!" });
+            toast.show({ title: "ConfiguraÃ§Ãµes salvas com sucesso!" });
         } else {
-            toast({ title: "Erro ao salvar configurações", description: result.error, variant: "destructive" });
+            toast.show({ title: "Erro ao salvar configuraÃ§Ãµes", description: result.error, variant: "destructive" });
         }
     };
 
     const handleSaveStockParams = async () => {
         if (userData?.role !== 'organization_admin') {
-            toast({ title: "Acesso Negado", description: "Você não tem permissão para alterar estas configurações.", variant: "destructive"});
+            toast.show({ title: "Acesso Negado", description: "VocÃª nÃ£o tem permissÃ£o para alterar estas configuraÃ§Ãµes.", variant: "destructive"});
             return;
         }
         setIsSavingStock(true);
@@ -224,15 +225,15 @@ export default function SettingsOrganizacao() {
                 coberturaDias,
                 margemMinima,
             });
-            toast({ title: "Parâmetros de estoque salvos!" });
+            toast.show({ title: "ParÃ¢metros de estoque salvos!" });
         } else {
-            toast({ title: "Erro ao salvar parâmetros de estoque", description: result.error, variant: "destructive" });
+            toast.show({ title: "Erro ao salvar parÃ¢metros de estoque", description: result.error, variant: "destructive" });
         }
     };
 
     const handleSaveExport = async () => {
         if (userData?.role !== 'organization_admin') {
-            toast({ title: "Acesso Negado", description: "Você não tem permissão para alterar estas configurações.", variant: "destructive"});
+            toast.show({ title: "Acesso Negado", description: "VocÃª nÃ£o tem permissÃ£o para alterar estas configuraÃ§Ãµes.", variant: "destructive"});
             return;
         }
         setIsSavingExport(true);
@@ -247,9 +248,9 @@ export default function SettingsOrganizacao() {
             setOriginalExportSettings({
                 formatoExportacao,
             });
-            toast({ title: "Configurações de exportação salvas!" });
+            toast.show({ title: "ConfiguraÃ§Ãµes de exportaÃ§Ã£o salvas!" });
         } else {
-            toast({ title: "Erro ao salvar exportação", description: result.error, variant: "destructive" });
+            toast.show({ title: "Erro ao salvar exportaÃ§Ã£o", description: result.error, variant: "destructive" });
         }
     };
 
@@ -266,7 +267,7 @@ export default function SettingsOrganizacao() {
           <div className="p-6 flex flex-col items-center justify-center h-full text-center">
             <ShieldAlertIcon className="w-16 h-16 text-destructive mb-4" />
             <h3 className="text-xl font-semibold">Acesso Negado</h3>
-            <p className="text-muted-foreground">Você não tem permissão para gerenciar as configurações da organização.</p>
+            <p className="text-muted-foreground">VocÃª nÃ£o tem permissÃ£o para gerenciar as configuraÃ§Ãµes da organizaÃ§Ã£o.</p>
           </div>
         );
     }
@@ -274,15 +275,15 @@ export default function SettingsOrganizacao() {
     return (
         <div className="space-y-6">
             <header className="flex h-16 shrink-0 items-center px-6">
-                <h2 className="text-lg font-medium">Organização</h2>
+                <h2 className="text-lg font-medium">OrganizaÃ§Ã£o</h2>
             </header>
 
             <div className="px-6 space-y-6">
-                {/* Informações Básicas */}
+                {/* InformaÃ§Ãµes BÃ¡sicas */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-lg font-medium">Informações Básicas</h3>
+                            <h3 className="text-lg font-medium">InformaÃ§Ãµes BÃ¡sicas</h3>
                             <p className="text-sm text-muted-foreground">Dados cadastrais da empresa</p>
                         </div>
                         <Button size="sm" variant={hasBasicInfoChanges() ? "default" : "outline"} className="gap-2" onClick={handleSaveBasicInfo} disabled={isSavingBasic || isLoading || !hasBasicInfoChanges()}>
@@ -295,8 +296,8 @@ export default function SettingsOrganizacao() {
                         <CardContent className="p-6 space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="razaoSocial">Razão Social</Label>
-                                    <Input id="razaoSocial" placeholder="Razão Social da Empresa" value={companyLegalName} onChange={(e) => setCompanyLegalName(e.target.value)} disabled={isLoading} />
+                                    <Label htmlFor="razaoSocial">RazÃ£o Social</Label>
+                                    <Input id="razaoSocial" placeholder="RazÃ£o Social da Empresa" value={companyLegalName} onChange={(e) => setCompanyLegalName(e.target.value)} disabled={isLoading} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="nomeFantasia">Nome Fantasia</Label>
@@ -309,14 +310,14 @@ export default function SettingsOrganizacao() {
                                     <Input id="cnpj" placeholder="00.000.000/0000-00" value={cnpj} onChange={(e) => setCnpj(e.target.value)} disabled={isLoading} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
-                                    <Input id="inscricaoEstadual" placeholder="Inscrição Estadual" value={stateRegistration} onChange={(e) => setStateRegistration(e.target.value)} disabled={isLoading} />
+                                    <Label htmlFor="inscricaoEstadual">InscriÃ§Ã£o Estadual</Label>
+                                    <Input id="inscricaoEstadual" placeholder="InscriÃ§Ã£o Estadual" value={stateRegistration} onChange={(e) => setStateRegistration(e.target.value)} disabled={isLoading} />
                                 </div>
                             </div>
                             <Separator />
                             <div className="space-y-2">
-                                <Label htmlFor="endereco">Endereço</Label>
-                                <Input id="endereco" placeholder="Rua, Número, Bairro" value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} disabled={isLoading} />
+                                <Label htmlFor="endereco">EndereÃ§o</Label>
+                                <Input id="endereco" placeholder="Rua, NÃºmero, Bairro" value={addressStreet} onChange={(e) => setAddressStreet(e.target.value)} disabled={isLoading} />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <div className="space-y-2">
@@ -335,7 +336,7 @@ export default function SettingsOrganizacao() {
                             <Separator />
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="fusoHorario">Fuso Horário Padrão</Label>
+                                    <Label htmlFor="fusoHorario">Fuso HorÃ¡rio PadrÃ£o</Label>
                                     <Select value={fusoHorario} onValueChange={setFusoHorario} disabled={isLoading}>
                                         <SelectTrigger id="fusoHorario">
                                             <SelectValue />
@@ -350,15 +351,15 @@ export default function SettingsOrganizacao() {
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="moedaPadrao">Moeda Padrão</Label>
+                                    <Label htmlFor="moedaPadrao">Moeda PadrÃ£o</Label>
                                     <Select value={moedaPadrao} onValueChange={setMoedaPadrao} disabled={isLoading}>
                                         <SelectTrigger id="moedaPadrao">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="brl">Real Brasileiro (R$)</SelectItem>
-                                            <SelectItem value="usd">Dólar Americano (US$)</SelectItem>
-                                            <SelectItem value="eur">Euro (€)</SelectItem>
+                                            <SelectItem value="usd">DÃ³lar Americano (US$)</SelectItem>
+                                            <SelectItem value="eur">Euro (â‚¬)</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -366,12 +367,12 @@ export default function SettingsOrganizacao() {
                         </CardContent>
                     </Card>
                 </div>
-                {/* Parâmetros de Estoque */}
+                {/* ParÃ¢metros de Estoque */}
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-lg font-medium">Parâmetros Globais de Estoque</h3>
-                            <p className="text-sm text-muted-foreground">Configurações para gerenciamento de estoque</p>
+                            <h3 className="text-lg font-medium">ParÃ¢metros Globais de Estoque</h3>
+                            <p className="text-sm text-muted-foreground">ConfiguraÃ§Ãµes para gerenciamento de estoque</p>
                         </div>
                         <Button size="sm" variant="outline" className="gap-2" onClick={handleSaveStockParams} disabled={isSavingStock || isLoading || !hasStockParamsChanges()}>
                             <SaveIcon className="w-4 h-4" />
@@ -386,11 +387,11 @@ export default function SettingsOrganizacao() {
                                     <Input id="diasSemVenda" type="number" placeholder="30" value={diasSemVenda} onChange={(e) => setDiasSemVenda(e.target.value)} className="max-w-[160px]" disabled={isLoading} />
                                 </div>
                                 <div className="flex items-center gap-4 justify-between">
-                                    <Label htmlFor="coberturaDias" className="min-w-[230px]">Cobertura mínima de dias para alerta</Label>
+                                    <Label htmlFor="coberturaDias" className="min-w-[230px]">Cobertura mÃ­nima de dias para alerta</Label>
                                     <Input id="coberturaDias" type="number" placeholder="15" value={coberturaDias} onChange={(e) => setCoberturaDias(e.target.value)} className="max-w-[160px]" disabled={isLoading} />
                                 </div>
                                 <div className="flex items-center gap-4 justify-between">
-                                    <Label htmlFor="margemMinima" className="min-w-[230px]">Margem mínima aceitável (%)</Label>
+                                    <Label htmlFor="margemMinima" className="min-w-[230px]">Margem mÃ­nima aceitÃ¡vel (%)</Label>
                                     <Input id="margemMinima" type="number" placeholder="20" value={margemMinima} onChange={(e) => setMargemMinima(e.target.value)} className="max-w-[160px]" disabled={isLoading} />
                                 </div>
                             </div>

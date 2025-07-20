@@ -1,0 +1,140 @@
+export declare const ENTITY_TYPES: {
+    readonly PRODUCT: "PRODUCT";
+    readonly SUPPLIER: "SUPPLIER";
+    readonly LOCATION: "LOCATION";
+};
+export type EntityType = keyof typeof ENTITY_TYPES;
+export declare const TRANSACTION_TYPES: {
+    readonly ORDER_PURCHASE: "ORDER_PURCHASE";
+    readonly DOCUMENT_SUPPLIER_IN: "DOCUMENT_SUPPLIER_IN";
+    readonly TRANSFER_OUT: "TRANSFER_OUT";
+    readonly TRANSFER_IN: "TRANSFER_IN";
+    readonly DOCUMENT_SALE: "DOCUMENT_SALE";
+    readonly DOCUMENT_RETURN: "DOCUMENT_RETURN";
+    readonly INVENTORY_MOVEMENT: "INVENTORY_MOVEMENT";
+    readonly DOCUMENT_TRANSFER_INTERNAL: "DOCUMENT_TRANSFER_INTERNAL";
+};
+export type TransactionType = keyof typeof TRANSACTION_TYPES;
+export declare const RELATIONSHIP_TYPES: {
+    readonly CONTAINS_ITEM: "CONTAINS_ITEM";
+    readonly BASED_ON_ORDER: "BASED_ON_ORDER";
+    readonly AFFECTS_PRODUCT: "AFFECTS_PRODUCT";
+    readonly AT_LOCATION: "AT_LOCATION";
+    readonly CAUSED_BY_DOCUMENT: "CAUSED_BY_DOCUMENT";
+    readonly FROM_SUPPLIER: "FROM_SUPPLIER";
+    readonly TO_CUSTOMER: "TO_CUSTOMER";
+};
+export type RelationshipType = keyof typeof RELATIONSHIP_TYPES;
+export declare const PURCHASE_STATES: {
+    readonly PENDENTE: "PENDENTE";
+    readonly APPROVED: "APPROVED";
+    readonly PRE_BAIXA: "PRE_BAIXA";
+    readonly AGUARDANDO_CONFERENCIA_CD: "AGUARDANDO_CONFERENCIA_CD";
+    readonly EM_CONFERENCIA_CD: "EM_CONFERENCIA_CD";
+    readonly CONFERENCIA_CD_SEM_DIVERGENCIA: "CONFERENCIA_CD_SEM_DIVERGENCIA";
+    readonly CONFERENCIA_CD_COM_DIVERGENCIA: "CONFERENCIA_CD_COM_DIVERGENCIA";
+    readonly EFETIVADO_CD: "EFETIVADO_CD";
+};
+export type PurchaseState = keyof typeof PURCHASE_STATES;
+export declare const TRANSFER_OUT_STATES: {
+    readonly PEDIDO_TRANSFERENCIA_CRIADO: "PEDIDO_TRANSFERENCIA_CRIADO";
+    readonly MAPA_SEPARACAO_CRIADO: "MAPA_SEPARACAO_CRIADO";
+    readonly AGUARDANDO_SEPARACAO_CD: "AGUARDANDO_SEPARACAO_CD";
+    readonly EM_SEPARACAO_CD: "EM_SEPARACAO_CD";
+    readonly SEPARACAO_CD_SEM_DIVERGENCIA: "SEPARACAO_CD_SEM_DIVERGENCIA";
+    readonly SEPARACAO_CD_COM_DIVERGENCIA: "SEPARACAO_CD_COM_DIVERGENCIA";
+    readonly SEPARADO_PRE_DOCA: "SEPARADO_PRE_DOCA";
+    readonly EMBARCADO_CD: "EMBARCADO_CD";
+    readonly TRANSFERENCIA_CDH_FATURADA: "TRANSFERENCIA_CDH_FATURADA";
+};
+export type TransferOutState = keyof typeof TRANSFER_OUT_STATES;
+export declare const TRANSFER_IN_STATES: {
+    readonly AGUARDANDO_CONFERENCIA_LOJA: "AGUARDANDO_CONFERENCIA_LOJA";
+    readonly EM_CONFERENCIA_LOJA: "EM_CONFERENCIA_LOJA";
+    readonly CONFERENCIA_LOJA_SEM_DIVERGENCIA: "CONFERENCIA_LOJA_SEM_DIVERGENCIA";
+    readonly CONFERENCIA_LOJA_COM_DIVERGENCIA: "CONFERENCIA_LOJA_COM_DIVERGENCIA";
+    readonly EFETIVADO_LOJA: "EFETIVADO_LOJA";
+};
+export type TransferInState = keyof typeof TRANSFER_IN_STATES;
+export declare const SALES_STATES: {
+    readonly VENDA_CONCLUIDA: "VENDA_CONCLUIDA";
+};
+export type SalesState = keyof typeof SALES_STATES;
+export declare const RETURN_STATES: {
+    readonly DEVOLUCAO_AGUARDANDO: "DEVOLUCAO_AGUARDANDO";
+    readonly DEVOLUCAO_CONCLUIDA: "DEVOLUCAO_CONCLUIDA";
+    readonly TRANSFERENCIA_ENTRE_LOJAS: "TRANSFERENCIA_ENTRE_LOJAS";
+};
+export type ReturnState = keyof typeof RETURN_STATES;
+export declare const INVENTORY_STATES: {
+    readonly MOVIMENTO_PENDENTE: "MOVIMENTO_PENDENTE";
+    readonly MOVIMENTO_EXECUTADO: "MOVIMENTO_EXECUTADO";
+    readonly MOVIMENTO_CANCELADO: "MOVIMENTO_CANCELADO";
+};
+export type InventoryState = keyof typeof INVENTORY_STATES;
+export declare const TRANSFER_INTERNAL_STATES: {
+    readonly TRANSFERENCIA_ENTRE_LOJAS: "TRANSFERENCIA_ENTRE_LOJAS";
+};
+export type TransferInternalState = keyof typeof TRANSFER_INTERNAL_STATES;
+export type BusinessState = PurchaseState | TransferOutState | TransferInState | SalesState | ReturnState | InventoryState | TransferInternalState;
+export declare const TRANSACTION_STATE_MAPPING: {
+    readonly ORDER_PURCHASE: {
+        readonly PENDENTE: "PENDENTE";
+        readonly APPROVED: "APPROVED";
+        readonly PRE_BAIXA: "PRE_BAIXA";
+        readonly AGUARDANDO_CONFERENCIA_CD: "AGUARDANDO_CONFERENCIA_CD";
+        readonly EM_CONFERENCIA_CD: "EM_CONFERENCIA_CD";
+        readonly CONFERENCIA_CD_SEM_DIVERGENCIA: "CONFERENCIA_CD_SEM_DIVERGENCIA";
+        readonly CONFERENCIA_CD_COM_DIVERGENCIA: "CONFERENCIA_CD_COM_DIVERGENCIA";
+        readonly EFETIVADO_CD: "EFETIVADO_CD";
+    };
+    readonly DOCUMENT_SUPPLIER_IN: {
+        readonly PENDENTE: "PENDENTE";
+        readonly APPROVED: "APPROVED";
+        readonly PRE_BAIXA: "PRE_BAIXA";
+        readonly AGUARDANDO_CONFERENCIA_CD: "AGUARDANDO_CONFERENCIA_CD";
+        readonly EM_CONFERENCIA_CD: "EM_CONFERENCIA_CD";
+        readonly CONFERENCIA_CD_SEM_DIVERGENCIA: "CONFERENCIA_CD_SEM_DIVERGENCIA";
+        readonly CONFERENCIA_CD_COM_DIVERGENCIA: "CONFERENCIA_CD_COM_DIVERGENCIA";
+        readonly EFETIVADO_CD: "EFETIVADO_CD";
+    };
+    readonly TRANSFER_OUT: {
+        readonly PEDIDO_TRANSFERENCIA_CRIADO: "PEDIDO_TRANSFERENCIA_CRIADO";
+        readonly MAPA_SEPARACAO_CRIADO: "MAPA_SEPARACAO_CRIADO";
+        readonly AGUARDANDO_SEPARACAO_CD: "AGUARDANDO_SEPARACAO_CD";
+        readonly EM_SEPARACAO_CD: "EM_SEPARACAO_CD";
+        readonly SEPARACAO_CD_SEM_DIVERGENCIA: "SEPARACAO_CD_SEM_DIVERGENCIA";
+        readonly SEPARACAO_CD_COM_DIVERGENCIA: "SEPARACAO_CD_COM_DIVERGENCIA";
+        readonly SEPARADO_PRE_DOCA: "SEPARADO_PRE_DOCA";
+        readonly EMBARCADO_CD: "EMBARCADO_CD";
+        readonly TRANSFERENCIA_CDH_FATURADA: "TRANSFERENCIA_CDH_FATURADA";
+    };
+    readonly TRANSFER_IN: {
+        readonly AGUARDANDO_CONFERENCIA_LOJA: "AGUARDANDO_CONFERENCIA_LOJA";
+        readonly EM_CONFERENCIA_LOJA: "EM_CONFERENCIA_LOJA";
+        readonly CONFERENCIA_LOJA_SEM_DIVERGENCIA: "CONFERENCIA_LOJA_SEM_DIVERGENCIA";
+        readonly CONFERENCIA_LOJA_COM_DIVERGENCIA: "CONFERENCIA_LOJA_COM_DIVERGENCIA";
+        readonly EFETIVADO_LOJA: "EFETIVADO_LOJA";
+    };
+    readonly DOCUMENT_SALE: {
+        readonly VENDA_CONCLUIDA: "VENDA_CONCLUIDA";
+    };
+    readonly DOCUMENT_RETURN: {
+        readonly DEVOLUCAO_AGUARDANDO: "DEVOLUCAO_AGUARDANDO";
+        readonly DEVOLUCAO_CONCLUIDA: "DEVOLUCAO_CONCLUIDA";
+        readonly TRANSFERENCIA_ENTRE_LOJAS: "TRANSFERENCIA_ENTRE_LOJAS";
+    };
+    readonly INVENTORY_MOVEMENT: {
+        readonly MOVIMENTO_PENDENTE: "MOVIMENTO_PENDENTE";
+        readonly MOVIMENTO_EXECUTADO: "MOVIMENTO_EXECUTADO";
+        readonly MOVIMENTO_CANCELADO: "MOVIMENTO_CANCELADO";
+    };
+    readonly DOCUMENT_TRANSFER_INTERNAL: {
+        readonly TRANSFERENCIA_ENTRE_LOJAS: "TRANSFERENCIA_ENTRE_LOJAS";
+    };
+};
+export declare function isValidStateForTransactionType(transactionType: TransactionType, state: string): boolean;
+export declare function getValidStatesForTransactionType(transactionType: TransactionType): readonly string[];
+export declare const BANBAN_ORG_ID = "2da2a9a7-89ec-48bf-a3bc-c46e58d5a9b4";
+export declare function getOrganizationId(): string;
+//# sourceMappingURL=eca-types.d.ts.map

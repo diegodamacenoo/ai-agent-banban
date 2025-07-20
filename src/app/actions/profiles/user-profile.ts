@@ -1,11 +1,12 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
-import { UpdateProfileSchema } from '@/lib/schemas/profiles';
+import { createAuditLog, captureRequestInfo } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { UpdateProfileSchema } from '@/core/schemas/profiles';
 
 export type ProfileData = {
   first_name: string;
@@ -29,14 +30,11 @@ export type ProfileData = {
 export async function getProfile(): Promise<{ data?: ProfileData, error?: string }> {
   try {
     // Busca o usuário autenticado
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { error: 'Usuário não autenticado' };
     }
-
-    const user = session.user;
 
     // Busca o perfil do usuário
     const { data, error } = await supabase
@@ -83,17 +81,13 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
         error: validation.error.errors.map(e => e.message).join(', ') 
       };
     }
-    console.log('DEBUG - Dados do perfil a serem atualizados:', formData);
+    console.debug('DEBUG - Dados do perfil a serem atualizados:', formData);
     // Verificar se o usuário está autenticado
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-    
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const supabase = await createSupabaseServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
 
     // Buscar dados atuais do perfil para comparar mudanças
     const { data: currentProfile } = await supabase
@@ -101,7 +95,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
       .select('first_name, last_name, job_title, phone, team, location, username, avatar_url')
       .eq('id', user.id)
       .single();
-    console.log('DEBUG - Perfil atual:', currentProfile);
+    console.debug('DEBUG - Perfil atual:', currentProfile);
     // Atualiza o perfil do usuário
     const { data, error } = await supabase
       .from('profiles')
@@ -119,7 +113,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
       .eq('id', user.id)
       .select('first_name, last_name, job_title, phone, avatar_url, team, organization_id, username, location, role')
       .single();
-    console.log('DEBUG - Perfil atualizado:', data);
+    console.debug('DEBUG - Perfil atualizado:', data);
     // Se houve um erro, retorna o erro
     if (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -130,12 +124,12 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.PROFILE_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.PROFILE,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
+      organization_id: organizationId,
       ip_address: ipAddress,
       user_agent: userAgent,
-      organization_id: organizationId,
       details: {
         changes: formData,
         previous_values: currentProfile || {}

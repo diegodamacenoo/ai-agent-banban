@@ -1,11 +1,29 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import type { Role } from '@/app/(protected)/settings/types/perfis';
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
-import { PerfilSchema, UpdatePerfilSchema, DeletePerfilSchema } from '@/lib/schemas/user-management';
+import { createAuditLog, captureRequestInfo } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { z } from 'zod';
+
+// Schemas locais para validação
+const PerfilSchema = z.object({
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  permissions: z.array(z.string()).optional()
+});
+
+const UpdatePerfilSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Nome é obrigatório'),
+  description: z.string().optional(),
+  permissions: z.array(z.string()).optional()
+});
+
+const DeletePerfilSchema = z.object({
+  id: z.string()
+});
 
 const PERFIL_COLUMNS = 'id, name, description, permissions, created_at, updated_at';
 
@@ -15,11 +33,10 @@ const PERFIL_COLUMNS = 'id, name, description, permissions, created_at, updated_
  */
 export async function getPerfisUsuario(): Promise<{ data?: Role[]; error?: string }> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return { error: 'Usuário não autenticado.' };
     }
 
@@ -56,15 +73,14 @@ export async function createPerfilUsuario(formData: Omit<Role, 'id' | 'created_a
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
-    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', user.id).single();
     if (userProfile?.role !== 'organization_admin') {
       return { success: false, error: 'Apenas administradores podem criar perfis.' };
     }
@@ -88,19 +104,19 @@ export async function createPerfilUsuario(formData: Omit<Role, 'id' | 'created_a
     }
 
     // Registrar no log de auditoria
-    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.ROLE_CREATED,
-      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.USER_CREATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: newPerfil.id,
       organization_id: userProfile.organization_id,
+      ip_address: ipAddress,
+      user_agent: userAgent,
       details: {
         role_name: newPerfil.name,
         permissions: newPerfil.permissions,
-      },
-      ip_address: ipAddress,
-      user_agent: userAgent,
+      }
     });
     
     revalidatePath('/settings/user-profiles');
@@ -135,15 +151,14 @@ export async function updatePerfilUsuario(formData: Role): Promise<{ success: bo
   const { id, name, description, permissions } = validation.data;
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
-    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', user.id).single();
     if (userProfile?.role !== 'organization_admin') {
       return { success: false, error: 'Apenas administradores podem atualizar perfis.' };
     }
@@ -169,19 +184,19 @@ export async function updatePerfilUsuario(formData: Role): Promise<{ success: bo
     }
 
     // Registrar no log de auditoria
-    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.ROLE_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: updatedPerfil.id,
       organization_id: userProfile.organization_id,
+      ip_address: ipAddress,
+      user_agent: userAgent,
       details: {
         role_name: updatedPerfil.name,
         permissions: updatedPerfil.permissions,
-      },
-      ip_address: ipAddress,
-      user_agent: userAgent,
+      }
     });
 
     revalidatePath('/settings/user-profiles');
@@ -214,15 +229,14 @@ export async function deletePerfilUsuario(id: string): Promise<{ success: boolea
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
-    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', session.user.id).single();
+    const { data: userProfile } = await supabase.from('profiles').select('role, organization_id').eq('id', user.id).single();
     if (userProfile?.role !== 'organization_admin') {
       return { success: false, error: 'Apenas administradores podem remover perfis.' };
     }
@@ -247,18 +261,18 @@ export async function deletePerfilUsuario(id: string): Promise<{ success: boolea
     }
 
     // Registrar no log de auditoria
-    const { ipAddress, userAgent } = await captureRequestInfo(session.user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.ROLE_DELETED,
-      resource_type: AUDIT_RESOURCE_TYPES.ROLE,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.USER_DELETED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: id,
       organization_id: userProfile.organization_id,
-      details: {
-        deleted_role_name: roleToDelete.name,
-      },
       ip_address: ipAddress,
       user_agent: userAgent,
+      details: {
+        role_name: roleToDelete.name
+      }
     });
 
     revalidatePath('/settings/user-profiles');

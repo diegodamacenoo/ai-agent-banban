@@ -1,7 +1,7 @@
 'use client';
 
 import { TrashIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,8 +12,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+} from "@/shared/ui/alert-dialog";
+import { useToast } from '@/shared/ui/toast';
 import { useState } from "react";
 
 interface HardDeleteUsuarioButtonProps {
@@ -22,7 +22,9 @@ interface HardDeleteUsuarioButtonProps {
   onSuccess?: () => void;
 }
 
-export default function HardDeleteUsuarioButton({ userId, userName, onSuccess }: HardDeleteUsuarioButtonProps) {
+export default function HardDeleteUsuarioButton({
+  const { toast } = useToast();
+ userId, userName, onSuccess }: HardDeleteUsuarioButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleHardDelete = async () => {
@@ -41,18 +43,18 @@ export default function HardDeleteUsuarioButton({ userId, userName, onSuccess }:
       const data = await result.json();
 
       if (result.ok && data.success) {
-        toast.success("Usuário removido permanentemente", {
+        toast.success("UsuÃ¡rio removido permanentemente", {
           description: `${userName} foi removido permanentemente do sistema.`,
         });
         onSuccess?.();
       } else {
-        toast.error("Erro ao remover usuário", {
+        toast.error("Erro ao remover usuÃ¡rio", {
           description: data.error || "Ocorreu um erro inesperado.",
         });
       }
     } catch (error) {
-      toast.error("Erro ao remover usuário", {
-        description: "Ocorreu um erro inesperado ao remover o usuário.",
+      toast.error("Erro ao remover usuÃ¡rio", {
+        description: "Ocorreu um erro inesperado ao remover o usuÃ¡rio.",
       });
       console.error(error);
     } finally {
@@ -75,24 +77,24 @@ export default function HardDeleteUsuarioButton({ userId, userName, onSuccess }:
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-red-600">Tem certeza que deseja excluir este usuário permanentemente?</AlertDialogTitle>
+          <AlertDialogTitle className="text-red-600">Tem certeza que deseja excluir este usuÃ¡rio permanentemente?</AlertDialogTitle>
           <AlertDialogDescription>
-            Esta ação é irreversível e irá excluir permanentemente todos os dados do usuário, remover a conta de acesso do sistema e tornar impossível a recuperação dos dados.
+            Esta aÃ§Ã£o Ã© irreversÃ­vel e irÃ¡ excluir permanentemente todos os dados do usuÃ¡rio, remover a conta de acesso do sistema e tornar impossÃ­vel a recuperaÃ§Ã£o dos dados.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-3">
           <div className="bg-red-50 border border-red-200 rounded-md p-3">
             <p className="text-red-800 font-medium text-sm">
-              Esta ação é IRREVERSÍVEL e irá:
+              Esta aÃ§Ã£o Ã© IRREVERSÃVEL e irÃ¡:
             </p>
             <ul className="text-red-700 text-sm mt-2 space-y-1 list-disc list-inside">
-              <li>Excluir permanentemente todos os dados do usuário</li>
+              <li>Excluir permanentemente todos os dados do usuÃ¡rio</li>
               <li>Remover a conta de acesso do sistema</li>
-              <li>Tornar impossível a recuperação dos dados</li>
+              <li>Tornar impossÃ­vel a recuperaÃ§Ã£o dos dados</li>
             </ul>
           </div>
           <p className="text-sm text-muted-foreground">
-            Esta ação não pode ser desfeita.
+            Esta aÃ§Ã£o nÃ£o pode ser desfeita.
           </p>
         </div>
         <AlertDialogFooter>

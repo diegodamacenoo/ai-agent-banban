@@ -11,7 +11,7 @@ export function ErrorCardContainer() {
             <FrownIcon className="w-10 h-10" />
             <div className="flex flex-col items-center justify-center">
                 <span className="font-semibold">Falha ao obter dados.</span>
-                <span className="text-sm text-muted-foreground">Por favor, contate o administrador da sua organização.</span>
+                <span className="text-sm text-muted-foreground">Por favor, contate o administrador da sua organizaÃ§Ã£o.</span>
             </div>
         </div>
     );

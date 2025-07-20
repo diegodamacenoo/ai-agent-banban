@@ -1,0 +1,198 @@
+# Relatório de Alinhamento: Edge Functions vs Schema do Banco de Dados
+
+## Resumo Executivo
+
+Este relatório documenta a análise e correção do alinhamento entre as edge functions do Supabase e o schema oficial do banco de dados BanBan AI Agent. Foram identificados e corrigidos vários problemas de compatibilidade.
+
+## Problemas Identificados e Corrigidos
+
+### 1. Campo `metadata` vs `payload` na tabela `core_events`
+
+**Problema**: Várias edge functions estavam usando o campo `metadata` ao inserir eventos na tabela `core_events`, mas o schema define o campo como `payload` (JSONB).
+
+**Funções Afetadas**:
+- `webhook-inventory-flow/index.ts`
+- `webhook-sales-flow/index.ts`
+- `webhook-transfer-flow/index.ts`
+
+**Correção Aplicada**:
+```typescript
+// ANTES
+metadata: {
+  event_type: payload.event_type,
+  // ...
+}
+
+// DEPOIS
+payload: {
+  event_type: payload.event_type,
+  // ...
+}
+```
+
+### 2. Códigos de Evento Não Alinhados com o Schema
+
+**Problema**: Os códigos de evento (`event_code`) usados nas edge functions não correspondiam aos valores válidos definidos no schema do banco.
+
+**Schema Define**:
+```sql
+event_code ∈ {
+  'sale', 'return', 'transfer', 'adjustment', 
+  'purchase_order_created', 'receipt_ok_cd', 
+  'separation_in_progress', 'sale_completed', 
+  'devolucao_aguardando', 'devolucao_concluida'
+}
+```
+
+**Correções Aplicadas**:
+
+#### webhook-inventory-flow
+```typescript
+// ANTES
+const EVENT_CODE_MAPPING: Record<string, string> = {
+  'product_sync': 'product_sync',
+  'inventory_update': 'inventory_update',
+  'price_update': 'price_update'
+};
+
+// DEPOIS
+const EVENT_CODE_MAPPING: Record<string, string> = {
+  'product_sync': 'adjustment',
+  'inventory_update': 'adjustment', 
+  'price_update': 'adjustment'
+};
+```
+
+#### webhook-transfer-flow
+```typescript
+// ANTES
+const EVENT_CODE_MAPPING: Record<string, string> = {
+  'transfer_order_created': 'transfer_order_created',
+  'transfer_shipped': 'transfer_shipped',
+  'transfer_received': 'transfer_received',
+  'transfer_completed': 'transfer_completed'
+};
+
+// DEPOIS
+const EVENT_CODE_MAPPING: Record<string, string> = {
+  'transfer_order_created': 'transfer',
+  'transfer_shipped': 'transfer',
+  'transfer_received': 'transfer',
+  'transfer_completed': 'transfer'
+};
+```
+
+### 3. Validação de Status de Documentos Incompleta
+
+**Problema**: A função `webhook-orders` não validava todos os status possíveis para documentos conforme definido no schema.
+
+**Schema Define**:
+```sql
+status ∈ {
+  'PENDENTE', 'AGUARDANDO_CONFERENCIA', 
+  'CONFERIDO_COM_DIVERGENCIA', 'EFETIVADO_CD', 
+  'EFETIVADO_LOJA', 'CANCELADO'
+}
+```
+
+**Correção Aplicada**:
+```typescript
+case 'document':
+  if (data.doc_type && !['SUPPLIER_IN', 'TRANSFER_OUT', 'TRANSFER_IN', 'RETURN', 'SALE'].includes(data.doc_type)) {
+    errors.push(`doc_type deve ser SUPPLIER_IN, TRANSFER_OUT, TRANSFER_IN, RETURN ou SALE. Recebido: ${data.doc_type}`);
+  }
+  // ADICIONADO:
+  if (data.status && !['PENDENTE', 'AGUARDANDO_CONFERENCIA', 'CONFERIDO_COM_DIVERGENCIA', 'EFETIVADO_CD', 'EFETIVADO_LOJA', 'CANCELADO'].includes(data.status)) {
+    errors.push(`status deve ser PENDENTE, AGUARDANDO_CONFERENCIA, CONFERIDO_COM_DIVERGENCIA, EFETIVADO_CD, EFETIVADO_LOJA ou CANCELADO. Recebido: ${data.status}`);
+  }
+  break;
+```
+
+## Status das Edge Functions
+
+### ✅ Totalmente Alinhadas
+- `webhook-orders/index.ts` - Já estava bem alinhada, apenas adicionada validação de status de documentos
+- `webhook-purchase-flow/index.ts` - Já estava correta
+
+### ✅ Corrigidas
+- `webhook-inventory-flow/index.ts` - Corrigidos campos `payload` e `event_code`
+- `webhook-sales-flow/index.ts` - Corrigido campo `payload`
+- `webhook-transfer-flow/index.ts` - Corrigidos campos `payload` e `event_code`
+
+### ⚠️ Validação Simples
+- `webhook-purchase-simple/index.ts` - Função de validação simples, não interage diretamente com o banco
+
+### 📝 Não Aplicável
+- `daily-etl/` - Contém apenas SQL functions
+- `security-alerts/` - Contém apenas documentação
+
+## Validações Implementadas por Tabela
+
+### `core_products`
+- ✅ `unit_measure` ∈ {'PAR', 'UND', 'CX'}
+- ✅ `gender` ∈ {'MAS', 'FEM', 'USX'}
+- ✅ `external_id` UNIQUE
+
+### `core_locations`
+- ✅ `location_type` ∈ {'CD', 'LOJA'}
+- ✅ `external_id` UNIQUE
+
+### `core_orders`
+- ✅ `order_type` ∈ {'COMPRA', 'TRANSFER'}
+- ✅ `status` ∈ {'NOVO', 'APROVADO', 'CANCELADO'}
+- ✅ `external_id` UNIQUE
+
+### `core_documents`
+- ✅ `doc_type` ∈ {'SUPPLIER_IN', 'TRANSFER_OUT', 'TRANSFER_IN', 'RETURN', 'SALE'}
+- ✅ `status` ∈ {'PENDENTE', 'AGUARDANDO_CONFERENCIA', 'CONFERIDO_COM_DIVERGENCIA', 'EFETIVADO_CD', 'EFETIVADO_LOJA', 'CANCELADO'}
+- ✅ `external_id` UNIQUE
+
+### `core_movements`
+- ✅ `movement_type` ∈ {'CD_RECEIPT', 'CD_TRANSFER', 'STORE_RECEIPT', 'SALE', 'RETURN'}
+
+### `core_product_pricing`
+- ✅ `price_type` ∈ {'BASE', 'CUSTO', 'PROMO', 'VIP'}
+- ✅ `price_value` ≥ 0
+
+### `core_inventory_snapshots`
+- ✅ `qty_on_hand` ≥ 0
+
+### `core_events`
+- ✅ `event_code` ∈ {'sale', 'return', 'transfer', 'adjustment', 'purchase_order_created', 'receipt_ok_cd', 'separation_in_progress', 'sale_completed', 'devolucao_aguardando', 'devolucao_concluida'}
+
+## Recomendações para Manutenção
+
+### 1. Testes Automatizados
+Implementar testes que validem:
+- Conformidade dos tipos TypeScript com o schema
+- Validação de constraints antes da inserção
+- Mapeamento correto de códigos de evento
+
+### 2. Documentação Sincronizada
+- Manter o `database-schema-reference.md` atualizado
+- Documentar mudanças no schema nas edge functions
+- Criar changelog para alterações de schema
+
+### 3. Validação em Tempo de Desenvolvimento
+- Usar ferramentas de geração de tipos a partir do schema
+- Implementar linting rules específicas para validação de ENUMs
+- Configurar CI/CD para verificar alinhamento
+
+### 4. Monitoramento em Produção
+- Alertas para violações de constraint
+- Logs estruturados para debugging
+- Métricas de sucesso/falha por tipo de evento
+
+## Próximos Passos
+
+1. **Testar as correções** em ambiente de desenvolvimento
+2. **Executar script de compliance** para validar mudanças
+3. **Deploy das edge functions** corrigidas
+4. **Monitorar logs** para identificar possíveis problemas
+5. **Atualizar documentação** de integração para desenvolvedores ERP
+
+---
+
+**Data do Relatório**: Janeiro 2025  
+**Versão do Schema**: 1.0  
+**Status**: ✅ Correções Aplicadas - Aguardando Deploy 

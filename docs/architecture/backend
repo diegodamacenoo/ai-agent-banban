@@ -1,0 +1,632 @@
+# Arquitetura Backend Customizado - Fastify
+
+## 🚀 **Por que Fastify?**
+
+### **Performance**
+- **2-3x mais rápido** que Express
+- **Menor overhead** de memória
+- **Validação JSON Schema nativa**
+- **Plugin system** eficiente
+
+### **Compatibilidade**
+- **TypeScript first-class**
+- **Supabase integration** perfeita
+- **Plugin ecosystem** maduro
+- **Monitoramento** built-in
+
+---
+
+## 🏗️ **Estrutura do Projeto**
+
+```
+/core-backend/
+├── src/
+│   ├── core/
+│   │   ├── server.ts           # Servidor principal
+│   │   ├── router.ts           # Roteamento inteligente
+│   │   ├── auth.ts             # Autenticação
+│   │   └── database.ts         # Conexão Supabase
+│   ├── clients/
+│   │   ├── client-a/
+│   │   │   ├── plugins/
+│   │   │   │   ├── performance.ts
+│   │   │   │   ├── inventory.ts
+│   │   │   │   └── webhooks.ts
+│   │   │   ├── schemas/
+│   │   │   │   ├── performance.json
+│   │   │   │   └── inventory.json
+│   │   │   └── config.ts
+│   │   └── client-b/
+│   │       └── ...
+│   ├── standard/
+│   │   └── modules/
+│   │       ├── standard-performance.ts
+│   │       ├── standard-inventory.ts
+│   │       └── standard-webhooks.ts
+│   └── shared/
+│       ├── utils/
+│       ├── types/
+│       └── constants/
+├── package.json
+├── tsconfig.json
+└── Dockerfile
+```
+
+---
+
+## 🔧 **Implementação Core**
+
+### **1. Servidor Principal (src/core/server.ts)**
+
+```typescript
+import Fastify from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { clientRouter } from './router';
+import { authPlugin } from './auth';
+import { databasePlugin } from './database';
+
+const server = Fastify({
+  logger: {
+    level: 'info',
+    prettyPrint: process.env.NODE_ENV === 'development'
+  }
+}).withTypeProvider<TypeBoxTypeProvider>();
+
+// Plugins essenciais
+server.register(authPlugin);
+server.register(databasePlugin);
+server.register(clientRouter);
+
+// Health check
+server.get('/health', async (request, reply) => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+// Inicialização
+const start = async () => {
+  try {
+    await server.listen({ 
+      port: Number(process.env.PORT) || 3001,
+      host: '0.0.0.0'
+    });
+    server.log.info('🚀 Backend customizado iniciado');
+  } catch (err) {
+    server.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();
+```
+
+### **2. Roteador Inteligente (src/core/router.ts)**
+
+```typescript
+import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { Type } from '@sinclair/typebox';
+
+interface ClientConfig {
+  id: string;
+  client_type: 'custom' | 'standard';
+  modules: string[];
+}
+
+const clientRouter: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  
+  // Middleware para detectar cliente
+  fastify.addHook('preHandler', async (request, reply) => {
+    const orgId = request.headers['x-organization-id'] as string;
+    
+    if (!orgId) {
+      return reply.code(400).send({ error: 'Organization ID required' });
+    }
+
+    // Buscar configuração do cliente
+    const { data: org } = await fastify.supabase
+      .from('organizations')
+      .select('id, client_type, implementation_config')
+      .eq('id', orgId)
+      .single();
+
+    if (!org) {
+      return reply.code(404).send({ error: 'Organization not found' });
+    }
+
+    // Anexar ao request
+    request.organization = org;
+  });
+
+  // Rotas dinâmicas por módulo
+  fastify.all('/api/:module/*', async (request, reply) => {
+    const { module } = request.params as { module: string };
+    const org = request.organization;
+
+    if (org.client_type === 'custom') {
+      return await handleCustomClient(fastify, request, reply, module);
+    } else {
+      return await handleStandardClient(fastify, request, reply, module);
+    }
+  });
+};
+
+// Handler para clientes customizados
+async function handleCustomClient(
+  fastify: FastifyInstance, 
+  request: any, 
+  reply: any, 
+  module: string
+) {
+  const orgId = request.organization.id;
+  
+  try {
+    // Carregar módulo customizado dinamicamente
+    const customModule = await import(`../clients/${orgId}/plugins/${module}`);
+    
+    // Executar lógica do módulo
+    return await customModule.handler(request, reply, fastify);
+    
+  } catch (error) {
+    fastify.log.error(`Erro ao carregar módulo ${module} para cliente ${orgId}:`, error);
+    return reply.code(500).send({ 
+      error: 'Module not found or failed to load' 
+    });
+  }
+}
+
+// Handler para clientes padrão
+async function handleStandardClient(
+  fastify: FastifyInstance, 
+  request: any, 
+  reply: any, 
+  module: string
+) {
+  try {
+    // Carregar módulo padrão
+    const standardModule = await import(`../standard/modules/standard-${module}`);
+    
+    // Executar lógica padrão
+    return await standardModule.handler(request, reply, fastify);
+    
+  } catch (error) {
+    fastify.log.error(`Erro ao carregar módulo padrão ${module}:`, error);
+    return reply.code(500).send({ 
+      error: 'Standard module not found' 
+    });
+  }
+}
+
+export { clientRouter };
+```
+
+### **3. Plugin de Autenticação (src/core/auth.ts)**
+
+```typescript
+import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { createClient } from '@supabase/supabase-js';
+
+const authPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  
+  fastify.addHook('preHandler', async (request, reply) => {
+    // Pular autenticação para health check
+    if (request.url === '/health') return;
+
+    const authHeader = request.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return reply.code(401).send({ error: 'Authorization header required' });
+    }
+
+    const token = authHeader.substring(7);
+    
+    // Validar token com Supabase
+    const { data: user, error } = await fastify.supabase.auth.getUser(token);
+    
+    if (error || !user) {
+      return reply.code(401).send({ error: 'Invalid token' });
+    }
+
+    // Anexar usuário ao request
+    request.user = user;
+  });
+};
+
+export { authPlugin };
+```
+
+### **4. Plugin de Database (src/core/database.ts)**
+
+```typescript
+import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { createClient } from '@supabase/supabase-js';
+
+const databasePlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  
+  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase configuration missing');
+  }
+
+  const supabase = createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  });
+
+  // Decorator para acesso global
+  fastify.decorate('supabase', supabase);
+  
+  // Health check da conexão
+  fastify.addHook('onReady', async () => {
+    const { error } = await supabase.from('organizations').select('count').limit(1);
+    if (error) {
+      throw new Error(`Database connection failed: ${error.message}`);
+    }
+    fastify.log.info('✅ Database connection established');
+  });
+};
+
+// Extensão do tipo Fastify
+declare module 'fastify' {
+  interface FastifyInstance {
+    supabase: any;
+  }
+  interface FastifyRequest {
+    user?: any;
+    organization?: any;
+  }
+}
+
+export { databasePlugin };
+```
+
+---
+
+## 🎯 **Exemplos de Módulos Customizados**
+
+### **Cliente A - Varejo de Moda (src/clients/client-a/plugins/performance.ts)**
+
+```typescript
+import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+import { Type } from '@sinclair/typebox';
+
+export async function handler(
+  request: FastifyRequest, 
+  reply: FastifyReply, 
+  fastify: FastifyInstance
+) {
+  const { supabase } = fastify;
+  const orgId = request.organization.id;
+
+  // Lógica específica para varejo de moda
+  const performanceData = await Promise.all([
+    getMarginByCategory(supabase, orgId),
+    getSizeAnalysis(supabase, orgId),
+    getSeasonalTrends(supabase, orgId),
+    getColorPerformance(supabase, orgId)
+  ]);
+
+  return {
+    success: true,
+    data: {
+      margin_by_category: performanceData[0],
+      size_analysis: performanceData[1],
+      seasonal_trends: performanceData[2],
+      color_performance: performanceData[3]
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+async function getMarginByCategory(supabase: any, orgId: string) {
+  const { data } = await supabase
+    .from('products')
+    .select(`
+      category,
+      AVG(margin) as avg_margin,
+      COUNT(*) as product_count
+    `)
+    .eq('organization_id', orgId)
+    .group('category');
+    
+  return data;
+}
+
+async function getSizeAnalysis(supabase: any, orgId: string) {
+  const { data } = await supabase
+    .from('sales_items')
+    .select(`
+      product_variant->size as size,
+      SUM(quantity) as total_sold,
+      AVG(price) as avg_price
+    `)
+    .eq('organization_id', orgId)
+    .group('product_variant->size');
+    
+  return data;
+}
+
+async function getSeasonalTrends(supabase: any, orgId: string) {
+  const { data } = await supabase
+    .from('sales')
+    .select(`
+      EXTRACT(MONTH FROM created_at) as month,
+      category,
+      SUM(total) as revenue
+    `)
+    .eq('organization_id', orgId)
+    .group('month, category');
+    
+  return data;
+}
+
+async function getColorPerformance(supabase: any, orgId: string) {
+  const { data } = await supabase
+    .from('products')
+    .select(`
+      color,
+      COUNT(*) as product_count,
+      SUM(stock_current) as total_stock
+    `)
+    .eq('organization_id', orgId)
+    .group('color');
+    
+  return data;
+}
+```
+
+### **Módulo Padrão (src/standard/modules/standard-performance.ts)**
+
+```typescript
+import { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
+
+export async function handler(
+  request: FastifyRequest, 
+  reply: FastifyReply, 
+  fastify: FastifyInstance
+) {
+  const { supabase } = fastify;
+  const orgId = request.organization.id;
+
+  // Métricas padrão para qualquer negócio
+  const performanceData = await Promise.all([
+    getRevenueMetrics(supabase, orgId),
+    getTopProducts(supabase, orgId),
+    getProfitMargins(supabase, orgId)
+  ]);
+
+  return {
+    success: true,
+    data: {
+      revenue_metrics: performanceData[0],
+      top_products: performanceData[1],
+      profit_margins: performanceData[2]
+    },
+    timestamp: new Date().toISOString()
+  };
+}
+
+async function getRevenueMetrics(supabase: any, orgId: string) {
+  // Lógica padrão de receita
+  const { data } = await supabase
+    .from('sales')
+    .select('total, created_at')
+    .eq('organization_id', orgId)
+    .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
+    
+  return {
+    total_revenue: data?.reduce((sum, sale) => sum + sale.total, 0) || 0,
+    sales_count: data?.length || 0,
+    average_sale: data?.length ? data.reduce((sum, sale) => sum + sale.total, 0) / data.length : 0
+  };
+}
+
+async function getTopProducts(supabase: any, orgId: string) {
+  // Produtos mais vendidos (padrão)
+  const { data } = await supabase
+    .from('sales_items')
+    .select(`
+      product_id,
+      products(name),
+      SUM(quantity) as total_sold
+    `)
+    .eq('organization_id', orgId)
+    .group('product_id, products.name')
+    .order('total_sold', { ascending: false })
+    .limit(10);
+    
+  return data;
+}
+
+async function getProfitMargins(supabase: any, orgId: string) {
+  // Margens de lucro padrão
+  const { data } = await supabase
+    .from('products')
+    .select('margin')
+    .eq('organization_id', orgId);
+    
+  const margins = data?.map(p => p.margin) || [];
+  
+  return {
+    average_margin: margins.length ? margins.reduce((a, b) => a + b, 0) / margins.length : 0,
+    min_margin: Math.min(...margins),
+    max_margin: Math.max(...margins)
+  };
+}
+```
+
+---
+
+## 🔧 **Configuração do Projeto**
+
+### **package.json**
+```json
+{
+  "name": "core-backend",
+  "version": "1.0.0",
+  "description": "Backend customizado para clientes multi-tenant",
+  "main": "dist/core/server.js",
+  "scripts": {
+    "dev": "tsx watch src/core/server.ts",
+    "build": "tsc",
+    "start": "node dist/core/server.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "fastify": "^4.26.0",
+    "@fastify/type-provider-typebox": "^4.0.0",
+    "@sinclair/typebox": "^0.32.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@types/node": "^20.11.0",
+    "tsx": "^4.7.0",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11"
+  }
+}
+```
+
+### **tsconfig.json**
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+### **Dockerfile**
+```dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --only=production
+
+COPY dist/ ./dist/
+
+EXPOSE 3001
+
+CMD ["node", "dist/core/server.js"]
+```
+
+---
+
+## 🚀 **Deploy e Monitoramento**
+
+### **Deploy Script**
+```bash
+#!/bin/bash
+# deploy.sh
+
+echo "🏗️  Building custom backend..."
+npm run build
+
+echo "🐳 Building Docker image..."
+docker build -t core-backend .
+
+echo "🚀 Deploying to production..."
+docker run -d \
+  --name core-backend \
+  -p 3001:3001 \
+  -e SUPABASE_URL=$SUPABASE_URL \
+  -e SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_SERVICE_ROLE_KEY \
+  core-backend
+
+echo "✅ Backend deployed successfully!"
+```
+
+### **Monitoramento**
+```typescript
+// src/core/monitoring.ts
+import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+
+const monitoringPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
+  
+  // Métricas de request
+  fastify.addHook('onRequest', async (request, reply) => {
+    request.startTime = Date.now();
+  });
+
+  fastify.addHook('onResponse', async (request, reply) => {
+    const duration = Date.now() - request.startTime;
+    
+    fastify.log.info({
+      method: request.method,
+      url: request.url,
+      statusCode: reply.statusCode,
+      duration: `${duration}ms`,
+      organization: request.organization?.id
+    });
+  });
+
+  // Endpoint de métricas
+  fastify.get('/metrics', async (request, reply) => {
+    return {
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      timestamp: new Date().toISOString()
+    };
+  });
+};
+
+export { monitoringPlugin };
+```
+
+---
+
+## 📊 **Vantagens desta Arquitetura**
+
+### **1. Performance**
+- **Fastify**: 2-3x mais rápido que Express
+- **Plugin system**: Carregamento sob demanda
+- **TypeScript**: Otimizações de compilação
+
+### **2. Flexibilidade**
+- **Módulos customizados**: Lógica específica por cliente
+- **Módulos padrão**: Funcionalidades compartilhadas
+- **Roteamento dinâmico**: Baseado em configuração
+
+### **3. Manutenibilidade**
+- **Código isolado**: Cada cliente tem sua pasta
+- **Tipos seguros**: TypeScript + TypeBox
+- **Monitoramento**: Logs e métricas built-in
+
+### **4. Escalabilidade**
+- **Microserviços**: Pode ser dividido facilmente
+- **Docker**: Deploy consistente
+- **Supabase**: Database gerenciado
+
+---
+
+## 🎯 **Próximos Passos**
+
+1. **Criar estrutura do projeto**
+2. **Implementar servidor base**
+3. **Desenvolver primeiro módulo customizado**
+4. **Testes de integração**
+5. **Deploy em ambiente de homologação**
+
+**Status:** 📋 Arquitetura definida
+**Framework:** Fastify + TypeScript + Supabase
+**Próxima ação:** Implementar estrutura base 

@@ -1,0 +1,27 @@
+{
+  "id": "banban-fashion-kpis",
+  "title": "KPIs Fashion",
+  "description": "Métricas específicas para o varejo de moda",
+  "component_path": "/widgets/banban/fashion-kpis",
+  "module_id": "banban-performance",
+  "query_type": "rpc",
+  "query_config": {
+    "function": "get_fashion_kpis",
+    "params": {
+      "period": "30d"
+    }
+  },
+  "default_params": {
+    "period": "30d",
+    "showCategories": true,
+    "showSeasonalScore": true,
+    "showTrends": true,
+    "showSizes": true,
+    "showColors": true
+  },
+  "default_width": 8,
+  "default_height": 8,
+  "category": "fashion",
+  "tags": ["kpis", "fashion", "trends", "performance"],
+  "version": "1.0.0"
+} 

@@ -1,13 +1,13 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { DownloadIcon, CheckCircleIcon, ClockIcon, AlertTriangleIcon } from "lucide-react";
 import { DataExportFormat, requestDataExport } from "@/app/actions/auth/account-management";
-import { toast } from "@/components/ui/use-toast";
-import { Badge } from "@/components/ui/badge";
+import { useToast } from '@/shared/ui/toast';
+import { Badge } from "@/shared/ui/badge";
 import { getUserDataExports, UserDataExport } from "@/app/actions/auth/account-status";
-import { SkeletonDataExport } from "@/components/ui/skeleton-loader";
+import { SkeletonDataExport } from "@/shared/ui/skeleton-loader";
 
 interface ExportacaoDadosProps {
   formatoExportacao: string;
@@ -15,6 +15,8 @@ interface ExportacaoDadosProps {
 }
 
 const formatDate = (dateString: string) => {
+  const { toast } = useToast();
+
   return new Date(dateString).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
@@ -26,7 +28,7 @@ const formatDate = (dateString: string) => {
 
 
 export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: ExportacaoDadosProps) {
-  // Estados para exportação de dados
+  // Estados para exportaÃ§Ã£o de dados
   const [isExporting, setIsExporting] = React.useState(false);
   const [exportFormat, setExportFormat] = React.useState<DataExportFormat>('json');
   const [userExports, setUserExports] = React.useState<UserDataExport[]>([]);
@@ -38,7 +40,7 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
     setLoadingExports(false);
   }, []);
 
-  // Carregar exportações de dados
+  // Carregar exportaÃ§Ãµes de dados
   const loadUserExports = async () => {
     try {
         setLoadingExports(true);
@@ -46,23 +48,18 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
         if (result.success && Array.isArray(result.data)) {
             setUserExports(result.data as UserDataExport[]);
         } else if (result.error) {
-            toast({
-                variant: "destructive",
-                title: "Erro ao carregar exportações",
-                description: result.error,
+            toast.error(result.error, {
+                title: "Erro ao carregar exportaÃ§Ãµes",
             });
         }
     } catch (error) {
-        toast({
-            variant: "destructive",
-            description: "Erro ao carregar exportações de dados.",
-        });
+        toast.error("Erro ao carregar exportaÃ§Ãµes de dados.");
     } finally {
         setLoadingExports(false);
     }
   };
 
-  // Função para exibir o status da exportação
+  // FunÃ§Ã£o para exibir o status da exportaÃ§Ã£o
   const getExportStatusBadge = (status: UserDataExport['status']) => {
     switch (status) {
       case 'completed':
@@ -78,30 +75,25 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
     }
   };
 
-  // Função para solicitar a exportação de dados
+  // FunÃ§Ã£o para solicitar a exportaÃ§Ã£o de dados
   const handleExportarDados = async () => {
     try {
       setIsExporting(true);
       const result = await requestDataExport(exportFormat);
   
       if (result.success) {
-        toast({
-          title: "Exportação solicitada com sucesso",
-          description: result.data?.message || 'Você receberá um email quando os dados estiverem prontos para download.',
+        toast.success('VocÃª receberÃ¡ um email quando os dados estiverem prontos para download.', {
+          title: "ExportaÃ§Ã£o solicitada com sucesso",
         });
         await loadUserExports(); // Recarregar lista
       } else {
-        toast({
-          variant: "destructive",
-          title: "Erro ao solicitar exportação",
-          description: result.error || 'Erro ao solicitar exportação.',
+        toast.error(result.error || 'Erro ao solicitar exportaÃ§Ã£o.', {
+          title: "Erro ao solicitar exportaÃ§Ã£o",
         });
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toast.error("Erro inesperado ao solicitar exportaÃ§Ã£o.", {
         title: "Erro inesperado",
-        description: "Erro inesperado ao solicitar exportação.",
       });
     } finally {
       setIsExporting(false);
@@ -117,7 +109,7 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
             <div>
               <h4 className="font-medium">Exportar Meus Dados</h4>
               <p className="text-xs text-muted-foreground">
-                Faça o download de suas informações pessoais e histórico de atividades.
+                FaÃ§a o download de suas informaÃ§Ãµes pessoais e histÃ³rico de atividades.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -143,10 +135,10 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
               </Button>
             </div>
           </div>
-          {/* Lista de Exportações */}
+          {/* Lista de ExportaÃ§Ãµes */}
           {!loadingExports && userExports.length > 0 ? (
             <div className="space-y-2">
-              <h5 className="text-sm font-medium text-muted-foreground">Exportações Recentes</h5>
+              <h5 className="text-sm font-medium text-muted-foreground">ExportaÃ§Ãµes Recentes</h5>
               {userExports.slice(0, 3).map((exportItem) => (
                 <div key={exportItem.id} className="flex items-center justify-between p-2 text-sm border rounded bg-muted/30">
                   <div className="flex items-center gap-2">
@@ -160,9 +152,8 @@ export function ExportacaoDados({ formatoExportacao, setFormatoExportacao }: Exp
                       size="sm"
                       onClick={() => {
                         window.open(`/api/download/data-export/${exportItem.download_token}`, '_blank');
-                        toast({
+                        toast.info("O download do arquivo foi iniciado.", {
                           title: "Download iniciado",
-                          description: "O download do arquivo foi iniciado.",
                         });
                       }}
                     >

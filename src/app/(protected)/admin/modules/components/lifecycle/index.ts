@@ -1,0 +1,10 @@
+// Ciclo de vida dos módulos
+export { CreateBaseModuleDialog } from './CreateBaseModuleDialog';
+export { EditBaseModuleDialog } from './EditBaseModuleDialog';
+export { DeleteBaseModuleDialog } from './DeleteBaseModuleDialog';
+export { ArchiveBaseModuleDialog } from './ArchiveBaseModuleDialog';
+export { ArchiveModuleDialog } from './ArchiveModuleDialog';
+export { RestoreBaseModuleDialog } from './RestoreBaseModuleDialog';
+export { PurgeBaseModuleDialog } from './PurgeBaseModuleDialog';
+export { ToggleActiveStatusDialog } from './ToggleActiveStatusDialog';
+export { ModuleManager } from './ModuleManager';

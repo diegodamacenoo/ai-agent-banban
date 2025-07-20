@@ -1,39 +1,39 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { EditIcon } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/shared/ui/dialog";
+import { Input } from "@/shared/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 import { userRoleOptions } from "@/app/(protected)/settings/types/user-settings-types";
 import { useRouter } from "next/navigation";
-import { TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
-import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { TooltipContent, TooltipProvider } from "@/shared/ui/tooltip";
+import { Tooltip, TooltipTrigger } from "@/shared/ui/tooltip";
+import { Label } from "@/shared/ui/label";
+import { useToast } from "@/shared/ui/toast";
 
-// Botão para editar o perfil do usuário
+// BotÃ£o para editar o perfil do usuÃ¡rio
 interface EditarUsuarioButtonProps {
-  user: any; // Objeto do usuário a ser editado
-  onSuccess?: () => void; // Callback após sucesso
+  user: any; // Objeto do usuÃ¡rio a ser editado
+  onSuccess?: () => void; // Callback apÃ³s sucesso
 }
 
 export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioButtonProps) {
-  // Estados para controlar o diálogo, perfil selecionado e loading
+  // Estados para controlar o diÃ¡logo, perfil selecionado e loading
   const [open, setOpen] = useState(false);
   const [perfil, setPerfil] = useState(user.perfil);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
-  // Função para submeter a edição do perfil
+  // FunÃ§Ã£o para submeter a ediÃ§Ã£o do perfil
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     
     try {
-      // Chama a API Route para atualizar usuário
+      // Chama a API Route para atualizar usuÃ¡rio
       const result = await fetch('/api/user-management/users/update', {
         method: 'POST',
         headers: {
@@ -49,19 +49,22 @@ export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioBu
         setOpen(false);
         router.refresh();
         if (onSuccess) onSuccess();
-        toast({
-          description: "O perfil do usuário foi atualizado com sucesso.",
+        toast.show({
+          title: "Perfil atualizado",
+          description: "O perfil do usuÃ¡rio foi atualizado com sucesso.",
           variant: "default"
         });
       } else {
-        toast({
-          description: data.error || "Erro ao atualizar usuário",
+        toast.show({
+          title: "Erro ao atualizar",
+          description: data.error || "Erro ao atualizar usuÃ¡rio",
           variant: "destructive"
         });
       }
     } catch (error) {
-      toast({
-        description: "Erro inesperado ao atualizar usuário",
+      toast.show({
+        title: "Erro ao atualizar",
+        description: "Erro inesperado ao atualizar usuÃ¡rio",
         variant: "destructive"
       });
     } finally {
@@ -71,7 +74,7 @@ export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioBu
 
   return (
     <>
-      {/* Botão de edição com tooltip */}
+      {/* BotÃ£o de ediÃ§Ã£o com tooltip */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -85,11 +88,11 @@ export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioBu
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      {/* Diálogo de edição */}
+      {/* DiÃ¡logo de ediÃ§Ã£o */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Perfil de Usuário</DialogTitle>
+            <DialogTitle>Editar Perfil de UsuÃ¡rio</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Campo nome (apenas leitura) */}
@@ -102,7 +105,7 @@ export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioBu
               <Label htmlFor="email">E-mail</Label>
               <Input id="email" value={user.email} placeholder="E-mail" type="email" required disabled />
             </div>
-            {/* Seleção de perfil */}
+            {/* SeleÃ§Ã£o de perfil */}
             <div className="space-y-2">
               <Label htmlFor="perfil">Perfil</Label>
               <Select value={perfil} onValueChange={setPerfil}>
@@ -111,13 +114,17 @@ export default function EditarUsuarioButton({ user, onSuccess }: EditarUsuarioBu
               </SelectTrigger>
               <SelectContent>
                 {userRoleOptions.map(role => (
-                  <SelectItem key={role} value={role}>{role === 'organization_admin' ? 'Administrador' : role === 'editor' ? 'Editor' : role === 'reader' ? 'Leitor' : 'Visitante'}</SelectItem>
+                  <SelectItem key={role} value={role}>
+                    {role === 'master_admin' ? 'Master Admin' : 
+                     role === 'organization_admin' ? 'Administrador' : 
+                     role === 'user' ? 'Usuário' : role}
+                  </SelectItem>
                 ))}
                 </SelectContent>
               </Select>
             </div>
             <DialogFooter>
-              {/* Botão de salvar */}
+              {/* BotÃ£o de salvar */}
               <Button type="submit" onClick={handleSubmit} disabled={loading}>{loading ? "Salvando..." : "Salvar"}</Button>
             </DialogFooter>
           </form>

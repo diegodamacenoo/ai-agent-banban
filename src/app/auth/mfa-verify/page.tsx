@@ -2,8 +2,8 @@ import { Metadata } from "next";
 import MFAVerification from "../components/mfa-verification";
 
 export const metadata: Metadata = {
-  title: "Verificação de Dois Fatores",
-  description: "Verificação de autenticação em dois fatores",
+  title: "VerificaÃ§Ã£o de Dois Fatores",
+  description: "VerificaÃ§Ã£o de autenticaÃ§Ã£o em dois fatores",
 };
 
 export default function MFAVerifyPage() {

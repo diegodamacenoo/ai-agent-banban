@@ -1,16 +1,26 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { captureRequestInfo, createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
-import { 
-  NotificationPreferencesSchema, 
-  SecurityAlertSettingsSchema,
-  GetNotificationPreferencesSchema,
-  GetSecurityAlertSettingsSchema
-} from '@/lib/schemas/notifications';
+import { captureRequestInfo, createAuditLog } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+
+// Schemas locais para validação
+const NotificationPreferencesSchema = z.object({
+  prefers_email_notifications: z.boolean(),
+  prefers_push_notifications: z.boolean(),
+});
+
+const SecurityAlertSettingsSchema = z.object({
+  alert_new_device: z.boolean(),
+  alert_failed_attempts: z.boolean(),
+  alert_user_deletion: z.boolean(),
+  failed_attempts_threshold: z.number().min(1).max(10),
+});
+
+const GetNotificationPreferencesSchema = z.object({});
+const GetSecurityAlertSettingsSchema = z.object({});
 
 export type NotificationPreferences = z.infer<typeof NotificationPreferencesSchema>;
 export type SecurityAlertSettings = z.infer<typeof SecurityAlertSettingsSchema>;
@@ -26,19 +36,16 @@ export async function updateNotificationPreferences(data: NotificationPreference
     if (!validation.success) {
       return { 
         success: false,
-        error: validation.error.errors.map(e => e.message).join(', ') 
+        error: validation.error.errors.map((e: any) => e.message).join(', ') 
       };
     }
 
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
 
     // Buscar dados atuais para comparação
     const { data: currentProfile } = await supabase
@@ -69,8 +76,8 @@ export async function updateNotificationPreferences(data: NotificationPreference
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.NOTIFICATION_PREFERENCES_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.NOTIFICATION_PREFERENCES,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
       ip_address: ipAddress,
       user_agent: userAgent,
@@ -107,19 +114,16 @@ export async function updateSecurityAlertSettings(data: SecurityAlertSettings): 
     if (!validation.success) {
       return { 
         success: false,
-        error: validation.error.errors.map(e => e.message).join(', ') 
+        error: validation.error.errors.map((e: any) => e.message).join(', ') 
       };
     }
 
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
 
     // Buscar configurações atuais
     const { data: currentSettings } = await supabase
@@ -169,8 +173,8 @@ export async function updateSecurityAlertSettings(data: SecurityAlertSettings): 
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.SECURITY_ALERT_SETTINGS_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.SECURITY_ALERT_SETTINGS,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
       ip_address: ipAddress,
       user_agent: userAgent,
@@ -204,15 +208,12 @@ export async function getNotificationPreferences(): Promise<{data?: any, error?:
     return { error: 'Validation failed' };
   }
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
 
     const { data, error } = await supabase
       .from('profiles')
@@ -242,15 +243,12 @@ export async function getSecurityAlertSettings(): Promise<{data?: any, error?: s
     return { error: 'Validation failed' };
   }
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
 
     const { data, error } = await supabase
       .from('security_alert_settings')
@@ -258,20 +256,23 @@ export async function getSecurityAlertSettings(): Promise<{data?: any, error?: s
       .eq('user_id', user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error) {
+      // Se não encontrar configurações, retornar valores padrão
+      if (error.code === 'PGRST116') {
+        return { 
+          data: {
+            alert_new_device: true,
+            alert_failed_attempts: true,
+            alert_user_deletion: true,
+            failed_attempts_threshold: 5
+          }
+        };
+      }
       console.error('Erro ao buscar configurações de segurança:', error);
       return { error: 'Erro ao buscar configurações' };
     }
 
-    // Se não existem configurações, retornar valores padrão
-    const defaultSettings = {
-      alert_new_device: true,
-      alert_failed_attempts: true,
-      alert_user_deletion: true,
-      failed_attempts_threshold: 3
-    };
-
-    return { data: data || defaultSettings };
+    return { data };
   } catch (error: any) {
     console.error('Erro inesperado ao buscar configurações:', error);
     return { error: 'Erro interno do servidor' };

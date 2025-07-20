@@ -1,64 +1,31 @@
 "use client"
 
-import * as React from "react"
-import Link from "next/link"
-import { LucideIcon } from "lucide-react"
-import clsx from "clsx"
-import { memo, useMemo } from "react"
-
-import {
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarGroupLabel,
-} from "@/components/ui/sidebar"
-import { useSidebarContext } from "../contexts/sidebar-context"
+import React from 'react';
+import { useRouter } from 'next/navigation';
 
 interface NavItem {
-  readonly title: string
-  readonly url: string
+  title: string;
+  url: string;
 }
 
 interface NavSecondaryProps {
-  items: readonly NavItem[]
+  items: NavItem[];
 }
 
-export const NavSecondary = memo(function NavSecondary({
-  items,
-  ...props
-}: NavSecondaryProps & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { pathname } = useSidebarContext()
-  
-  const renderedItems = useMemo(() => {
-    return items.map((item) => {
-      const isActive = pathname === item.url
-      
-      return (
-        <SidebarMenuItem key={item.title}>
-          <Link href={item.url} prefetch={true}>
-            <SidebarMenuButton
-              className={clsx({ 
-                "bg-accent text-accent-foreground": isActive 
-              })}
-            >
-              <span>{item.title}</span>
-            </SidebarMenuButton>
-          </Link>
-        </SidebarMenuItem>
-      )
-    })
-  }, [items, pathname])
+export function NavSecondary({ items }: NavSecondaryProps) {
+  const router = useRouter();
 
   return (
-    <SidebarGroup {...props}>
-      <SidebarGroupLabel>Chats</SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {renderedItems}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  )
-})
+    <nav className="flex flex-col gap-2">
+      {items.map((item) => (
+        <button
+          key={item.url}
+          onClick={() => router.push(item.url)}
+          className="text-sm text-gray-600 hover:text-gray-900"
+        >
+          {item.title}
+        </button>
+      ))}
+    </nav>
+  );
+}

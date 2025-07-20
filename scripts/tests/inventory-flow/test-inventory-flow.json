@@ -1,0 +1,203 @@
+[
+  {
+    "name": "Test: Product Sync",
+    "payload": {
+      "event_type": "product_sync",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T08:00:00Z",
+      "data": {
+        "product_sync": {
+          "products": [
+            {
+              "product_code": "PROD001",
+              "product_name": "Produto Teste",
+              "brand": "Marca Teste",
+              "category": "Categoria Teste",
+              "subcategory": "Subcategoria Teste",
+              "season": "Verao 2025",
+              "collection": "Colecao Teste",
+              "status": "ACTIVE",
+              "variants": [
+                {
+                  "variant_code": "VAR001",
+                  "size": "M",
+                  "color": "Azul",
+                  "sku": "SKU001",
+                  "barcode": "1234567890123",
+                  "cost_price": 50.00,
+                  "retail_price": 100.00,
+                  "status": "ACTIVE"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Inventory Update",
+    "payload": {
+      "event_type": "inventory_update",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T11:00:00Z",
+      "data": {
+        "inventory_update": {
+          "location_code": "STORE001",
+          "location_name": "Loja Teste",
+          "update_type": "ADJUSTMENT",
+          "update_reason": "Acerto de inventario",
+          "updated_by": "USER001",
+          "items": [
+            {
+              "variant_code": "VAR001",
+              "previous_stock": 10,
+              "adjustment_qty": 5,
+              "new_stock": 15,
+              "unit_cost": 50.00,
+              "reason": "Produtos encontrados no estoque",
+              "notes": "Acerto apos inventario fisico"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Price Update",
+    "payload": {
+      "event_type": "price_update",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T12:00:00Z",
+      "data": {
+        "price_update": {
+          "update_type": "PROMOTIONAL_PRICING",
+          "effective_date": "2025-01-15",
+          "updated_by": "USER002",
+          "items": [
+            {
+              "variant_code": "VAR001",
+              "previous_cost_price": 50.00,
+              "new_cost_price": 45.00,
+              "previous_retail_price": 100.00,
+              "new_retail_price": 90.00,
+              "change_reason": "Promocao de verao"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Ajuste de Inventário",
+    "payload": {
+      "event_type": "inventory_adjustment",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T19:00:00Z",
+      "data": {
+        "event_id": "INV-ADJ-001",
+        "location_id": "LOC-001",
+        "items": [
+          {
+            "product_id": "PROD-001",
+            "quantity": 5,
+            "unit_cost": 75.00,
+            "reason": "recontagem_manual",
+            "notes": "Ajuste após contagem física"
+          },
+          {
+            "product_id": "PROD-002",
+            "quantity": -2,
+            "unit_cost": 120.00,
+            "reason": "perda_identificada",
+            "notes": "Produtos danificados encontrados"
+          }
+        ],
+        "event_date": "2024-03-20T19:00:00Z",
+        "event_type": "adjustment",
+        "status": "completed",
+        "notes": "Ajuste geral após inventário mensal"
+      }
+    }
+  },
+  {
+    "name": "Contagem de Inventário",
+    "payload": {
+      "event_type": "inventory_count",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T20:00:00Z",
+      "data": {
+        "event_id": "INV-COUNT-001",
+        "location_id": "LOC-001",
+        "items": [
+          {
+            "product_id": "PROD-001",
+            "quantity": 3,
+            "unit_cost": 75.00,
+            "notes": "Contagem física realizada"
+          },
+          {
+            "product_id": "PROD-002",
+            "quantity": -1,
+            "unit_cost": 120.00,
+            "notes": "Diferença identificada na contagem"
+          }
+        ],
+        "event_date": "2024-03-20T20:00:00Z",
+        "event_type": "count",
+        "status": "completed",
+        "notes": "Contagem mensal de inventário"
+      }
+    }
+  },
+  {
+    "name": "Registro de Dano",
+    "payload": {
+      "event_type": "inventory_damage",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T21:00:00Z",
+      "data": {
+        "event_id": "INV-DMG-001",
+        "location_id": "LOC-001",
+        "items": [
+          {
+            "product_id": "PROD-003",
+            "quantity": 2,
+            "unit_cost": 90.00,
+            "reason": "dano_transporte",
+            "notes": "Produtos danificados durante o transporte"
+          }
+        ],
+        "event_date": "2024-03-20T21:00:00Z",
+        "event_type": "damage",
+        "status": "completed",
+        "notes": "Registro de produtos danificados no recebimento"
+      }
+    }
+  },
+  {
+    "name": "Registro de Expiração",
+    "payload": {
+      "event_type": "inventory_expiry",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T22:00:00Z",
+      "data": {
+        "event_id": "INV-EXP-001",
+        "location_id": "LOC-001",
+        "items": [
+          {
+            "product_id": "PROD-004",
+            "quantity": 1,
+            "unit_cost": 150.00,
+            "reason": "produto_vencido",
+            "notes": "Produto com data de validade expirada"
+          }
+        ],
+        "event_date": "2024-03-20T22:00:00Z",
+        "event_type": "expiry",
+        "status": "completed",
+        "notes": "Baixa de produtos vencidos"
+      }
+    }
+  }
+] 

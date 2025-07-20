@@ -1,0 +1,1 @@
+export { EnhancedModulesListCard } from './EnhancedModulesListCard';

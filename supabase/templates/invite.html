@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convite para {{ .SiteURL }}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 10px;
+        }
+        .title {
+            font-size: 24px;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        .content {
+            margin-bottom: 30px;
+        }
+        .button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background-color: #1d4ed8;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 14px;
+            color: #6b7280;
+            text-align: center;
+        }
+        .link {
+            color: #2563eb;
+            word-break: break-all;
+            font-size: 14px;
+            background-color: #f3f4f6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">BanBan Platform</div>
+            <h1 class="title">Você foi convidado!</h1>
+        </div>
+        
+        <div class="content">
+            <p>Olá!</p>
+            
+            <p>Você foi convidado para se juntar à nossa plataforma. Para aceitar o convite e configurar sua conta, clique no botão abaixo:</p>
+            
+            <div style="text-align: center;">
+                <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&next=%2Fsetup-account%3Ffrom%3Dinvite" class="button">Aceitar Convite</a>
+            </div>
+            
+            <p>Se o botão não funcionar, você pode copiar e colar o link abaixo no seu navegador:</p>
+            
+            <div class="link">{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&next=%2Fsetup-account%3Ffrom%3Dinvite</div>
+            
+            <p><strong>Importante:</strong></p>
+            <ul>
+                <li>Este convite é válido por 7 dias</li>
+                <li>Você precisará definir uma senha durante o processo de configuração</li>
+                <li>Após aceitar o convite, você terá acesso completo à plataforma</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>Se você não esperava receber este convite, pode ignorar este email.</p>
+            <p>Este é um email automático, por favor não responda.</p>
+        </div>
+    </div>
+</body>
+</html> 

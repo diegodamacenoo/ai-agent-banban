@@ -1,0 +1,18 @@
+{
+  "purchase-flow": {
+    "url": "https://bopytcghbmuywfltmwhk.supabase.co/functions/v1/webhook-purchase-flow",
+    "test_file": "./purchase-flow/test-purchase-flow.json"
+  },
+  "transfer-flow": {
+    "url": "https://bopytcghbmuywfltmwhk.supabase.co/functions/v1/webhook-transfer-flow",
+    "test_file": "./transfer-flow/test-transfer-flow.json"
+  },
+  "sales-flow": {
+    "url": "https://bopytcghbmuywfltmwhk.supabase.co/functions/v1/webhook-sales-flow",
+    "test_file": "./sales-flow/test-sales-flow.json"
+  },
+  "inventory-flow": {
+    "url": "https://bopytcghbmuywfltmwhk.supabase.co/functions/v1/webhook-inventory-flow",
+    "test_file": "./inventory-flow/test-inventory-flow.json"
+  }
+} 

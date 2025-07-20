@@ -1,26 +1,27 @@
 'use client';
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Button } from "@/shared/ui/button";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/shared/ui/toast';
 import { useRefresh } from '@/app/(protected)/settings/contexts/refresh-context';
 import { ErrorCardContainer } from "@/app/ui/utils/error-card-container";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
 import { uploadAvatar } from "@/app/actions/profiles/avatar";
 import AvatarUpload from './avatar-upload';
 import { IMaskInput } from 'react-imask';
-import { cn } from '@/lib/utils';
-import { Spinner } from "@/components/ui/spinner";
-import { useOptimisticProfileUpdate } from "@/hooks/use-optimistic-action";
-import { SkeletonProfile } from "@/components/ui/skeleton-loader";
+import { cn } from '@/shared/utils/utils';
+import { Spinner } from "@/shared/ui/spinner";
+import { useOptimisticProfileUpdate } from "@/shared/hooks/use-optimistic-action";
+import { SkeletonProfile } from "@/shared/ui/skeleton-loader";
 import type { UserData } from "@/app/contexts/UserContext";
+import Link from "next/link";
 
 // Schema do formulário
 const formSchema = z.object({
@@ -177,7 +178,7 @@ export default function DadosPessoais({ profile, onProfileUpdate }: DadosPessoai
             avatar_url: avatarUrlToSave,
             username: profile.username,
             email: profile.email,
-            team_id: profile.team_id && profile.team_id.trim() !== '' ? profile.team_id : null,
+            team: profile.team && profile.team.trim() !== '' ? profile.team : null,
             role: profile.role,
             theme: profile.theme,
           };
@@ -263,7 +264,7 @@ export default function DadosPessoais({ profile, onProfileUpdate }: DadosPessoai
                   <Input id="emailLogin" type="email" placeholder="seu@email.com" value={optimisticProfile?.email || ""} readOnly disabled />
                   <p className="text-xs text-muted-foreground">
                     Este e-mail é usado para login. Para alterá-lo,{" "}
-                    <a href="/settings/email-change" className="text-primary hover:underline">solicite uma mudança</a>.
+                    <Link href="/settings/email-change" className="text-primary hover:underline">solicite uma mudança</Link>.
                   </p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -1,31 +1,31 @@
 /**
- * Interface para representar os dados de uma sessão de usuário
+ * Interface para representar os dados de uma sessÃ£o de usuÃ¡rio
  */
 export interface UserSession {
-  /** ID único da sessão */
+  /** ID Ãºnico da sessÃ£o */
   id: string;
   
   /** Nome do dispositivo e navegador */
   dispositivo: string;
   
-  /** Localização e IP */
+  /** LocalizaÃ§Ã£o e IP */
   local: string;
   
   /** Data e hora do login formatada */
   dataHoraLogin: string;
   
-  /** Indica se é a sessão atual do usuário */
+  /** Indica se Ã© a sessÃ£o atual do usuÃ¡rio */
   atual: boolean;
   
   /** User-Agent original */
   userAgent: string;
   
-  /** Endereço IP */
+  /** EndereÃ§o IP */
   ip: string | null;
 }
 
 /**
- * Extensão para o tipo Session do Supabase Auth
+ * ExtensÃ£o para o tipo Session do Supabase Auth
  * para evitar erros de TypeScript quando acessamos a propriedade id
  */
 declare global {

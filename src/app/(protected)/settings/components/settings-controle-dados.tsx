@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { SaveIcon } from "lucide-react";
 
 import { ExportacaoDados } from "./controle-dados-components/exportacao-dados";
@@ -10,7 +10,7 @@ import { BackupsCriptografados } from "./controle-dados-components/backups-cript
 import { HistoricoConsentimentos } from "./controle-dados-components/historico-consentimentos";
 
 export default function SettingsControleDados() {
-  // Estados para controlar os diferentes formulários e opções
+  // Estados para controlar os diferentes formulÃ¡rios e opÃ§Ãµes
   const [formatoExportacao, setFormatoExportacao] = React.useState("json");
   const [periodoRetencao, setPeriodoRetencao] = React.useState("365");
   const [formatoBackup, setFormatoBackup] = React.useState("sql");
@@ -29,7 +29,7 @@ export default function SettingsControleDados() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-medium">Exportar Dados Pessoais</h3>
-            <p className="text-sm text-muted-foreground">Solicite uma cópia dos seus dados pessoais armazenados na plataforma</p>
+            <p className="text-sm text-muted-foreground">Solicite uma cÃ³pia dos seus dados pessoais armazenados na plataforma</p>
           </div>
         </div>
         <ExportacaoDados
@@ -37,11 +37,11 @@ export default function SettingsControleDados() {
           setFormatoExportacao={setFormatoExportacao}
         />
 
-        {/* 2. Solicitar correção de dados */}
+        {/* 2. Solicitar correÃ§Ã£o de dados */}
         {/* <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-medium">Solicitar Correção de Dados</h3>
-            <p className="text-sm text-muted-foreground">Solicite a correção de informações incorretas no seu perfil</p>
+            <h3 className="text-lg font-medium">Solicitar CorreÃ§Ã£o de Dados</h3>
+            <p className="text-sm text-muted-foreground">Solicite a correÃ§Ã£o de informaÃ§Ãµes incorretas no seu perfil</p>
           </div>
         </div>
         <CorrecaoDados
@@ -51,11 +51,11 @@ export default function SettingsControleDados() {
           setDescricaoSolicitacao={setDescricaoSolicitacao}
         /> */}
 
-        {/* 3. Solicitar anonimização ou exclusão */}
+        {/* 3. Solicitar anonimizaÃ§Ã£o ou exclusÃ£o */}
         {/* <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-medium">Solicitar Anonimização ou Exclusão</h3>
-            <p className="text-sm text-muted-foreground">Solicite a anonimização ou exclusão da sua conta</p>
+            <h3 className="text-lg font-medium">Solicitar AnonimizaÃ§Ã£o ou ExclusÃ£o</h3>
+            <p className="text-sm text-muted-foreground">Solicite a anonimizaÃ§Ã£o ou exclusÃ£o da sua conta</p>
           </div>
         </div>
         <AnonimizacaoExclusao
@@ -63,11 +63,11 @@ export default function SettingsControleDados() {
           setTipoExclusao={setTipoExclusao}
         /> */}
 
-        {/* 4. Período de retenção automática */}
+        {/* 4. PerÃ­odo de retenÃ§Ã£o automÃ¡tica */}
         {/* <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-medium">Período de Retenção Automática</h3>
-            <p className="text-sm text-muted-foreground">Configure por quanto tempo os dados sensíveis devem ser mantidos</p>
+            <h3 className="text-lg font-medium">PerÃ­odo de RetenÃ§Ã£o AutomÃ¡tica</h3>
+            <p className="text-sm text-muted-foreground">Configure por quanto tempo os dados sensÃ­veis devem ser mantidos</p>
           </div>
           <Button size="sm" variant="outline" className="gap-2">
             <SaveIcon className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function SettingsControleDados() {
         {/* <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-lg font-medium">Download de Backups Criptografados</h3>
-            <p className="text-sm text-muted-foreground">Disponível apenas para administradores</p>
+            <p className="text-sm text-muted-foreground">DisponÃ­vel apenas para administradores</p>
           </div>
         </div>
         <BackupsCriptografados
@@ -91,11 +91,11 @@ export default function SettingsControleDados() {
           setFormatoBackup={setFormatoBackup}
         /> */}
 
-        {/* 6. Histórico de consentimentos */}
+        {/* 6. HistÃ³rico de consentimentos */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-medium">Histórico de Consentimentos</h3>
-            <p className="text-sm text-muted-foreground">Registro de aceitação dos termos e políticas de privacidade</p>
+            <h3 className="text-lg font-medium">HistÃ³rico de Consentimentos</h3>
+            <p className="text-sm text-muted-foreground">Registro de aceitaÃ§Ã£o dos termos e polÃ­ticas de privacidade</p>
           </div>
         </div>
         <HistoricoConsentimentos />

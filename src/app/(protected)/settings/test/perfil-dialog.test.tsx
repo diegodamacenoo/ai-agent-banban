@@ -1,4 +1,4 @@
-import { render, fireEvent, screen, waitFor } from "@testing-library/react";
+﻿import { render, fireEvent, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { PerfilDialog } from "../components/perfis-usuarios/components/perfil-dialog";
 import { PerfilUsuario } from "../types/perfis";
@@ -18,7 +18,7 @@ jest.mock('crypto', () => ({
   randomUUID: jest.fn(() => mockUUID)
 }));
 
-// Função de renderização auxiliar
+// FunÃ§Ã£o de renderizaÃ§Ã£o auxiliar
 const renderPerfDialog = (props: Partial<PerfilDialogProps> = {}) => {
   const defaultProps: PerfilDialogProps = {
     open: true,
@@ -35,7 +35,7 @@ const renderPerfDialog = (props: Partial<PerfilDialogProps> = {}) => {
 
 // Mock dos componentes internos
 // Mock dos componentes internos
-jest.mock("@/components/ui/dialog", () => ({
+jest.mock("@/shared/ui/dialog", () => ({
   Dialog: ({ children, open, onOpenChange }: any) => (
     <div data-testid="dialog" role="dialog" aria-modal={open}>
       {children}
@@ -47,7 +47,7 @@ jest.mock("@/components/ui/dialog", () => ({
   DialogDescription: ({ children }: any) => <div data-testid="dialog-description">{children}</div>,
 }));
 
-jest.mock("@/components/ui/input", () => ({
+jest.mock("@/shared/ui/input", () => ({
   Input: (props: any) => {
     const handleChange = (e: any) => {
       if (props.onChange) {
@@ -66,11 +66,11 @@ jest.mock("@/components/ui/input", () => ({
   }
 }));
 
-jest.mock("@/components/ui/label", () => ({
+jest.mock("@/shared/ui/label", () => ({
   Label: ({ children, htmlFor }: any) => <label data-testid={`label-${htmlFor || 'unnamed'}`} htmlFor={htmlFor}>{children}</label>
 }));
 
-jest.mock("@/components/ui/checkbox", () => ({
+jest.mock("@/shared/ui/checkbox", () => ({
   Checkbox: (props: any) => {
     const handleChange = (e: any) => {
       if (props.onCheckedChange) {
@@ -91,7 +91,7 @@ jest.mock("@/components/ui/checkbox", () => ({
   }
 }));
 
-jest.mock("@/components/ui/button", () => ({
+jest.mock("@/shared/ui/button", () => ({
   Button: ({ children, onClick, ...props }: any) => {
     const buttonType = typeof children === 'string' && 
                       (children === 'Salvar' || children.includes('Salvando')) 
@@ -103,7 +103,7 @@ jest.mock("@/components/ui/button", () => ({
         data-testid={buttonType}
         onClick={(e: any) => {
           e.preventDefault = () => {};
-          onClick && onClick(e);
+          onClick?.(e);
         }}
         {...props}
       >
@@ -114,7 +114,7 @@ jest.mock("@/components/ui/button", () => ({
 }));
 
 // Mock dos componentes internos
-jest.mock("@/components/ui/dialog", () => ({
+jest.mock("@/shared/ui/dialog", () => ({
   Dialog: ({ children, open, onOpenChange }: any) => (
     <div data-testid="dialog" role="dialog" aria-modal={open}>
       {children}
@@ -126,7 +126,7 @@ jest.mock("@/components/ui/dialog", () => ({
   DialogDescription: ({ children }: any) => <div data-testid="dialog-description">{children}</div>,
 }));
 
-jest.mock("@/components/ui/input", () => ({
+jest.mock("@/shared/ui/input", () => ({
   Input: (props: any) => {
     const handleChange = (e: any) => {
       if (props.onChange) {
@@ -145,11 +145,11 @@ jest.mock("@/components/ui/input", () => ({
   }
 }));
 
-jest.mock("@/components/ui/label", () => ({
+jest.mock("@/shared/ui/label", () => ({
   Label: ({ children, htmlFor }: any) => <label data-testid={`label-${htmlFor || 'unnamed'}`} htmlFor={htmlFor}>{children}</label>
 }));
 
-jest.mock("@/components/ui/checkbox", () => ({
+jest.mock("@/shared/ui/checkbox", () => ({
   Checkbox: (props: any) => {
     const handleChange = (e: any) => {
       if (props.onCheckedChange) {
@@ -170,9 +170,9 @@ jest.mock("@/components/ui/checkbox", () => ({
   }
 }));
 
-jest.mock("@/components/ui/button", () => ({
+jest.mock("@/shared/ui/button", () => ({
   Button: ({ children, onClick, ...props }: any) => {
-    // Determina o data-testid com base no texto do botão
+    // Determina o data-testid com base no texto do botÃ£o
     const buttonType = typeof children === 'string' && 
                       (children === 'Salvar' || children.includes('Salvando')) 
                       ? 'salvar-button' 
@@ -184,7 +184,7 @@ jest.mock("@/components/ui/button", () => ({
         onClick={(e: any) => {
           // Simula preventDefault
           e.preventDefault = () => {};
-          onClick && onClick(e);
+          onClick?.(e);
         }}
         {...props}
       >
@@ -204,16 +204,16 @@ const mockPerfil: PerfilUsuario = {
   updatedAt: new Date(),
 };
 
-// Patch para o método handleSubmit, contornando o preventDefault
+// Patch para o mÃ©todo handleSubmit, contornando o preventDefault
 const originalConsoleError = console.error;
 console.error = (...args: any[]) => {
-  if (args[0] && args[0].includes && args[0].includes('preventDefault is not a function')) {
+  if (args[0]?.includes?.('preventDefault is not a function')) {
     return;
   }
   originalConsoleError(...args);
 };
 
-// Mock do evento de formulário
+// Mock do evento de formulÃ¡rio
 const createMockEvent = () => ({
   preventDefault: jest.fn(),
   target: {
@@ -246,11 +246,11 @@ describe("PerfilDialog", () => {
   it("deve renderizar corretamente ao criar um novo perfil", () => {
     renderPerfDialog();
 
-    // Verifica se o componente está presente
+    // Verifica se o componente estÃ¡ presente
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
     expect(screen.getByTestId("dialog-title")).toBeInTheDocument();
     
-    // Verifica se existem botões
+    // Verifica se existem botÃµes
     expect(screen.getByTestId("salvar-button")).toBeInTheDocument();
     expect(screen.getByTestId("cancelar-button")).toBeInTheDocument();
   });
@@ -273,14 +273,14 @@ describe("PerfilDialog", () => {
     expect(screen.getByTestId("dialog-title")).toHaveTextContent(/editar perfil/i);
   });
 
-  it("deve chamar onOpenChange ao clicar no botão cancelar", () => {
+  it("deve chamar onOpenChange ao clicar no botÃ£o cancelar", () => {
     renderPerfDialog();
     
     fireEvent.click(screen.getByTestId("cancelar-button"));
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("deve mostrar estado de carregamento quando isLoading é true", () => {
+  it("deve mostrar estado de carregamento quando isLoading Ã© true", () => {
     renderPerfDialog({ isLoading: true });
     
     expect(screen.getByTestId("salvar-button")).toHaveTextContent(/salvando/i);
@@ -288,10 +288,10 @@ describe("PerfilDialog", () => {
     expect(screen.getByTestId("cancelar-button")).toBeDisabled();
   });
 
-  it("deve exibir os campos do formulário", () => {
+  it("deve exibir os campos do formulÃ¡rio", () => {
     renderPerfDialog();
     
-    // Verifica se os campos do formulário estão presentes
+    // Verifica se os campos do formulÃ¡rio estÃ£o presentes
     expect(screen.getByTestId("input-nome")).toBeInTheDocument();
     expect(screen.getByTestId("input-descricao")).toBeInTheDocument();
     expect(screen.getByTestId("checkbox-todos")).toBeInTheDocument();
@@ -316,16 +316,16 @@ describe("PerfilDialog", () => {
     
     // Editar campos
     fireEvent.change(screen.getByTestId("input-nome"), { target: { value: "Novo Perfil" } });
-    fireEvent.change(screen.getByTestId("input-descricao"), { target: { value: "Descrição do novo perfil" } });
+    fireEvent.change(screen.getByTestId("input-descricao"), { target: { value: "DescriÃ§Ã£o do novo perfil" } });
     fireEvent.click(screen.getByTestId("checkbox-todos"));
     
-    // Verificar mudanças
+    // Verificar mudanÃ§as
     expect(screen.getByTestId("input-nome")).toHaveValue("Novo Perfil");
-    expect(screen.getByTestId("input-descricao")).toHaveValue("Descrição do novo perfil");
+    expect(screen.getByTestId("input-descricao")).toHaveValue("DescriÃ§Ã£o do novo perfil");
     expect(screen.getByTestId("checkbox-todos")).toBeChecked();
   });
   
-  it("deve exibir erro quando validação falha por nome em branco", async () => {
+  it("deve exibir erro quando validaÃ§Ã£o falha por nome em branco", async () => {
     renderPerfDialog();
 
     // Deixar nome em branco
@@ -333,12 +333,12 @@ describe("PerfilDialog", () => {
       target: { value: '' }
     });
 
-    // Preencher descrição
+    // Preencher descriÃ§Ã£o
     fireEvent.change(screen.getByTestId('input-descricao'), {
-      target: { value: 'Descrição teste' }
+      target: { value: 'DescriÃ§Ã£o teste' }
     });
 
-    // Submeter formulário
+    // Submeter formulÃ¡rio
     const form = screen.getByTestId('perfil-form');
     const mockEvent = createMockEvent();
     fireEvent.submit(form, mockEvent);
@@ -346,11 +346,11 @@ describe("PerfilDialog", () => {
     // Verificar mensagem de erro
     await waitFor(() => {
       const errorElement = screen.getByTestId('nome-error');
-      expect(errorElement).toHaveTextContent('O nome do perfil é obrigatório');
+      expect(errorElement).toHaveTextContent('O nome do perfil Ã© obrigatÃ³rio');
     });
   });
   
-  it("deve exibir erro quando validação falha por descrição em branco", async () => {
+  it("deve exibir erro quando validaÃ§Ã£o falha por descriÃ§Ã£o em branco", async () => {
     renderPerfDialog();
 
     // Preencher nome
@@ -358,12 +358,12 @@ describe("PerfilDialog", () => {
       target: { value: 'Nome teste' }
     });
 
-    // Deixar descrição em branco
+    // Deixar descriÃ§Ã£o em branco
     fireEvent.change(screen.getByTestId('input-descricao'), {
       target: { value: '' }
     });
 
-    // Submeter formulário
+    // Submeter formulÃ¡rio
     const form = screen.getByTestId('perfil-form');
     const mockEvent = createMockEvent();
     fireEvent.submit(form, mockEvent);
@@ -371,22 +371,22 @@ describe("PerfilDialog", () => {
     // Verificar mensagem de erro
     await waitFor(() => {
       const errorElement = screen.getByTestId('descricao-error');
-      expect(errorElement).toHaveTextContent('A descrição é obrigatória');
+      expect(errorElement).toHaveTextContent('A descriÃ§Ã£o Ã© obrigatÃ³ria');
     });
   });
   
-  it("deve exibir erro quando validação falha por falta de permissões", async () => {
+  it("deve exibir erro quando validaÃ§Ã£o falha por falta de permissÃµes", async () => {
     renderPerfDialog();
 
-    // Preencher campos obrigatórios
+    // Preencher campos obrigatÃ³rios
     fireEvent.change(screen.getByTestId('input-nome'), {
       target: { value: 'Nome teste' }
     });
     fireEvent.change(screen.getByTestId('input-descricao'), {
-      target: { value: 'Descrição teste' }
+      target: { value: 'DescriÃ§Ã£o teste' }
     });
 
-    // Não marcar nenhuma permissão
+    // NÃ£o marcar nenhuma permissÃ£o
     const form = screen.getByTestId('perfil-form');
     const mockEvent = createMockEvent();
     fireEvent.submit(form, mockEvent);
@@ -394,7 +394,7 @@ describe("PerfilDialog", () => {
     // Verificar mensagem de erro
     await waitFor(() => {
       const errorElement = screen.getByTestId('permissoes-error');
-      expect(errorElement).toHaveTextContent(/selecione pelo menos uma permissão/i);
+      expect(errorElement).toHaveTextContent(/selecione pelo menos uma permissÃ£o/i);
     });
   });
   
@@ -406,18 +406,18 @@ describe("PerfilDialog", () => {
       target: { value: 'Novo Perfil' }
     });
     fireEvent.change(screen.getByTestId('input-descricao'), {
-      target: { value: 'Descrição do novo perfil' }
+      target: { value: 'DescriÃ§Ã£o do novo perfil' }
     });
 
-    // Marcar permissões
+    // Marcar permissÃµes
     fireEvent.click(screen.getByTestId('checkbox-usuarios'));
     fireEvent.click(screen.getByTestId('checkbox-relatorios'));
 
-    // Submeter formulário
+    // Submeter formulÃ¡rio
     const form = screen.getByTestId('perfil-form');
     const mockEvent = createMockEvent();
     mockEvent.target.nome.value = 'Novo Perfil';
-    mockEvent.target.descricao.value = 'Descrição do novo perfil';
+    mockEvent.target.descricao.value = 'DescriÃ§Ã£o do novo perfil';
     fireEvent.submit(form, mockEvent);
 
     // Verificar chamada do onSalvar
@@ -426,7 +426,7 @@ describe("PerfilDialog", () => {
       const chamada = mockOnSalvar.mock.calls[0][0];
       expect(chamada).toMatchObject({
         nome: 'Novo Perfil',
-        descricao: 'Descrição do novo perfil',
+        descricao: 'DescriÃ§Ã£o do novo perfil',
         permissoes: ['usuarios', 'relatorios']
       });
       expect(chamada.id).toBeDefined();
@@ -448,10 +448,10 @@ describe("PerfilDialog", () => {
       target: { value: 'Perfil Atualizado' }
     });
 
-    // Marcar permissões adicionais
+    // Marcar permissÃµes adicionais
     fireEvent.click(screen.getByTestId('checkbox-relatorios'));
 
-    // Submeter formulário
+    // Submeter formulÃ¡rio
     const form = screen.getByTestId('perfil-form');
     const mockEvent = createMockEvent();
     mockEvent.target.nome.value = 'Perfil Atualizado';
@@ -471,22 +471,22 @@ describe("PerfilDialog", () => {
     });
   });
   
-  it("deve alternar seleção de permissões corretamente", () => {
+  it("deve alternar seleÃ§Ã£o de permissÃµes corretamente", () => {
     renderPerfDialog();
     
-    // Inicialmente nenhuma permissão selecionada
+    // Inicialmente nenhuma permissÃ£o selecionada
     expect(screen.getByTestId("checkbox-todos")).not.toBeChecked();
     
-    // Selecionar uma permissão
+    // Selecionar uma permissÃ£o
     fireEvent.click(screen.getByTestId("checkbox-usuarios"));
     expect(screen.getByTestId("checkbox-usuarios")).toBeChecked();
     
-    // Selecionar outra permissão
+    // Selecionar outra permissÃ£o
     fireEvent.click(screen.getByTestId("checkbox-relatorios"));
     expect(screen.getByTestId("checkbox-relatorios")).toBeChecked();
     expect(screen.getByTestId("checkbox-usuarios")).toBeChecked();
     
-    // Desmarcar uma permissão
+    // Desmarcar uma permissÃ£o
     fireEvent.click(screen.getByTestId("checkbox-usuarios"));
     expect(screen.getByTestId("checkbox-usuarios")).not.toBeChecked();
     expect(screen.getByTestId("checkbox-relatorios")).toBeChecked();

@@ -1,6 +1,6 @@
 'use server';
 
-import { createSupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/core/supabase/server";
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { 
@@ -14,10 +14,10 @@ import {
   type UpdateAlertStatusData,
   type AlertHistoryData,
   type UpdateThresholdData
-} from '@/lib/schemas/alerts';
+} from '@/core/schemas/alerts';
 
 // Re-export types for use in other files
-export type { AlertType, AlertStatus } from '@/lib/schemas/alerts';
+export type { AlertType, AlertStatus } from '@/core/schemas/alerts';
 
 // Mapear tipos de alerta para nomes de tabela
 const ALERT_TABLE_MAP: Record<AlertType, string> = {
@@ -33,6 +33,7 @@ const ALERT_TABLE_MAP: Record<AlertType, string> = {
  * Atualizar status de um alerta
  */
 export async function updateAlertStatus(data: UpdateAlertStatusData) {
+  const supabase = await createSupabaseServerClient();
   const parsed = updateAlertStatusSchema.safeParse(data);
   if (!parsed.success) {
     return { 
@@ -44,12 +45,9 @@ export async function updateAlertStatus(data: UpdateAlertStatusData) {
   const { alertId, alertType, status, notes } = parsed.data;
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-    
-    // Obter sessão atual
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    // Verificar autenticação do usuário
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
 
@@ -61,7 +59,7 @@ export async function updateAlertStatus(data: UpdateAlertStatusData) {
     // Atualizar o status do alerta
     const updateData: any = {
       status,
-      resolved_by: status !== 'open' ? session.user.id : null,
+      resolved_by: status !== 'open' ? user.id : null,
       resolved_at: status !== 'open' ? new Date().toISOString() : null,
       resolution_notes: notes || null
     };
@@ -95,6 +93,7 @@ export async function updateAlertStatus(data: UpdateAlertStatusData) {
  * Buscar histórico de alertas para um produto
  */
 export async function getAlertHistory(data: AlertHistoryData) {
+  const supabase = await createSupabaseServerClient();
   const parsed = alertHistorySchema.safeParse(data);
   if (!parsed.success) {
     return { 
@@ -105,9 +104,6 @@ export async function getAlertHistory(data: AlertHistoryData) {
 
   const { variantId, alertType, limit } = parsed.data;
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-
     let query = supabase
       .from('alert_history')
       .select(`
@@ -355,15 +351,14 @@ const MOCK_HISTORY_DATA = [
  * Buscar detalhes expandidos de um alerta
  */
 export async function getAlertDetails(alertId: string, alertType: AlertType) {
+  const supabase = await createSupabaseServerClient();
+  const tableName = ALERT_TABLE_MAP[alertType];
+
+  if (!tableName) {
+    return { success: false, error: 'Tipo de alerta inválido' };
+  }
+
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-
-    const tableName = ALERT_TABLE_MAP[alertType];
-    if (!tableName) {
-      return { success: false, error: 'Tipo de alerta inválido' };
-    }
-
     // Buscar detalhes do alerta específico
     const selectQuery = alertType === 'redistribution' 
       ? `
@@ -392,7 +387,7 @@ export async function getAlertDetails(alertId: string, alertType: AlertType) {
 
     // Se não encontrar dados reais ou houver erro, usar dados mock
     if (error || !data) {
-      console.log('Usando dados mock para demonstração:', { alertId, alertType });
+      console.debug('Usando dados mock para demonstração:', { alertId, alertType });
       
       const mockAlert = MOCK_ALERT_DATA[alertType];
       if (!mockAlert) {
@@ -446,51 +441,26 @@ export async function getAlertDetails(alertId: string, alertType: AlertType) {
  * Buscar configurações de thresholds
  */
 export async function getAlertThresholds() {
-  try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from('alert_thresholds')
+    .select('*')
+    .eq('is_active', true)
+    .order('alert_type');
 
-    // Buscar organização do usuário
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return { success: false, error: 'Usuário não autenticado' };
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.organization_id) {
-      return { success: false, error: 'Organização não encontrada' };
-    }
-
-    // Buscar configurações de thresholds
-    const { data, error } = await supabase
-      .from('alert_thresholds')
-      .select('*')
-      .eq('organization_id', profile.organization_id)
-      .eq('is_active', true)
-      .order('alert_type');
-
-    if (error) {
-      console.error('Erro ao buscar thresholds:', error);
-      return { success: false, error: 'Erro ao buscar configurações' };
-    }
-
-    return { success: true, data: data || [] };
-
-  } catch (error) {
-    console.error('Erro inesperado ao buscar thresholds:', error);
-    return { success: false, error: 'Erro inesperado' };
+  if (error) {
+    console.error('Erro ao buscar thresholds:', error);
+    return { success: false, error: 'Erro ao buscar configurações' };
   }
+
+  return { success: true, data: data || [] };
 }
 
 /**
  * Atualizar configurações de thresholds
  */
 export async function updateAlertThresholds(data: UpdateThresholdData) {
+  const supabase = await createSupabaseServerClient();
   const parsed = updateThresholdSchema.safeParse(data);
   if (!parsed.success) {
     return { 
@@ -499,32 +469,18 @@ export async function updateAlertThresholds(data: UpdateThresholdData) {
     };
   }
 
-  const { alertType, thresholdConfig } = parsed.data;
+  const { alertType, thresholds } = parsed.data;
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-
-    // Buscar organização do usuário
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+    // Verificar autenticação do usuário
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single();
-
-    if (!profile?.organization_id) {
-      return { success: false, error: 'Organização não encontrada' };
     }
 
     // Desativar configuração anterior
     await supabase
       .from('alert_thresholds')
       .update({ is_active: false })
-      .eq('organization_id', profile.organization_id)
       .eq('alert_type', alertType)
       .eq('is_active', true);
 
@@ -532,9 +488,8 @@ export async function updateAlertThresholds(data: UpdateThresholdData) {
     const { error } = await supabase
       .from('alert_thresholds')
       .insert({
-        organization_id: profile.organization_id,
         alert_type: alertType,
-        threshold_config: thresholdConfig,
+        threshold_config: thresholds,
         is_active: true,
         created_by: user.id,
         updated_by: user.id
@@ -560,18 +515,16 @@ export async function updateAlertThresholds(data: UpdateThresholdData) {
  * Buscar estatísticas de alertas por período
  */
 export async function getAlertStatistics(days: number = 30) {
+  const supabase = await createSupabaseServerClient();
+  const dateLimit = new Date();
+  dateLimit.setDate(dateLimit.getDate() - days);
+
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-
     // Buscar estatísticas do histórico
     const { data, error } = await supabase
       .from('alert_history')
       .select('alert_type, status, created_at, resolved_at')
-      .gte('created_at', startDate.toISOString());
+      .gte('created_at', dateLimit.toISOString());
 
     if (error) {
       console.error('Erro ao buscar estatísticas:', error);

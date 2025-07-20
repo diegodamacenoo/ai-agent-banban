@@ -1,0 +1,384 @@
+{
+  "moduleId": "alerts",
+  "version": "1.0.0",
+  "description": "Módulo de sistema de alertas com widgets de alertas ativos, histórico e configurações",
+  "widgets": [
+    {
+      "id": "active-alerts",
+      "title": "Alertas Ativos",
+      "description": "Alertas atualmente ativos que requerem atenção",
+      "componentPath": "/widgets/alerts/active-alerts",
+      "category": "alerts",
+      "tags": ["alerts", "active", "critical", "notifications"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_active_alerts",
+        "params": {
+          "severity_levels": ["critical", "high", "medium"],
+          "limit": 10
+        }
+      },
+      "defaultParams": {
+        "severity_levels": ["critical", "high", "medium"],
+        "limit": 10,
+        "auto_refresh": true
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "severity_levels": {
+            "type": "array",
+            "title": "Níveis de Severidade",
+            "items": {
+              "type": "string",
+              "enum": ["critical", "high", "medium", "low", "info"]
+            },
+            "default": ["critical", "high", "medium"]
+          },
+          "limit": {
+            "type": "number",
+            "title": "Máximo de Alertas",
+            "minimum": 5,
+            "maximum": 50,
+            "default": 10
+          },
+          "auto_refresh": {
+            "type": "boolean",
+            "title": "Atualização Automática",
+            "default": true
+          },
+          "categories": {
+            "type": "array",
+            "title": "Categorias",
+            "items": {
+              "type": "string",
+              "enum": ["system", "security", "performance", "business", "inventory"]
+            },
+            "default": []
+          },
+          "group_by": {
+            "type": "string",
+            "title": "Agrupar Por",
+            "enum": ["severity", "category", "source", "none"],
+            "default": "severity"
+          }
+        },
+        "required": ["severity_levels", "limit"]
+      },
+      "refreshInterval": 30,
+      "permissions": ["alerts:read", "notifications:view"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "alert-history",
+      "title": "Histórico de Alertas",
+      "description": "Histórico de alertas resolvidos e tendências",
+      "componentPath": "/widgets/alerts/alert-history",
+      "category": "alerts",
+      "tags": ["history", "trends", "resolved", "analytics"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_alert_history",
+        "params": {
+          "period": "30d",
+          "include_resolved": true,
+          "group_by": "daily"
+        }
+      },
+      "defaultParams": {
+        "period": "30d",
+        "include_resolved": true,
+        "group_by": "daily"
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 5
+      },
+      "minSize": {
+        "width": 6,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 7
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["7d", "30d", "90d", "180d"],
+            "default": "30d"
+          },
+          "include_resolved": {
+            "type": "boolean",
+            "title": "Incluir Resolvidos",
+            "default": true
+          },
+          "group_by": {
+            "type": "string",
+            "title": "Agrupar Por",
+            "enum": ["hourly", "daily", "weekly", "monthly"],
+            "default": "daily"
+          },
+          "chart_type": {
+            "type": "string",
+            "title": "Tipo de Gráfico",
+            "enum": ["line", "bar", "area", "heatmap"],
+            "default": "line"
+          },
+          "metrics": {
+            "type": "array",
+            "title": "Métricas",
+            "items": {
+              "type": "string",
+              "enum": ["count", "resolution_time", "severity_distribution"]
+            },
+            "default": ["count", "resolution_time"]
+          }
+        },
+        "required": ["period", "group_by"]
+      },
+      "refreshInterval": 300,
+      "permissions": ["alerts:read", "history:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo"]
+      }
+    },
+    {
+      "id": "alert-configuration",
+      "title": "Configuração de Alertas",
+      "description": "Configurações e regras de alerta",
+      "componentPath": "/widgets/alerts/alert-configuration",
+      "category": "alerts",
+      "tags": ["configuration", "rules", "settings", "management"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_alert_configurations",
+        "params": {
+          "include_disabled": false,
+          "category": "all"
+        }
+      },
+      "defaultParams": {
+        "include_disabled": false,
+        "category": "all"
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 6
+      },
+      "minSize": {
+        "width": 4,
+        "height": 4
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 8
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "include_disabled": {
+            "type": "boolean",
+            "title": "Incluir Desabilitados",
+            "default": false
+          },
+          "category": {
+            "type": "string",
+            "title": "Categoria",
+            "enum": ["all", "system", "security", "performance", "business", "inventory"],
+            "default": "all"
+          },
+          "show_details": {
+            "type": "boolean",
+            "title": "Mostrar Detalhes",
+            "default": true
+          },
+          "editable": {
+            "type": "boolean",
+            "title": "Permitir Edição",
+            "default": false
+          }
+        },
+        "required": ["category"]
+      },
+      "refreshInterval": 600,
+      "permissions": ["alerts:read", "alerts:configure"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "alert-stats",
+      "title": "Estatísticas de Alertas",
+      "description": "Métricas e estatísticas sobre alertas do sistema",
+      "componentPath": "/widgets/alerts/alert-stats",
+      "category": "alerts",
+      "tags": ["statistics", "metrics", "overview", "summary"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_alert_statistics",
+        "params": {
+          "period": "7d",
+          "include_trends": true
+        }
+      },
+      "defaultParams": {
+        "period": "7d",
+        "include_trends": true
+      },
+      "defaultSize": {
+        "width": 8,
+        "height": 4
+      },
+      "minSize": {
+        "width": 6,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 12,
+        "height": 6
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string",
+            "title": "Período",
+            "enum": ["24h", "7d", "30d", "90d"],
+            "default": "7d"
+          },
+          "include_trends": {
+            "type": "boolean",
+            "title": "Incluir Tendências",
+            "default": true
+          },
+          "metrics": {
+            "type": "array",
+            "title": "Métricas",
+            "items": {
+              "type": "string",
+              "enum": ["total_alerts", "avg_resolution_time", "mttr", "false_positives", "escalations"]
+            },
+            "default": ["total_alerts", "avg_resolution_time", "mttr"]
+          },
+          "visualization": {
+            "type": "string",
+            "title": "Visualização",
+            "enum": ["cards", "chart", "table"],
+            "default": "cards"
+          }
+        },
+        "required": ["period"]
+      },
+      "refreshInterval": 300,
+      "permissions": ["alerts:read", "statistics:view"],
+      "compatibility": {
+        "minScreenWidth": 1024,
+        "mobile": false,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    },
+    {
+      "id": "notification-channels",
+      "title": "Canais de Notificação",
+      "description": "Status e configuração dos canais de notificação",
+      "componentPath": "/widgets/alerts/notification-channels",
+      "category": "alerts",
+      "tags": ["notifications", "channels", "integration", "status"],
+      "queryConfig": {
+        "type": "rpc",
+        "function": "get_notification_channels",
+        "params": {
+          "include_disabled": false,
+          "test_connectivity": true
+        }
+      },
+      "defaultParams": {
+        "include_disabled": false,
+        "test_connectivity": true
+      },
+      "defaultSize": {
+        "width": 6,
+        "height": 4
+      },
+      "minSize": {
+        "width": 4,
+        "height": 3
+      },
+      "maxSize": {
+        "width": 8,
+        "height": 5
+      },
+      "resizable": true,
+      "configurable": true,
+      "configSchema": {
+        "type": "object",
+        "properties": {
+          "include_disabled": {
+            "type": "boolean",
+            "title": "Incluir Desabilitados",
+            "default": false
+          },
+          "test_connectivity": {
+            "type": "boolean",
+            "title": "Testar Conectividade",
+            "default": true
+          },
+          "channel_types": {
+            "type": "array",
+            "title": "Tipos de Canal",
+            "items": {
+              "type": "string",
+              "enum": ["email", "sms", "slack", "webhook", "push", "telegram"]
+            },
+            "default": []
+          },
+          "show_metrics": {
+            "type": "boolean",
+            "title": "Mostrar Métricas",
+            "default": true
+          }
+        }
+      },
+      "refreshInterval": 120,
+      "permissions": ["alerts:read", "notifications:manage"],
+      "compatibility": {
+        "minScreenWidth": 768,
+        "mobile": true,
+        "clientTypes": ["standard", "banban", "riachuelo", "ca"]
+      }
+    }
+  ],
+  "dependencies": []
+}

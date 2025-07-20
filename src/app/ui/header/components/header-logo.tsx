@@ -9,8 +9,8 @@ export function HeaderLogo() {
                 </div>
                 <span className="text-md text-[#D4D4D8] hidden lg:block">/</span>
                 <h1 className="text-md font-semibold tracking-tight inline-flex items-center gap-1">
-                    <span className="hidden lg:block">BanBan Calçados</span>
-                    {/* Mostrar ícone em telas menores se o texto estiver escondido */}
+                    <span className="hidden lg:block">BanBan CalÃ§ados</span>
+                    {/* Mostrar Ã­cone em telas menores se o texto estiver escondido */}
                     <PyramidIcon className="size-6 stroke-black lg:hidden" />
                 </h1>
             </div>

@@ -19,7 +19,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -56,7 +56,7 @@ describe('Organization Server Actions', () => {
     it('should validate organization data', async () => {
       const mockUpdateSettings = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Nome da organização é obrigatório',
+        error: 'Nome da organizaÃ§Ã£o Ã© obrigatÃ³rio',
       });
 
       const result = await mockUpdateSettings({
@@ -64,7 +64,7 @@ describe('Organization Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('obrigatório');
+      expect(result.error).toContain('obrigatÃ³rio');
     });
   });
 

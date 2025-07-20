@@ -1,15 +1,15 @@
 {
   "mcpServers": {
     "supabase": {
-      "command": "cmd",
+      "command": "npx",
       "args": [
-        "/c",
-        "npx",
         "-y",
         "@supabase/mcp-server-supabase@latest",
-        "--access-token",
-        "sbp_6e13beee744d416467dd0248a91081afd2755ce1"
-      ]
+        "--project-ref=bopytcghbmuywfltmwhk"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "sbp_6e13beee744d416467dd0248a91081afd2755ce1"
+      }
     }
   }
 }

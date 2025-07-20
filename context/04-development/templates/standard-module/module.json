@@ -1,0 +1,187 @@
+{
+  "name": "{{MODULE_NAME}}",
+  "slug": "{{MODULE_SLUG}}",
+  "version": "1.0.0",
+  "description": "{{MODULE_DESCRIPTION}}",
+  "category": "analytics",
+  "maturity_status": "GA",
+  "pricing_tier": "free",
+  "author": "Axon Team",
+  "vendor": "Axon Systems",
+  "entrypoint": "src/index.ts",
+  "dependencies": {
+    "required": [
+      "@supabase/supabase-js",
+      "zod"
+    ],
+    "optional": [
+      "date-fns",
+      "lodash"
+    ]
+  },
+  "compatibility_matrix": {
+    "min_axon_version": "1.0.0",
+    "max_axon_version": "2.0.0",
+    "supported_client_types": [
+      "banban",
+      "default",
+      "standard"
+    ],
+    "supported_features": [
+      "multi-tenant",
+      "rls",
+      "audit-logging",
+      "real-time",
+      "analytics"
+    ]
+  },
+  "usage_based_pricing": {
+    "enabled": false
+  },
+  "repository_url": "https://github.com/axon-systems/modules/{{MODULE_SLUG}}",
+  "documentation_url": "https://docs.axon.dev/modules/{{MODULE_SLUG}}",
+  "is_internal_only": false,
+  "requires_approval": false,
+  "api_endpoints": [
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/health",
+      "method": "GET",
+      "description": "Health check endpoint",
+      "authenticated": false,
+      "handler": "healthCheck"
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/data",
+      "method": "GET",
+      "description": "Get module data",
+      "authenticated": true,
+      "handler": "getData"
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/data",
+      "method": "POST",
+      "description": "Process module data",
+      "authenticated": true,
+      "handler": "processData"
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/config",
+      "method": "GET",
+      "description": "Get module configuration",
+      "authenticated": true,
+      "handler": "getConfig"
+    },
+    {
+      "path": "/api/modules/{{MODULE_SLUG}}/config",
+      "method": "PUT",
+      "description": "Update module configuration",
+      "authenticated": true,
+      "handler": "updateConfig"
+    }
+  ],
+  "database_tables": [
+    "{{MODULE_SLUG}}_data",
+    "{{MODULE_SLUG}}_config",
+    "{{MODULE_SLUG}}_metrics"
+  ],
+  "environment_variables": [
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_LOG_LEVEL",
+      "description": "Log level for the module",
+      "required": false,
+      "default_value": "info",
+      "validation": {
+        "type": "enum",
+        "values": ["error", "warn", "info", "debug", "trace"]
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_CACHE_TTL",
+      "description": "Cache TTL in seconds",
+      "required": false,
+      "default_value": "3600",
+      "validation": {
+        "type": "number",
+        "min": 60,
+        "max": 86400
+      }
+    },
+    {
+      "name": "{{MODULE_SLUG_UPPER}}_MAX_BATCH_SIZE",
+      "description": "Maximum batch size for processing",
+      "required": false,
+      "default_value": "100",
+      "validation": {
+        "type": "number",
+        "min": 1,
+        "max": 1000
+      }
+    }
+  ],
+  "health_check": {
+    "endpoint": "/health",
+    "interval_seconds": 300,
+    "timeout_seconds": 30,
+    "critical_dependencies": [
+      "database",
+      "cache"
+    ]
+  },
+  "data_retention": {
+    "default_retention_days": 365,
+    "auto_purge": true,
+    "export_before_purge": true,
+    "policies": {
+      "metrics": 90,
+      "logs": 30,
+      "cache": 7
+    }
+  },
+  "permissions": {
+    "read": ["{{MODULE_SLUG}}.read"],
+    "write": ["{{MODULE_SLUG}}.write"],
+    "admin": ["{{MODULE_SLUG}}.admin"],
+    "configure": ["{{MODULE_SLUG}}.configure"]
+  },
+  "rls_policies": [
+    {
+      "table": "{{MODULE_SLUG}}_data",
+      "policy": "organization_isolation",
+      "description": "Users can only access their organization data"
+    }
+  ],
+  "integrations": {
+    "supabase": {
+      "enabled": true,
+      "required_extensions": ["uuid-ossp"]
+    },
+    "webhooks": {
+      "enabled": false,
+      "events": []
+    },
+    "realtime": {
+      "enabled": true,
+      "channels": ["{{MODULE_SLUG}}-updates"]
+    }
+  },
+  "ui_components": {
+    "dashboard_widget": {
+      "component_path": "components/{{MODULE_CLASS}}Widget",
+      "default_size": "medium",
+      "resizable": true
+    },
+    "config_panel": {
+      "component_path": "components/{{MODULE_CLASS}}Config",
+      "sections": ["general", "advanced", "permissions"]
+    }
+  },
+  "navigation": {
+    "primary": {
+      "title": "{{MODULE_NAME}}",
+      "icon": "BarChart3",
+      "path": "/modules/{{MODULE_SLUG}}",
+      "order": 100
+    },
+    "submenu": []
+  }
+} 

@@ -1,0 +1,120 @@
+﻿import { createSupabaseServerClient } from '@/core/supabase/server';
+import { NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
+import { type ReadonlyRequestCookies } from 'next/dist/server/web/spec-extension/adapters/request-cookies';
+import { sanitizeText } from '@/features/security/server-side-sanitizer';
+import { 
+  generateDeviceFingerprint, 
+  isKnownDevice, 
+  registerKnownDevice,
+  triggerSecurityAlert,
+  getClientIP,
+  getUserAgent
+} from '@/shared/utils/security-detector';
+
+export async function GET(request: NextRequest) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
+  const tokenHash = searchParams.get('token_hash');
+  const type = searchParams.get('type');
+  const next = searchParams.get('next') ?? '/';
+  
+  // Criar response a partir do request para manter cookies
+  const response = NextResponse.redirect(new URL(next, origin));
+
+  const redirectToLogin = (message: string, error?: string) => {
+    const url = new URL('/login', origin);
+    url.searchParams.set('message', message);
+    if (error) url.searchParams.set('error', error);
+    response.headers.set('Location', url.toString());
+  };
+
+  const redirectToLoginWithUnsafeMessage = (message: string, error?: string) => {
+    const url = new URL('/login', origin);
+    url.searchParams.set('message', sanitizeText(message));
+    if (error) url.searchParams.set('error', error);
+    response.headers.set('Location', url.toString());
+  };
+
+  if (!code && !tokenHash) {
+    redirectToLogin('CÃ³digo de autorizaÃ§Ã£o ou token nÃ£o encontrado.', 'missing_code');
+    return response;
+  }
+  
+  const supabase = await createSupabaseServerClient();
+  let sessionData;
+
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      redirectToLoginWithUnsafeMessage(`Erro na autenticaÃ§Ã£o: ${error.message}`, 'auth_error');
+      return response;
+    }
+    sessionData = data;
+  } else if (tokenHash && type) {
+    const { data, error } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as any,
+    });
+    if (error) {
+      redirectToLoginWithUnsafeMessage(`Erro na verificaÃ§Ã£o do token: ${error.message}`, 'token_error');
+      return response;
+    }
+    sessionData = data;
+  }
+
+  if (!sessionData?.user) {
+    redirectToLogin('UsuÃ¡rio nÃ£o encontrado apÃ³s a autenticaÃ§Ã£o.', 'no_user');
+    return response;
+  }
+
+  const { user, session } = sessionData;
+  console.log('âœ… SESSÃƒO CRIADA COM SUCESSO para usuÃ¡rio:', user.id);
+
+  try {
+    const deviceFingerprint = await generateDeviceFingerprint();
+    const isInvite = type === 'invite';
+
+    if (isInvite) {
+      console.log('ðŸŽ‰ CONVITE DETECTADO! Processando...');
+      await registerKnownDevice(user.id, deviceFingerprint, await getUserAgent() || undefined);
+      
+      const { data: existingProfile } = await supabase.from('profiles').select('id').eq('id', user.id).single();
+
+      if (!existingProfile) {
+        console.log('ðŸ‘¤ CRIANDO PERFIL para usuÃ¡rio de convite:', user.id);
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: user.id,
+          first_name: user.user_metadata?.first_name || '',
+          last_name: user.user_metadata?.last_name || '',
+          role: user.user_metadata?.role || 'reader',
+          organization_id: user.user_metadata?.organization_id,
+          status: 'active',
+          is_setup_complete: false,
+        });
+
+        if (profileError) {
+          console.error('âŒ ERRO AO CRIAR PERFIL:', profileError);
+        } else {
+          console.log('âœ… PERFIL CRIADO COM SUCESSO!');
+        }
+      }
+      
+      console.log('ðŸš€ REDIRECIONANDO PARA SETUP-ACCOUNT...');
+      const setupUrl = new URL('/setup-account', origin);
+      setupUrl.searchParams.set('from', 'invite');
+      response.headers.set('Location', setupUrl.toString());
+      
+    } else {
+      // LÃ³gica para usuÃ¡rios normais
+      console.log('âœ… USUÃRIO NORMAL, redirecionando para:', next);
+      const nextUrl = new URL(next, origin);
+      response.headers.set('Location', nextUrl.toString());
+    }
+  } catch (e) {
+    console.error('âŒ ERRO GERAL NO CALLBACK:', e);
+    redirectToLogin('Ocorreu um erro inesperado.', 'unexpected_error');
+  }
+
+  return response;
+} 

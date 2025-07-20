@@ -1,9 +1,9 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
+import { Button } from "@/shared/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
+import { createSupabaseBrowserClient } from "@/core/supabase/client";
 import { BellIcon, ChevronDown, LogOutIcon, SettingsIcon, UserCircleIcon } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import * as React from "react";
@@ -20,7 +20,7 @@ interface HeaderUserMenuProps {
 
 export function HeaderUserMenu({ userData }: HeaderUserMenuProps) {
     const router = useRouter();
-    const supabase = createSupabaseClient();
+    const supabase = createSupabaseBrowserClient();
     const [isSettingsDialogOpen, setIsSettingsDialogOpen] = React.useState(false);
 
     const handleLogout = async () => {
@@ -29,7 +29,7 @@ export function HeaderUserMenu({ userData }: HeaderUserMenuProps) {
         router.refresh();
     };
 
-    const userName = userData.name || 'Usuário';
+    const userName = userData.name || 'UsuÃ¡rio';
     const userAvatar = userData.avatar || 'https://github.com/shadcn.png';
     const userFallback = userName.charAt(0).toUpperCase();
 
@@ -63,20 +63,19 @@ export function HeaderUserMenu({ userData }: HeaderUserMenuProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    {/* TODO: Implementar rotas/ações */}
+                    {/* TODO: Implementar rotas/aÃ§Ãµes */}
                     <DropdownMenuItem>
                         <UserCircleIcon className="mr-2 h-4 w-4" />
                         <span>Conta</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setIsSettingsDialogOpen(true)}>
                         <SettingsIcon className="mr-2 h-4 w-4" />
-                        <span>Configurações</span>
+                        <span>ConfiguraÃ§Ãµes</span>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={handleLogout}>
-                    <LogOutIcon className="mr-2 h-4 w-4" />
-                    <span>Sair</span>
+                <DropdownMenuItem onSelect={handleLogout} icon={LogOutIcon}>
+                    Sair
                 </DropdownMenuItem>
             </DropdownMenuContent>
             <SettingsDialog open={isSettingsDialogOpen} onOpenChange={setIsSettingsDialogOpen} />

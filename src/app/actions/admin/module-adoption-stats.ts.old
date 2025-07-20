@@ -1,0 +1,201 @@
+'use server';
+
+import { createSupabaseServerClient } from '@/core/supabase/server';
+
+export interface ModuleAdoptionData {
+  module_id: string;
+  module_name: string;
+  module_slug: string;
+  total_organizations: number;
+  active_organizations: number;
+  adoption_rate: number;
+  category?: string;
+  pricing_tier?: string;
+}
+
+export interface ModuleAdoptionSummary {
+  total_modules: number;
+  total_organizations: number;
+  average_adoption_rate: number;
+}
+
+export interface ModuleAdoptionStatsResult {
+  success: boolean;
+  data?: ModuleAdoptionData[];
+  summary?: ModuleAdoptionSummary;
+  error?: string;
+}
+
+/**
+ * Busca estatísticas de adoção de módulos usando queries diretas
+ */
+export async function getModuleAdoptionStats(): Promise<ModuleAdoptionStatsResult> {
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    console.debug('🔍 [ModuleAdoption] Iniciando busca de estatísticas...');
+
+    // Buscar todos os módulos ativos (com ou sem tenant_modules)
+    const { data: modules, error: modulesError } = await supabase
+      .from('core_modules')
+      .select(`
+        id,
+        name,
+        slug,
+        category,
+        pricing_tier
+      `)
+      .in('maturity_status', ['GA', 'BETA']) // Usar maturity_status em vez de status
+
+    if (modulesError) {
+      console.error('Erro ao buscar módulos:', modulesError);
+      return { success: false, error: modulesError.message };
+    }
+
+    console.debug('✅ [ModuleAdoption] Módulos encontrados:', modules?.length);
+
+    // Buscar todos os tenant_modules
+    const { data: tenantModules, error: tenantError } = await supabase
+      .from('tenant_modules')
+      .select(`
+        module_id,
+        organization_id,
+        is_visible,
+        operational_status
+      `);
+
+    if (tenantError) {
+      console.error('Erro ao buscar tenant_modules:', tenantError);
+      return { success: false, error: tenantError.message };
+    }
+
+    console.debug('✅ [ModuleAdoption] Tenant modules encontrados:', tenantModules?.length);
+
+    // Buscar total de organizações
+    const { count: totalOrganizations, error: orgError } = await supabase
+      .from('organizations')
+      .select('*', { count: 'exact', head: true });
+
+    if (orgError) {
+      console.error('Erro ao buscar total de organizações:', orgError);
+      return { success: false, error: orgError.message };
+    }
+
+    console.debug('✅ [ModuleAdoption] Total de organizações:', totalOrganizations);
+
+    // Processar dados de adoção
+    const adoptionData: ModuleAdoptionData[] = modules?.map((module: any) => {
+      // Encontrar tenant_modules para este módulo
+      const moduleAssignments = tenantModules?.filter(tm => tm.module_id === module.id) || [];
+      
+      const activeAssignments = moduleAssignments.filter(tm => 
+        tm.is_visible === true && 
+        (tm.operational_status === 'ENABLED' || tm.operational_status === null)
+      ).length;
+
+      const adoptionRate = totalOrganizations && totalOrganizations > 0 
+        ? Math.round((activeAssignments / totalOrganizations) * 100)
+        : 0;
+
+      const result = {
+        module_id: module.id,
+        module_name: module.name,
+        module_slug: module.slug,
+        total_organizations: totalOrganizations || 0,
+        active_organizations: activeAssignments,
+        adoption_rate: adoptionRate,
+        category: module.category,
+        pricing_tier: module.pricing_tier,
+      };
+
+      console.debug('📊 [ModuleAdoption] Processado módulo:', module.name, result);
+      return result;
+    }) || [];
+
+    // Calcular resumo
+    const summary: ModuleAdoptionSummary = {
+      total_modules: adoptionData.length,
+      total_organizations: totalOrganizations || 0,
+      average_adoption_rate: adoptionData.length > 0 
+        ? Math.round(adoptionData.reduce((sum, mod) => sum + mod.adoption_rate, 0) / adoptionData.length)
+        : 0,
+    };
+
+    console.debug('✅ [ModuleAdoption] Processamento completo. Total de módulos:', adoptionData.length);
+
+    return {
+      success: true,
+      data: adoptionData,
+      summary,
+    };
+
+  } catch (error) {
+    console.error('❌ [ModuleAdoption] Erro inesperado:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro inesperado',
+    };
+  }
+}
+
+/**
+ * Cache simples para evitar múltiplas consultas
+ */
+let adoptionStatsCache: { data: ModuleAdoptionStatsResult; timestamp: number } | null = null;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+/**
+ * Versão com cache das estatísticas de adoção
+ */
+export async function getModuleAdoptionStatsWithCache(): Promise<ModuleAdoptionStatsResult> {
+  const now = Date.now();
+  
+  // Verificar cache
+  if (adoptionStatsCache && (now - adoptionStatsCache.timestamp) < CACHE_DURATION) {
+    console.debug('📋 [ModuleAdoption] Usando dados do cache');
+    return adoptionStatsCache.data;
+  }
+
+  console.debug('🔄 [ModuleAdoption] Cache expirado, buscando dados frescos...');
+
+  // Buscar dados atualizados
+  const result = await getModuleAdoptionStats();
+  
+  // Atualizar cache se sucesso
+  if (result.success) {
+    adoptionStatsCache = {
+      data: result,
+      timestamp: now,
+    };
+    console.debug('✅ [ModuleAdoption] Cache atualizado com sucesso');
+  } else {
+    console.error('❌ [ModuleAdoption] Erro ao buscar dados:', result.error);
+  }
+
+  return result;
+}
+
+/**
+ * Função simples para verificar se o servidor está respondendo
+ */
+export async function testModuleAdoptionConnection(): Promise<{ success: boolean; message: string }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    
+    // Teste simples - contar módulos
+    const { count, error } = await supabase
+      .from('core_modules')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      return { success: false, message: `Erro na conexão: ${error.message}` };
+    }
+
+    return { success: true, message: `Conexão OK. ${count} módulos encontrados.` };
+  } catch (error) {
+    return { 
+      success: false, 
+      message: `Erro inesperado: ${error instanceof Error ? error.message : 'Desconhecido'}` 
+    };
+  }
+}

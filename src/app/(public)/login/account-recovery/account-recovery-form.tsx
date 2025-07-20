@@ -2,7 +2,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/shared/ui/button"
 import {
   Card,
   CardContent,
@@ -10,14 +10,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/shared/ui/card"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
 import Link from "next/link"
 import clsx from 'clsx';
-import { createSupabaseClient } from '@/lib/supabase/client';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { createBrowserClient } from '@supabase/ssr'
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { AlertTriangle } from 'lucide-react';
+import { safeLogger } from '@/features/security/safe-logger';
 
 type PasswordStatus = "neutral" | "valid" | "invalid";
 
@@ -34,14 +35,14 @@ export default function AccountRecoveryForm() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const supabase = createSupabaseClient();
-  
+  const [email, setEmail] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [newPasswordStatus, setNewPasswordStatus] = useState<PasswordStatus>("neutral");
   const [confirmPasswordStatus, setConfirmPasswordStatus] = useState<PasswordStatus>("neutral");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [isVerifying, setIsVerifying] = useState(true);
   const [isVerified, setIsVerified] = useState(false);
 
@@ -53,11 +54,15 @@ export default function AccountRecoveryForm() {
         const type = searchParams.get('type');
 
         if (!token_hash || !type || type !== 'recovery') {
-          setError("Link de recuperação inválido ou expirado.");
+          setError("Link de recuperaÃ§Ã£o invÃ¡lido ou expirado.");
           return;
         }
 
         // Verifica o token usando verifyOtp
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        )
         const { error: verifyError } = await supabase.auth.verifyOtp({
           token_hash,
           type: 'recovery'
@@ -69,15 +74,19 @@ export default function AccountRecoveryForm() {
 
         setIsVerified(true);
       } catch (err: any) {
-        console.error('Erro ao verificar token:', err);
-        setError(err.message || "Link de recuperação inválido ou expirado. Por favor, solicite um novo link.");
+        safeLogger.warn('Falha na verificaÃ§Ã£o de token de recuperaÃ§Ã£o', { 
+          type: 'recovery_token_verification_failed',
+          hasToken: !!searchParams.get('token_hash'),
+          hasType: !!searchParams.get('type')
+        });
+        setError(err.message || "Link de recuperaÃ§Ã£o invÃ¡lido ou expirado. Por favor, solicite um novo link.");
       } finally {
         setIsVerifying(false);
       }
     };
 
     verifyToken();
-  }, [searchParams, supabase.auth]);
+  }, [searchParams]);
 
   useEffect(() => {
     if (newPassword.length > 0) {
@@ -119,29 +128,34 @@ export default function AccountRecoveryForm() {
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
 
     if (!isVerified) {
-      setError("Sessão de recuperação inválida. Por favor, solicite um novo link.");
+      setError("SessÃ£o de recuperaÃ§Ã£o invÃ¡lida. Por favor, solicite um novo link.");
       setLoading(false);
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError("As senhas não coincidem.");
+      setError("As senhas nÃ£o coincidem.");
       setLoading(false);
       return;
     }
 
     if (!checkPasswordStrength(newPassword)) {
-      setError("A senha não atende aos requisitos mínimos de segurança.");
+      setError("A senha nÃ£o atende aos requisitos mÃ­nimos de seguranÃ§a.");
       setLoading(false);
       return;
     }
 
     try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -153,7 +167,10 @@ export default function AccountRecoveryForm() {
       // Redireciona para o login com mensagem de sucesso
       router.push('/login?message=Senha alterada com sucesso!');
     } catch (err: any) {
-      console.error('Erro ao atualizar senha:', err);
+      safeLogger.warn('Falha ao atualizar senha na recuperaÃ§Ã£o', {
+        type: 'password_update_failed',
+        hasValidSession: isVerified
+      });
       setError(err.message || 'Ocorreu um erro ao tentar alterar sua senha.');
     } finally {
       setLoading(false);
@@ -166,10 +183,10 @@ export default function AccountRecoveryForm() {
         <CardTitle>Recuperar senha</CardTitle>
         <CardDescription>
           {isVerifying 
-            ? "Verificando link de recuperação..."
+            ? "Verificando link de recuperaÃ§Ã£o..."
             : isVerified 
               ? "Digite sua nova senha abaixo."
-              : "Link de recuperação inválido"}
+              : "Link de recuperaÃ§Ã£o invÃ¡lido"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -204,7 +221,7 @@ export default function AccountRecoveryForm() {
                 <Input
                   id="newPassword"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={newPassword}
                   onChange={handleNewPasswordChange}
                   className={getInputBorderClassName(newPasswordStatus)}
@@ -215,16 +232,16 @@ export default function AccountRecoveryForm() {
                   <p>A senha deve conter:</p>
                   <ul className="list-disc list-inside mt-1">
                     <li className={newPassword.length > 0 && newPassword.length < 8 ? 'text-red-500' : (newPassword.length >= 8 ? 'text-green-500' : '')}>
-                      Mínimo 8 caracteres
+                      MÃ­nimo 8 caracteres
                     </li>
                     <li className={newPassword.length > 0 && !/[A-Z]/.test(newPassword) ? 'text-red-500' : (/[A-Z]/.test(newPassword) ? 'text-green-500' : '')}>
-                      Pelo menos uma letra maiúscula
+                      Pelo menos uma letra maiÃºscula
                     </li>
                     <li className={newPassword.length > 0 && !/\d/.test(newPassword) ? 'text-red-500' : (/\d/.test(newPassword) ? 'text-green-500' : '')}>
-                      Pelo menos um número
+                      Pelo menos um nÃºmero
                     </li>
                     <li className={newPassword.length > 0 && !/[a-z]/.test(newPassword) ? 'text-red-500' : (/[a-z]/.test(newPassword) ? 'text-green-500' : '')}>
-                      Pelo menos uma letra minúscula
+                      Pelo menos uma letra minÃºscula
                     </li>
                   </ul>
                 </div>
@@ -234,7 +251,7 @@ export default function AccountRecoveryForm() {
                 <Input
                   id="confirmPassword"
                   type="password"
-                  placeholder="••••••••"
+                  placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   value={confirmPassword}
                   onChange={handleConfirmPasswordChange}
                   className={getInputBorderClassName(confirmPasswordStatus)}

@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/shared/ui/dialog";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Switch } from "@/shared/ui/switch";
+import { cn } from "@/shared/utils/utils";
 import { UserProfile, RoleEnum, UserStatusEnum } from "../../../types/perfis";
 import { useState } from "react";
 
@@ -25,7 +25,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
     role: perfil?.role || "standard_user",
     job_title: perfil?.job_title || "",
     team: perfil?.team || "",
-    status: perfil?.status || "active",
+    status: perfil?.status || "ACTIVE",
     is_2fa_enabled: perfil?.is_2fa_enabled || false,
     prefers_email_notifications: perfil?.prefers_email_notifications || true,
     prefers_push_notifications: perfil?.prefers_push_notifications || true,
@@ -49,7 +49,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
         <DialogHeader>
           <DialogTitle>{perfil ? "Editar Perfil" : "Novo Perfil"}</DialogTitle>
           <DialogDescription>
-            {perfil ? "Edite os dados do perfil do usuário" : "Preencha os dados para criar um novo perfil"}
+            {perfil ? "Edite os dados do perfil do usuÃ¡rio" : "Preencha os dados para criar um novo perfil"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,7 +74,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="username">Nome de Usuário</Label>
+              <Label htmlFor="username">Nome de UsuÃ¡rio</Label>
               <Input
                 id="username"
                 value={formData.username || ""}
@@ -82,16 +82,16 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Função</Label>
+              <Label htmlFor="role">FunÃ§Ã£o</Label>
               <Select
                 value={formData.role}
                 onValueChange={(value) => handleInputChange("role", value as RoleEnum)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma função" />
+                  <SelectValue placeholder="Selecione uma funÃ§Ã£o" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="standard_user">Usuário Padrão</SelectItem>
+                  <SelectItem value="standard_user">UsuÃ¡rio PadrÃ£o</SelectItem>
                   <SelectItem value="organization_admin">Administrador</SelectItem>
                 </SelectContent>
               </Select>
@@ -127,7 +127,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="location">Localização</Label>
+              <Label htmlFor="location">LocalizaÃ§Ã£o</Label>
               <Input
                 id="location"
                 value={formData.location || ""}
@@ -146,16 +146,16 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
                 <SelectValue placeholder="Selecione um status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="active">Ativo</SelectItem>
-                <SelectItem value="inactive">Inativo</SelectItem>
-                <SelectItem value="suspended">Suspenso</SelectItem>
+                <SelectItem value="ACTIVE">Ativo</SelectItem>
+                <SelectItem value="INACTIVE">Inativo</SelectItem>
+                                  <SelectItem value="SUSPENDED">Suspenso</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <Label htmlFor="is_2fa_enabled">Autenticação de dois fatores</Label>
+              <Label htmlFor="is_2fa_enabled">AutenticaÃ§Ã£o de dois fatores</Label>
               <Switch
                 id="is_2fa_enabled"
                 checked={formData.is_2fa_enabled}
@@ -164,7 +164,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="prefers_email_notifications">Notificações por email</Label>
+              <Label htmlFor="prefers_email_notifications">NotificaÃ§Ãµes por email</Label>
               <Switch
                 id="prefers_email_notifications"
                 checked={formData.prefers_email_notifications}
@@ -173,7 +173,7 @@ export function PerfilDialog({ open, onOpenChange, onSalvar, perfil, isLoading }
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="prefers_push_notifications">Notificações push</Label>
+              <Label htmlFor="prefers_push_notifications">NotificaÃ§Ãµes push</Label>
               <Switch
                 id="prefers_push_notifications"
                 checked={formData.prefers_push_notifications}

@@ -1,0 +1,12 @@
+# Arquivos de configuração com dados sensíveis
+config/test.config.js
+config/*.config.js
+!config/*.example.js
+
+# Arquivos de teste obsoletos
+obsolete/
+
+# Arquivos temporários de teste
+*.test.log
+*.test.json
+temp/ 

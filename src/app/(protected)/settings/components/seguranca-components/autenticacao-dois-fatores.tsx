@@ -1,10 +1,10 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/shared/ui/radio-group";
+import { Separator } from "@/shared/ui/separator";
 import { SaveIcon, InfoIcon, LockIcon, ShieldIcon } from "lucide-react";
 
 interface AutenticacaoDoisFatoresProps {
@@ -30,7 +30,7 @@ export default function AutenticacaoDoisFatores({
         
         <div className="flex items-center justify-between">
           <div className="space-y-0.5">
-            <Label htmlFor="ativar2FA">Ativar autenticação em dois fatores para sua conta</Label>
+            <Label htmlFor="ativar2FA">Ativar autenticaÃ§Ã£o em dois fatores para sua conta</Label>
             <p className="text-xs text-muted-foreground">Habilita o uso de 2FA em sua conta</p>
           </div>
           <Switch id="ativar2FA" checked={ativar2FA} onCheckedChange={setAtivar2FA} />
@@ -40,14 +40,14 @@ export default function AutenticacaoDoisFatores({
           <>
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="obrigatorio2FA">Tornar 2FA obrigatório para todos os usuários</Label>
-                <p className="text-xs text-muted-foreground">Se ativado, todos os usuários serão obrigados a configurar o 2FA em suas contas</p>
+                <Label htmlFor="obrigatorio2FA">Tornar 2FA obrigatÃ³rio para todos os usuÃ¡rios</Label>
+                <p className="text-xs text-muted-foreground">Se ativado, todos os usuÃ¡rios serÃ£o obrigados a configurar o 2FA em suas contas</p>
               </div>
               <Switch id="obrigatorio2FA" checked={obrigatorio2FA} onCheckedChange={setObrigatorio2FA} />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="metodo2FA">Métodos de autenticação permitidos</Label>
+              <Label htmlFor="metodo2FA">MÃ©todos de autenticaÃ§Ã£o permitidos</Label>
               <RadioGroup value={metodo2FA} onValueChange={setMetodo2FA} className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="app" id="app" />
@@ -55,29 +55,29 @@ export default function AutenticacaoDoisFatores({
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="email" id="email" />
-                  <Label htmlFor="email" className="font-normal">Apenas código por e-mail</Label>
+                  <Label htmlFor="email" className="font-normal">Apenas cÃ³digo por e-mail</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="ambos" id="ambos" />
-                  <Label htmlFor="ambos" className="font-normal">Permitir que usuários escolham o método</Label>
+                  <Label htmlFor="ambos" className="font-normal">Permitir que usuÃ¡rios escolham o mÃ©todo</Label>
                 </div>
               </RadioGroup>
               <p className="text-xs text-muted-foreground">
-                O aplicativo autenticador é mais seguro pois não depende do acesso ao e-mail.
+                O aplicativo autenticador Ã© mais seguro pois nÃ£o depende do acesso ao e-mail.
               </p>
             </div>
             
             <Separator />
             
             <div className="space-y-2">
-              <Label>Política de recuperação de acesso</Label>
+              <Label>PolÃ­tica de recuperaÃ§Ã£o de acesso</Label>
               <div className="bg-white dark:bg-gray-800 p-4 rounded-md border">
-                <p className="text-sm">Quando um usuário perder acesso ao 2FA:</p>
+                <p className="text-sm">Quando um usuÃ¡rio perder acesso ao 2FA:</p>
                 <ul className="text-sm text-muted-foreground mt-2 space-y-1 list-disc pl-5">
-                  <li>Apenas administradores podem resetar o 2FA para usuários</li>
-                  <li>O usuário precisará configurar o 2FA novamente em até 24 horas</li>
-                  <li>Todas as sessões ativas do usuário serão encerradas</li>
-                  <li>Uma notificação será enviada aos administradores</li>
+                  <li>Apenas administradores podem resetar o 2FA para usuÃ¡rios</li>
+                  <li>O usuÃ¡rio precisarÃ¡ configurar o 2FA novamente em atÃ© 24 horas</li>
+                  <li>Todas as sessÃµes ativas do usuÃ¡rio serÃ£o encerradas</li>
+                  <li>Uma notificaÃ§Ã£o serÃ¡ enviada aos administradores</li>
                 </ul>
               </div>
             </div>
@@ -85,7 +85,7 @@ export default function AutenticacaoDoisFatores({
             <div className="flex justify-end pt-2">
               <Button variant="outline" className="gap-2">
                 <SaveIcon className="w-4 h-4" />
-                Salvar Política Organizacional
+                Salvar PolÃ­tica Organizacional
               </Button>
             </div>
           </>

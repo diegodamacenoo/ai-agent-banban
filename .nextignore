@@ -1,0 +1,9 @@
+# Supabase functions (Deno environment)
+supabase/functions/
+supabase/functions/**/*
+
+# Other directories to ignore
+.git/
+node_modules/
+.next/
+out/ 

@@ -1,93 +1,145 @@
 'use server';
 
 import { z } from 'zod';
-import { cookies } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { userRoleOptions } from '@/app/(protected)/settings/types/user-settings-types';
-import { createSupabaseClient, createSupabaseAdminClient } from '@/lib/supabase/server';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
-import {
-  inviteUserSchema,
-  resendInviteSchema,
-  cancelInviteSchema
-} from '@/lib/schemas/user-management';
+import { createSupabaseServerClient, createSupabaseAdminClient } from '@/core/supabase/server';
+import { createAuditLog, captureRequestInfo } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { cookies } from 'next/headers';
 
-/**
- * Envia um convite para um novo usuário
- * @param {z.infer<typeof inviteUserSchema>} data Dados do convite
- * @param {string} [jwt] JWT opcional para autenticação
- * @returns {Promise<{success: boolean, error?: string}>} Resultado da operação
- */
-export async function inviteUser(data: z.infer<typeof inviteUserSchema>, jwt?: string): Promise<{success: boolean, error?: string}> {
-  const validation = inviteUserSchema.safeParse(data);
-  if (!validation.success) {
-    return { 
-      success: false, 
-      error: validation.error.errors.map(e => e.message).join(', ') 
-    };
-  }
+// Schemas locais para validação
+const inviteUserSchema = z.object({
+  email: z.string().email('Email inválido'),
+  role: z.enum(['user', 'organization_admin']),
+  expiresIn: z.number().min(1).max(30).default(7)
+});
 
+const resendInviteSchema = z.object({
+  id: z.string().uuid('ID do convite inválido')
+});
+
+const cancelInviteSchema = z.object({
+  id: z.string().uuid('ID do convite inválido')
+});
+
+// Função para sanitizar texto - implementação básica
+function sanitizeText(text: string): string {
+  return text.replace(/[<>]/g, '');
+}
+
+interface InviteUserParams {
+  email: string;
+  role: 'organization_admin' | 'user';
+  expiresIn: number;
+}
+
+interface InviteUserResult {
+  success: boolean;
+  error?: string;
+}
+
+export async function inviteUser(params: InviteUserParams): Promise<InviteUserResult> {
   try {
     const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = createClient(cookieStore);
 
-    // Buscar dados do usuário logado para obter organization_id
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
-      return { success: false, error: 'Usuário não autenticado ou erro de sessão.' };
+    // Obter o usuário atual
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      return {
+        success: false,
+        error: 'Usuário não autenticado'
+      };
     }
 
-    const { data: userProfile, error: userProfileError } = await supabase
+    // Obter o perfil do usuário atual para pegar a organization_id
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('organization_id, role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
-    if (userProfileError || !userProfile) {
-      return { success: false, error: 'Perfil de usuário não encontrado.' };
+    if (profileError || !profile) {
+      return {
+        success: false,
+        error: 'Perfil do usuário não encontrado'
+      };
     }
 
-    if (userProfile.role !== 'organization_admin') {
-      return { success: false, error: 'Apenas administradores podem enviar convites.' };
+    // Verificar se o usuário tem permissão para convidar
+    if (profile.role !== 'master_admin' && profile.role !== 'organization_admin') {
+      return {
+        success: false,
+        error: 'Você não tem permissão para convidar usuários'
+      };
     }
 
-    // Chamada da edge function do Supabase
-    const { data: result, error } = await supabase.functions.invoke('invite-new-user', {
-      body: {
-        email: data.email,
-        organization_id: userProfile.organization_id,
-        role: data.role,
-      },
-      // headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined, // Descomente se precisar passar JWT
-    });
+    // Verificar se o email já está em uso
+    const { data: existingUser, error: existingUserError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', params.email)
+      .single();
 
-    if (error) {
-      console.error('Erro ao invocar edge function invite-new-user:', error);
-      return { success: false, error: error.message || 'Erro ao enviar convite.' };
+    if (existingUser) {
+      return {
+        success: false,
+        error: 'Este email já está em uso'
+      };
     }
 
-    // Registrar log de auditoria
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
-    await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.USER_INVITE_SENT,
-      resource_type: AUDIT_RESOURCE_TYPES.INVITE,
-      ip_address: ipAddress,
-      user_agent: userAgent,
-      organization_id: organizationId,
-      details: {
-        invited_email: data.email,
-        role: data.role,
-        expires_in_days: data.expiresIn,
-        organization_id: userProfile.organization_id
-      }
-    });
+    // Verificar se já existe um convite pendente
+    const { data: existingInvite, error: existingInviteError } = await supabase
+      .from('user_invites')
+      .select('id')
+      .eq('email', params.email)
+      .eq('status', 'PENDING')
+      .single();
 
-    revalidatePath('/settings/users');
-    return { success: true };
-  } catch (error: any) {
-    console.error('Erro inesperado ao enviar convite:', error);
-    return { success: false, error: 'Ocorreu um erro inesperado ao enviar o convite' };
+    if (existingInvite) {
+      return {
+        success: false,
+        error: 'Já existe um convite pendente para este email'
+      };
+    }
+
+    // Criar o convite
+    const { error: inviteError } = await supabase
+      .from('user_invites')
+      .insert({
+        email: params.email,
+        role: params.role,
+        organization_id: profile.organization_id,
+        invited_by: user.id,
+        status: 'PENDING',
+        expires_at: new Date(Date.now() + params.expiresIn * 1000).toISOString()
+      });
+
+    if (inviteError) {
+      console.error('Erro ao criar convite:', inviteError);
+      return {
+        success: false,
+        error: 'Erro ao criar convite'
+      };
+    }
+
+    // TODO: Enviar email de convite
+    // Implementar o envio de email com o link de convite
+
+    // Revalidar a página
+    revalidatePath('/admin/organizations/[id]', 'page');
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    console.error('Erro ao convidar usuário:', error);
+    return {
+      success: false,
+      error: 'Erro inesperado ao convidar usuário'
+    };
   }
 }
 
@@ -101,23 +153,22 @@ export async function resendInvite(data: z.infer<typeof resendInviteSchema>): Pr
   if (!validation.success) {
     return { 
       success: false, 
-      error: validation.error.errors.map(e => e.message).join(', ') 
+      error: sanitizeText(validation.error.errors.map(e => e.message).join(', ')) 
     };
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
         return { success: false, error: 'Usuário não autenticado ou erro de sessão.' };
     }
     
     const { data: userProfile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (userProfile?.role !== 'organization_admin') {
@@ -138,7 +189,7 @@ export async function resendInvite(data: z.infer<typeof resendInviteSchema>): Pr
     const { error } = await supabase
       .from('invites')
       .update({
-        status: 'pending', // Reenviado volta para 'pending'
+        status: 'PENDING', // Reenviado volta para 'PENDING'
         updated_at: new Date().toISOString(),
         expires_at: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString()
       })
@@ -146,16 +197,19 @@ export async function resendInvite(data: z.infer<typeof resendInviteSchema>): Pr
       
     if (error) {
       console.error('Erro ao reenviar convite:', error);
-      return { success: false, error: `Erro ao reenviar convite: ${error.message}` };
+      return { success: false, error: sanitizeText(`Erro ao reenviar convite: ${error.message}`) };
     }
     
     // Registrar log de auditoria
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.USER_INVITE_RESENT,
-      resource_type: AUDIT_RESOURCE_TYPES.INVITE,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: data.id,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      organization_id: organizationId,
       details: {
         invited_email: inviteData?.email,
         role: inviteData?.role
@@ -180,23 +234,22 @@ export async function cancelInvite(data: z.infer<typeof cancelInviteSchema>): Pr
   if (!validation.success) {
     return { 
       success: false, 
-      error: validation.error.errors.map(e => e.message).join(', ') 
+      error: sanitizeText(validation.error.errors.map(e => e.message).join(', ')) 
     };
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       return { success: false, error: 'Usuário não autenticado ou erro de sessão.' };
     }
 
     const { data: userProfile } = await supabase
         .from('profiles')
         .select('role')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single();
 
     if (userProfile?.role !== 'organization_admin') {
@@ -221,19 +274,22 @@ export async function cancelInvite(data: z.infer<typeof cancelInviteSchema>): Pr
 
     if (updateError) {
         console.error('Erro ao cancelar convite:', updateError);
-        return { success: false, error: `Erro ao cancelar convite: ${updateError.message}` };
+        return { success: false, error: sanitizeText(`Erro ao cancelar convite: ${updateError.message}`) };
     }
 
     // Registrar log de auditoria
-    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(session.user.id);
+    const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
-      actor_user_id: session.user.id,
-      action_type: AUDIT_ACTION_TYPES.USER_INVITE_CANCELLED,
-      resource_type: AUDIT_RESOURCE_TYPES.INVITE,
+      actor_user_id: user.id,
+      action_type: AUDIT_ACTION_TYPES.USER_DELETED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: data.id,
+      ip_address: ipAddress,
+      user_agent: userAgent,
+      organization_id: organizationId,
       details: {
-        invited_email: invite.email,
-        role: invite.role,
+        invited_email: invite?.email,
+        role: invite?.role
       }
     });
 
@@ -251,18 +307,17 @@ export async function cancelInvite(data: z.infer<typeof cancelInviteSchema>): Pr
  */
 export async function listInvites(): Promise<{data?: Array<any>, error?: string}> {
     try {
-        const cookieStore = await cookies();
-        const supabase = createSupabaseClient(cookieStore);
+        const supabase = await createSupabaseServerClient();
 
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
             return { error: 'Usuário não autenticado' };
         }
 
         const { data: userProfile } = await supabase
             .from('profiles')
             .select('role, organization_id')
-            .eq('id', session.user.id)
+            .eq('id', user.id)
             .single();
 
         if (userProfile?.role !== 'organization_admin') {

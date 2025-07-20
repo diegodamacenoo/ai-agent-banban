@@ -1,0 +1,11 @@
+ReferenceError: pathname is not defined
+    at eval (webpack-internal:///(middleware)/./src/core/middleware/middleware.ts:76:49)
+    at Array.some (<anonymous>)
+    at middleware (webpack-internal:///(middleware)/./src/core/middleware/middleware.ts:76:25)
+    at async eval (webpack-internal:///(middleware)/./node_modules/next/dist/build/webpack/loaders/next-middleware-loader.js?absolutePagePath=C%3A%5CUsers%5Cbrcom%5Cai-agent%5Csrc%5Cmiddleware.ts&page=%2Fmiddleware&rootDir=C%3A%5CUsers%5Cbrcom%5Cai-agent&matchers=&preferredRegion=&middlewareConfig=e30%3D!:32:20)
+    at async eval (webpack-internal:///(middleware)/./node_modules/next/dist/esm/server/web/adapter.js:254:28)
+    at async adapter (webpack-internal:///(middleware)/./node_modules/next/dist/esm/server/web/adapter.js:205:16)
+    at async (file://C:\Users\brcom\ai-agent\node_modules\next\dist\server\web\sandbox\sandbox.js:108:26)
+    at async runWithTaggedErrors (file://C:\Users\brcom\ai-agent\node_modules\next\dist\server\web\sandbox\sandbox.js:105:9)
+    at async DevServer.runMiddleware (file://C:\Users\brcom\ai-agent\node_modules\next\dist\server\next-server.js:1169:22)
+    at async DevServer.runMiddleware (file://C:\Users\brcom\ai-agent\node_modules\next\dist\server\dev\next-dev-server.js:270:28)

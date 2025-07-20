@@ -1,0 +1,861 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://banban.fashion/schemas/modules/performance/config.json",
+  "title": "BanBan Performance Module Configuration Schema",
+  "description": "Schema de configuração para o módulo de performance BanBan Fashion",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do módulo",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Módulo Ativo",
+          "description": "Ativa ou desativa o módulo de performance",
+          "default": true
+        },
+        "auto_refresh": {
+          "type": "boolean", 
+          "title": "Atualização Automática",
+          "description": "Habilita atualização automática dos dados",
+          "default": true
+        },
+        "refresh_interval": {
+          "type": "integer",
+          "title": "Intervalo de Atualização (segundos)",
+          "description": "Intervalo entre atualizações automáticas",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 300
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Fuso Horário",
+          "description": "Fuso horário para cálculos temporais",
+          "default": "America/Sao_Paulo",
+          "enum": [
+            "America/Sao_Paulo",
+            "America/New_York",
+            "Europe/London",
+            "UTC"
+          ]
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "performance_metrics": {
+      "type": "object",
+      "title": "Métricas de Performance",
+      "description": "Configurações das métricas de performance",
+      "properties": {
+        "enabled_metrics": {
+          "type": "array",
+          "title": "Métricas Habilitadas",
+          "description": "Lista de métricas ativas",
+          "items": {
+            "type": "string",
+            "enum": [
+              "inventory_turnover",
+              "fashion_metrics",
+              "seasonal_analysis",
+              "brand_performance",
+              "margin_analysis",
+              "abc_analysis",
+              "gmroi_calculation",
+              "size_color_matrix",
+              "collection_performance"
+            ]
+          },
+          "default": [
+            "inventory_turnover",
+            "fashion_metrics",
+            "brand_performance",
+            "margin_analysis"
+          ],
+          "uniqueItems": true
+        },
+        "calculation_frequency": {
+          "type": "object",
+          "title": "Frequência de Cálculo",
+          "description": "Frequência de cálculo por tipo de métrica",
+          "properties": {
+            "realtime": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["inventory_turnover", "margin_analysis"]
+            },
+            "hourly": {
+              "type": "array", 
+              "items": { "type": "string" },
+              "default": ["fashion_metrics", "brand_performance"]
+            },
+            "daily": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["seasonal_analysis", "abc_analysis"]
+            },
+            "weekly": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["gmroi_calculation"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "aggregation_levels": {
+          "type": "array",
+          "title": "Níveis de Agregação",
+          "description": "Níveis de agregação dos dados",
+          "items": {
+            "type": "string",
+            "enum": ["sku", "category", "brand", "store", "company"]
+          },
+          "default": ["sku", "category", "brand", "company"],
+          "uniqueItems": true
+        }
+      },
+      "required": ["enabled_metrics"],
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "title": "Limites e Alertas",
+      "description": "Configurações de limites para alertas",
+      "properties": {
+        "low_stock_threshold": {
+          "type": "number",
+          "title": "Limite Estoque Baixo",
+          "description": "Limite para alerta de estoque baixo",
+          "minimum": 0,
+          "maximum": 1000,
+          "default": 10
+        },
+        "low_margin_threshold": {
+          "type": "number",
+          "title": "Limite Margem Baixa (%)",
+          "description": "Percentual mínimo de margem",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 20
+        },
+        "slow_moving_days": {
+          "type": "integer",
+          "title": "Dias Produto Parado",
+          "description": "Dias sem movimento para considerar produto parado",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 30
+        },
+        "high_performance_percentile": {
+          "type": "number",
+          "title": "Percentil Alta Performance",
+          "description": "Percentil para classificar como alta performance",
+          "minimum": 50,
+          "maximum": 99,
+          "default": 80
+        },
+        "critical_turnover_rate": {
+          "type": "number",
+          "title": "Taxa Crítica de Giro",
+          "description": "Taxa mínima de giro considerada crítica",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0.5
+        },
+        "seasonal_variation_threshold": {
+          "type": "number",
+          "title": "Limite Variação Sazonal",
+          "description": "Percentual de variação sazonal significativa",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3
+        }
+      },
+      "additionalProperties": false
+    },
+    "caching": {
+      "type": "object",
+      "title": "Configurações de Cache",
+      "description": "Configurações do sistema de cache",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Cache Ativo",
+          "description": "Habilita o sistema de cache",
+          "default": true
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "title": "TTL do Cache (segundos)",
+          "description": "Tempo de vida do cache em segundos",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 300
+        },
+        "max_entries": {
+          "type": "integer",
+          "title": "Máximo de Entradas",
+          "description": "Número máximo de entradas no cache",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "cache_strategy": {
+          "type": "string",
+          "title": "Estratégia de Cache",
+          "description": "Estratégia de invalidação do cache",
+          "enum": ["lru", "lfu", "ttl"],
+          "default": "lru"
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "title": "Configurações de Performance",
+      "description": "Configurações de otimização de performance",
+      "properties": {
+        "max_concurrent_calculations": {
+          "type": "integer",
+          "title": "Cálculos Simultâneos",
+          "description": "Número máximo de cálculos simultâneos",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 10
+        },
+        "query_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout de Query (segundos)",
+          "description": "Timeout para queries do banco de dados",
+          "minimum": 5,
+          "maximum": 300,
+          "default": 30
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Tamanho do lote para processamento",
+          "minimum": 10,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "enable_parallel_processing": {
+          "type": "boolean",
+          "title": "Processamento Paralelo",
+          "description": "Habilita processamento paralelo",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "notifications": {
+      "type": "object",
+      "title": "Configurações de Notificações",
+      "description": "Configurações do sistema de notificações",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Notificações Ativas",
+          "description": "Habilita o sistema de notificações",
+          "default": true
+        },
+        "alert_channels": {
+          "type": "array",
+          "title": "Canais de Alerta",
+          "description": "Canais para envio de alertas",
+          "items": {
+            "type": "string",
+            "enum": ["email", "webhook", "slack", "teams", "sms"]
+          },
+          "default": ["email", "webhook"],
+          "uniqueItems": true
+        },
+        "webhook_url": {
+          "type": "string",
+          "title": "URL do Webhook",
+          "description": "URL para envio de webhooks de alerta",
+          "format": "uri",
+          "default": null
+        },
+        "email_recipients": {
+          "type": "array",
+          "title": "Destinatários de Email",
+          "description": "Lista de emails para receber alertas",
+          "items": {
+            "type": "string",
+            "format": "email"
+          },
+          "default": []
+        },
+        "alert_frequency": {
+          "type": "string",
+          "title": "Frequência de Alertas",
+          "description": "Frequência máxima de envio de alertas",
+          "enum": ["immediate", "hourly", "daily", "weekly"],
+          "default": "hourly"
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "title": "Configurações de Segurança",
+      "description": "Configurações de segurança do módulo",
+      "properties": {
+        "enable_audit_log": {
+          "type": "boolean",
+          "title": "Log de Auditoria",
+          "description": "Habilita log de auditoria",
+          "default": true
+        },
+        "data_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Dados (dias)",
+          "description": "Dias de retenção dos dados históricos",
+          "minimum": 30,
+          "maximum": 2555,
+          "default": 365
+        },
+        "encrypt_sensitive_data": {
+          "type": "boolean",
+          "title": "Criptografar Dados Sensíveis",
+          "description": "Habilita criptografia de dados sensíveis",
+          "default": true
+        },
+        "allowed_ip_ranges": {
+          "type": "array",
+          "title": "Faixas de IP Permitidas",
+          "description": "Faixas de IP com acesso permitido",
+          "items": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:/(?:3[0-2]|[12]?[0-9]))?$"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "integrations": {
+      "type": "object",
+      "title": "Configurações de Integrações",
+      "description": "Configurações de integrações externas",
+      "properties": {
+        "erp_webhooks": {
+          "type": "boolean",
+          "title": "Webhooks ERP",
+          "description": "Habilita integração via webhooks ERP",
+          "default": true
+        },
+        "dashboard_analytics": {
+          "type": "boolean",
+          "title": "Analytics Dashboard",
+          "description": "Habilita integração com dashboard analytics",
+          "default": true
+        },
+        "alert_system": {
+          "type": "boolean",
+          "title": "Sistema de Alertas",
+          "description": "Habilita integração com sistema de alertas",
+          "default": true
+        },
+        "report_generator": {
+          "type": "boolean",
+          "title": "Gerador de Relatórios",
+          "description": "Habilita geração automática de relatórios",
+          "default": true
+        },
+        "realtime_updates": {
+          "type": "boolean",
+          "title": "Atualizações em Tempo Real",
+          "description": "Habilita atualizações em tempo real",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "custom": {
+      "type": "object",
+      "title": "Configurações Customizadas",
+      "description": "Configurações específicas do cliente BanBan",
+      "properties": {
+        "fashion_specific_metrics": {
+          "type": "boolean",
+          "title": "Métricas Específicas de Moda",
+          "description": "Habilita métricas específicas para moda",
+          "default": true
+        },
+        "size_color_analysis": {
+          "type": "boolean",
+          "title": "Análise Tamanho/Cor",
+          "description": "Habilita análise por tamanho e cor",
+          "default": true
+        },
+        "seasonal_collections": {
+          "type": "boolean",
+          "title": "Coleções Sazonais",
+          "description": "Habilita análise de coleções sazonais",
+          "default": true
+        },
+        "brand_comparison": {
+          "type": "boolean",
+          "title": "Comparação de Marcas",
+          "description": "Habilita comparação entre marcas",
+          "default": true
+        },
+        "custom_kpis": {
+          "type": "array",
+          "title": "KPIs Customizados",
+          "description": "Lista de KPIs customizados",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "formula": { "type": "string" },
+              "enabled": { "type": "boolean" }
+            },
+            "required": ["name", "formula"]
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["general", "performance_metrics"],
+  "additionalProperties": false
+} 
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://banban.fashion/schemas/modules/performance/config.json",
+  "title": "BanBan Performance Module Configuration Schema",
+  "description": "Schema de configuração para o módulo de performance BanBan Fashion",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "title": "Configurações Gerais",
+      "description": "Configurações básicas do módulo",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Módulo Ativo",
+          "description": "Ativa ou desativa o módulo de performance",
+          "default": true
+        },
+        "auto_refresh": {
+          "type": "boolean", 
+          "title": "Atualização Automática",
+          "description": "Habilita atualização automática dos dados",
+          "default": true
+        },
+        "refresh_interval": {
+          "type": "integer",
+          "title": "Intervalo de Atualização (segundos)",
+          "description": "Intervalo entre atualizações automáticas",
+          "minimum": 60,
+          "maximum": 3600,
+          "default": 300
+        },
+        "timezone": {
+          "type": "string",
+          "title": "Fuso Horário",
+          "description": "Fuso horário para cálculos temporais",
+          "default": "America/Sao_Paulo",
+          "enum": [
+            "America/Sao_Paulo",
+            "America/New_York",
+            "Europe/London",
+            "UTC"
+          ]
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "performance_metrics": {
+      "type": "object",
+      "title": "Métricas de Performance",
+      "description": "Configurações das métricas de performance",
+      "properties": {
+        "enabled_metrics": {
+          "type": "array",
+          "title": "Métricas Habilitadas",
+          "description": "Lista de métricas ativas",
+          "items": {
+            "type": "string",
+            "enum": [
+              "inventory_turnover",
+              "fashion_metrics",
+              "seasonal_analysis",
+              "brand_performance",
+              "margin_analysis",
+              "abc_analysis",
+              "gmroi_calculation",
+              "size_color_matrix",
+              "collection_performance"
+            ]
+          },
+          "default": [
+            "inventory_turnover",
+            "fashion_metrics",
+            "brand_performance",
+            "margin_analysis"
+          ],
+          "uniqueItems": true
+        },
+        "calculation_frequency": {
+          "type": "object",
+          "title": "Frequência de Cálculo",
+          "description": "Frequência de cálculo por tipo de métrica",
+          "properties": {
+            "realtime": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["inventory_turnover", "margin_analysis"]
+            },
+            "hourly": {
+              "type": "array", 
+              "items": { "type": "string" },
+              "default": ["fashion_metrics", "brand_performance"]
+            },
+            "daily": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["seasonal_analysis", "abc_analysis"]
+            },
+            "weekly": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["gmroi_calculation"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "aggregation_levels": {
+          "type": "array",
+          "title": "Níveis de Agregação",
+          "description": "Níveis de agregação dos dados",
+          "items": {
+            "type": "string",
+            "enum": ["sku", "category", "brand", "store", "company"]
+          },
+          "default": ["sku", "category", "brand", "company"],
+          "uniqueItems": true
+        }
+      },
+      "required": ["enabled_metrics"],
+      "additionalProperties": false
+    },
+    "thresholds": {
+      "type": "object",
+      "title": "Limites e Alertas",
+      "description": "Configurações de limites para alertas",
+      "properties": {
+        "low_stock_threshold": {
+          "type": "number",
+          "title": "Limite Estoque Baixo",
+          "description": "Limite para alerta de estoque baixo",
+          "minimum": 0,
+          "maximum": 1000,
+          "default": 10
+        },
+        "low_margin_threshold": {
+          "type": "number",
+          "title": "Limite Margem Baixa (%)",
+          "description": "Percentual mínimo de margem",
+          "minimum": 0,
+          "maximum": 100,
+          "default": 20
+        },
+        "slow_moving_days": {
+          "type": "integer",
+          "title": "Dias Produto Parado",
+          "description": "Dias sem movimento para considerar produto parado",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 30
+        },
+        "high_performance_percentile": {
+          "type": "number",
+          "title": "Percentil Alta Performance",
+          "description": "Percentil para classificar como alta performance",
+          "minimum": 50,
+          "maximum": 99,
+          "default": 80
+        },
+        "critical_turnover_rate": {
+          "type": "number",
+          "title": "Taxa Crítica de Giro",
+          "description": "Taxa mínima de giro considerada crítica",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0.5
+        },
+        "seasonal_variation_threshold": {
+          "type": "number",
+          "title": "Limite Variação Sazonal",
+          "description": "Percentual de variação sazonal significativa",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.3
+        }
+      },
+      "additionalProperties": false
+    },
+    "caching": {
+      "type": "object",
+      "title": "Configurações de Cache",
+      "description": "Configurações do sistema de cache",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Cache Ativo",
+          "description": "Habilita o sistema de cache",
+          "default": true
+        },
+        "ttl_seconds": {
+          "type": "integer",
+          "title": "TTL do Cache (segundos)",
+          "description": "Tempo de vida do cache em segundos",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 300
+        },
+        "max_entries": {
+          "type": "integer",
+          "title": "Máximo de Entradas",
+          "description": "Número máximo de entradas no cache",
+          "minimum": 100,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "cache_strategy": {
+          "type": "string",
+          "title": "Estratégia de Cache",
+          "description": "Estratégia de invalidação do cache",
+          "enum": ["lru", "lfu", "ttl"],
+          "default": "lru"
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "performance": {
+      "type": "object",
+      "title": "Configurações de Performance",
+      "description": "Configurações de otimização de performance",
+      "properties": {
+        "max_concurrent_calculations": {
+          "type": "integer",
+          "title": "Cálculos Simultâneos",
+          "description": "Número máximo de cálculos simultâneos",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 10
+        },
+        "query_timeout_seconds": {
+          "type": "integer",
+          "title": "Timeout de Query (segundos)",
+          "description": "Timeout para queries do banco de dados",
+          "minimum": 5,
+          "maximum": 300,
+          "default": 30
+        },
+        "batch_size": {
+          "type": "integer",
+          "title": "Tamanho do Lote",
+          "description": "Tamanho do lote para processamento",
+          "minimum": 10,
+          "maximum": 10000,
+          "default": 1000
+        },
+        "enable_parallel_processing": {
+          "type": "boolean",
+          "title": "Processamento Paralelo",
+          "description": "Habilita processamento paralelo",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "notifications": {
+      "type": "object",
+      "title": "Configurações de Notificações",
+      "description": "Configurações do sistema de notificações",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Notificações Ativas",
+          "description": "Habilita o sistema de notificações",
+          "default": true
+        },
+        "alert_channels": {
+          "type": "array",
+          "title": "Canais de Alerta",
+          "description": "Canais para envio de alertas",
+          "items": {
+            "type": "string",
+            "enum": ["email", "webhook", "slack", "teams", "sms"]
+          },
+          "default": ["email", "webhook"],
+          "uniqueItems": true
+        },
+        "webhook_url": {
+          "type": "string",
+          "title": "URL do Webhook",
+          "description": "URL para envio de webhooks de alerta",
+          "format": "uri",
+          "default": null
+        },
+        "email_recipients": {
+          "type": "array",
+          "title": "Destinatários de Email",
+          "description": "Lista de emails para receber alertas",
+          "items": {
+            "type": "string",
+            "format": "email"
+          },
+          "default": []
+        },
+        "alert_frequency": {
+          "type": "string",
+          "title": "Frequência de Alertas",
+          "description": "Frequência máxima de envio de alertas",
+          "enum": ["immediate", "hourly", "daily", "weekly"],
+          "default": "hourly"
+        }
+      },
+      "required": ["enabled"],
+      "additionalProperties": false
+    },
+    "security": {
+      "type": "object",
+      "title": "Configurações de Segurança",
+      "description": "Configurações de segurança do módulo",
+      "properties": {
+        "enable_audit_log": {
+          "type": "boolean",
+          "title": "Log de Auditoria",
+          "description": "Habilita log de auditoria",
+          "default": true
+        },
+        "data_retention_days": {
+          "type": "integer",
+          "title": "Retenção de Dados (dias)",
+          "description": "Dias de retenção dos dados históricos",
+          "minimum": 30,
+          "maximum": 2555,
+          "default": 365
+        },
+        "encrypt_sensitive_data": {
+          "type": "boolean",
+          "title": "Criptografar Dados Sensíveis",
+          "description": "Habilita criptografia de dados sensíveis",
+          "default": true
+        },
+        "allowed_ip_ranges": {
+          "type": "array",
+          "title": "Faixas de IP Permitidas",
+          "description": "Faixas de IP com acesso permitido",
+          "items": {
+            "type": "string",
+            "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:/(?:3[0-2]|[12]?[0-9]))?$"
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "integrations": {
+      "type": "object",
+      "title": "Configurações de Integrações",
+      "description": "Configurações de integrações externas",
+      "properties": {
+        "erp_webhooks": {
+          "type": "boolean",
+          "title": "Webhooks ERP",
+          "description": "Habilita integração via webhooks ERP",
+          "default": true
+        },
+        "dashboard_analytics": {
+          "type": "boolean",
+          "title": "Analytics Dashboard",
+          "description": "Habilita integração com dashboard analytics",
+          "default": true
+        },
+        "alert_system": {
+          "type": "boolean",
+          "title": "Sistema de Alertas",
+          "description": "Habilita integração com sistema de alertas",
+          "default": true
+        },
+        "report_generator": {
+          "type": "boolean",
+          "title": "Gerador de Relatórios",
+          "description": "Habilita geração automática de relatórios",
+          "default": true
+        },
+        "realtime_updates": {
+          "type": "boolean",
+          "title": "Atualizações em Tempo Real",
+          "description": "Habilita atualizações em tempo real",
+          "default": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "custom": {
+      "type": "object",
+      "title": "Configurações Customizadas",
+      "description": "Configurações específicas do cliente BanBan",
+      "properties": {
+        "fashion_specific_metrics": {
+          "type": "boolean",
+          "title": "Métricas Específicas de Moda",
+          "description": "Habilita métricas específicas para moda",
+          "default": true
+        },
+        "size_color_analysis": {
+          "type": "boolean",
+          "title": "Análise Tamanho/Cor",
+          "description": "Habilita análise por tamanho e cor",
+          "default": true
+        },
+        "seasonal_collections": {
+          "type": "boolean",
+          "title": "Coleções Sazonais",
+          "description": "Habilita análise de coleções sazonais",
+          "default": true
+        },
+        "brand_comparison": {
+          "type": "boolean",
+          "title": "Comparação de Marcas",
+          "description": "Habilita comparação entre marcas",
+          "default": true
+        },
+        "custom_kpis": {
+          "type": "array",
+          "title": "KPIs Customizados",
+          "description": "Lista de KPIs customizados",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "formula": { "type": "string" },
+              "enabled": { "type": "boolean" }
+            },
+            "required": ["name", "formula"]
+          },
+          "default": []
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": ["general", "performance_metrics"],
+  "additionalProperties": false
+} 

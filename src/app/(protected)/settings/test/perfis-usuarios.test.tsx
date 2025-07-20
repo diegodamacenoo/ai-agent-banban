@@ -18,7 +18,7 @@ jest.mock("../contexts/perfis-context", () => ({
       {
         id: "id-gestor",
         nome: "Gestor",
-        descricao: "Pode gerenciar usuários e visualizar relatórios",
+        descricao: "Pode gerenciar usuÃ¡rios e visualizar relatÃ³rios",
         permissoes: ["usuarios", "relatorios"],
         createdAt: new Date(),
         updatedAt: new Date()
@@ -26,7 +26,7 @@ jest.mock("../contexts/perfis-context", () => ({
       {
         id: "id-operador",
         nome: "Operador",
-        descricao: "Acesso restrito à operação diária",
+        descricao: "Acesso restrito Ã  operaÃ§Ã£o diÃ¡ria",
         permissoes: ["operacao"],
         createdAt: new Date(),
         updatedAt: new Date()
@@ -81,12 +81,12 @@ describe("PerfisUsuarios", () => {
     render(<PerfisUsuarios />);
   });
 
-  it("deve renderizar o título e descrição", () => {
-    expect(screen.getByText("Gestão de Perfis")).toBeInTheDocument();
-    expect(screen.getByText("Gerencie os tipos de perfis e permissões disponíveis")).toBeInTheDocument();
+  it("deve renderizar o tÃ­tulo e descriÃ§Ã£o", () => {
+    expect(screen.getByText("GestÃ£o de Perfis")).toBeInTheDocument();
+    expect(screen.getByText("Gerencie os tipos de perfis e permissÃµes disponÃ­veis")).toBeInTheDocument();
   });
 
-  it("deve renderizar o botão de novo perfil", () => {
+  it("deve renderizar o botÃ£o de novo perfil", () => {
     expect(screen.getByText("Novo perfil")).toBeInTheDocument();
   });
 
@@ -97,7 +97,7 @@ describe("PerfisUsuarios", () => {
     expect(screen.getByText("Operador")).toBeInTheDocument();
   });
 
-  it("deve renderizar os botões de ação", () => {
+  it("deve renderizar os botÃµes de aÃ§Ã£o", () => {
     expect(screen.getByTestId("editar-0")).toBeInTheDocument();
     expect(screen.getByTestId("remover-0")).toBeInTheDocument();
   });

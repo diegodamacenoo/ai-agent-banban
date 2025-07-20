@@ -2,17 +2,17 @@ import * as React from "react";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
+} from "@/shared/ui/card";
+import { Label } from "@/shared/ui/label";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/ui/select";
 import { useUser } from "@/app/contexts/UserContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/shared/ui/toast';
 import { updateProfile } from "@/app/actions/profiles/user-profile";
 
 type Theme = "light" | "dark";
@@ -31,10 +31,8 @@ export default function PreferenciasInterface() {
 
     const handleThemeChange = async (newTheme: string) => {
         if (!userData) {
-            toast({
+            toast.error("Dados do usuÃ¡rio nÃ£o carregados. NÃ£o Ã© possÃ­vel alterar o tema.", {
                 title: "Erro",
-                description: "Dados do usuário não carregados. Não é possível alterar o tema.",
-                variant: "destructive",
             });
             return;
         }
@@ -43,9 +41,16 @@ export default function PreferenciasInterface() {
         setIsUpdatingTheme(true);
 
         try {
-            const profileToUpdate = { 
-                ...userData,
-                theme: themeValue 
+            const profileToUpdate = {
+                first_name: userData.first_name,
+                last_name: userData.last_name,
+                username: userData.username,
+                job_title: userData.job_title,
+                team: userData.team,
+                phone: userData.phone,
+                location: userData.location,
+                avatar_url: userData.avatar_url,
+                theme: themeValue
             };
             const result = await updateProfile(profileToUpdate);
 
@@ -55,16 +60,13 @@ export default function PreferenciasInterface() {
 
             await fetchUserData(); 
 
-            toast({
+            toast.success(`Tema alterado para ${themeValue}.`, {
                 title: "Sucesso",
-                description: `Tema alterado para ${themeValue}.`,
             });
 
         } catch (error: any) {
-            toast({
+            toast.error(error.message || "Ocorreu um problema ao tentar salvar o novo tema.", {
                 title: "Erro ao alterar tema",
-                description: error.message || "Ocorreu um problema ao tentar salvar o novo tema.",
-                variant: "destructive",
             });
         } finally {
             setIsUpdatingTheme(false);
@@ -82,8 +84,8 @@ export default function PreferenciasInterface() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="pt-br">Português (Brasil)</SelectItem>
-                                <SelectItem value="en">Inglês</SelectItem>
+                                <SelectItem value="pt-br">PortuguÃªs (Brasil)</SelectItem>
+                                <SelectItem value="en">InglÃªs</SelectItem>
                                 <SelectItem value="es">Espanhol</SelectItem>
                             </SelectContent>
                         </Select>
@@ -115,18 +117,18 @@ export default function PreferenciasInterface() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <Label htmlFor="densidade">Densidade de Exibição</Label>
+                        <Label htmlFor="densidade">Densidade de ExibiÃ§Ã£o</Label>
                         <Select value={densidade} onValueChange={setDensidade}>
                             <SelectTrigger id="densidade">
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="confortavel">Confortável (espaçamento maior)</SelectItem>
+                                <SelectItem value="confortavel">ConfortÃ¡vel (espaÃ§amento maior)</SelectItem>
                                 <SelectItem value="compacto">Compacto (mais itens na tela)</SelectItem>
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Ajuste o espaçamento para visualizar mais ou menos informações.
+                            Ajuste o espaÃ§amento para visualizar mais ou menos informaÃ§Ãµes.
                         </p>
                     </div>
                 </div>
@@ -144,7 +146,7 @@ export default function PreferenciasInterface() {
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Escolha como as datas serão exibidas.
+                            Escolha como as datas serÃ£o exibidas.
                         </p>
                     </div>
                     <div className="space-y-2">
@@ -159,7 +161,7 @@ export default function PreferenciasInterface() {
                             </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                            Escolha o formato de exibição das horas.
+                            Escolha o formato de exibiÃ§Ã£o das horas.
                         </p>
                     </div>
                 </div>

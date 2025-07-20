@@ -1,20 +1,30 @@
 import { Metadata } from 'next';
-import { getCachedUserProps } from "@/lib/auth/getUserData";
-import { createSupabaseClient } from "@/lib/supabase/server";
+import { getCachedUserProps } from "@/core/auth/getUserData";
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { cookies } from "next/headers";
-import { PageErrorBoundary } from "@/components/ui/error-boundary";
-import { Button } from "@/components/ui/button";
+import { PageErrorBoundary } from "@/shared/ui/error-boundary";
+import { Button } from "@/shared/ui/button";
 import {
   TrendingUp,
   Calendar,
   Download,
   RefreshCcw
 } from 'lucide-react';
-import { KPICardsSimple } from "@/components/home/kpi-summary/kpi-cards-simple";
-import { InsightsFeed } from "@/components/home/insights-feed/insights-feed";
-import { ChatWrapper } from "@/components/home/chat-interface/chat-wrapper";
-import { InsightsProcessor } from "@/components/home/insights-feed/insights-processor";
+import { KPICardsSimple } from "@/features/home/kpi-summary/kpi-cards-simple";
+import { InsightsFeed } from "@/features/home/insights-feed/insights-feed";
+import { ChatWrapper } from "@/features/home/chat-interface/chat-wrapper";
+import { InsightsProcessor } from "@/features/home/insights-feed/insights-processor";
 import { HomePageClient } from "./components/home-page-client";
+import { redirect } from 'next/navigation';
+
+interface ProfileWithOrganization {
+  role: string;
+  organization_id: string | null;
+  is_setup_complete: boolean;
+  organizations: {
+    slug: string;
+  } | null;
+}
 
 export const metadata: Metadata = {
   title: 'Home',
@@ -211,100 +221,49 @@ const MOCK_SUPPLIER_DATA = [
   }
 ];
 
-export default async function HomePage() {
-  // Obter dados do usuário
-  const userData = await getCachedUserProps();
-  const userName = userData.firstName || userData.user_metadata?.first_name || userData.email?.split('@')[0] || 'Usuário';
+export default async function ProtectedPage() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Buscar dados do Supabase
-  let metrics = MOCK_METRICS;
-  let alerts: any[] = [];
-  let forecastData: any[] = MOCK_FORECAST_DATA;
-  let coverageData: any[] = MOCK_COVERAGE_DATA;
-  let abcData: any[] = MOCK_ABC_DATA;
-  let supplierData: any[] = MOCK_SUPPLIER_DATA;
-
-  try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
-
-    // Buscar métricas
-    const { data: dailyMetrics, error } = await supabase
-      .from('daily_metrics')
-      .select('sales, margin, cover_days, sell_through')
-      .order('day', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (!error && dailyMetrics) {
-      metrics = {
-        sales: parseFloat(dailyMetrics.sales) || MOCK_METRICS.sales,
-        margin: parseFloat(dailyMetrics.margin) || MOCK_METRICS.margin,
-        cover_days: parseFloat(dailyMetrics.cover_days) || MOCK_METRICS.cover_days,
-        sell_through: parseFloat(dailyMetrics.sell_through) || MOCK_METRICS.sell_through
-      };
-    }
-
-    // Buscar alertas mais recentes (últimos 7 dias)
-    const { data: alertsData, error: alertsError } = await supabase
-      .from('alert_digest')
-      .select('id, alert_ts, severity, title, description, resolved')
-      .gte('alert_ts', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-      .order('alert_ts', { ascending: false })
-      .limit(10);
-
-    if (!alertsError && alertsData) {
-      alerts = alertsData;
-    }
-
-    // Buscar dados de coverage (resumidos)
-    const today = new Date().toISOString().split('T')[0];
-    const { data: coverageRaw, error: coverageError } = await supabase
-      .from('projected_coverage')
-      .select(`
-        variant_id,
-        current_stock,
-        avg_daily_sales,
-        projected_days_coverage,
-        core_product_variants!inner(
-          sku,
-          core_products(product_name)
-        ),
-        core_locations(location_name)
-      `)
-      .eq('analysis_date', today)
-      .order('projected_days_coverage', { ascending: true })
-      .limit(20);
-
-    if (!coverageError && coverageRaw) {
-      coverageData = coverageRaw;
-    }
-
-    // Dados de fornecedores (usando mock por enquanto)
-    supplierData = [];
-
-  } catch (error) {
-    console.log('Usando dados mock - Supabase não disponível:', error);
+  if (!user) {
+    redirect('/login');
   }
 
-  // Gerar insights inteligentes
-  const insights = InsightsProcessor.generateInsights(
-    alerts,
-    metrics,
-    coverageData,
-    abcData,
-    supplierData
-  );
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select(`
+      role,
+      organization_id,
+      is_setup_complete,
+      organizations (
+        slug
+      )
+    `)
+    .eq('id', user.id)
+    .single<ProfileWithOrganization>();
 
-  // Se não tiver insights dos dados reais, usar mock
-  const displayInsights = insights.length > 0 ? insights : InsightsProcessor.generateMockInsights();
+  // Se não tem perfil, redirecionar para setup
+  if (!profile) {
+    redirect('/setup-account');
+  }
 
-  return (
-    <PageErrorBoundary>
-      <HomePageClient 
-        userName={userName}
-        insights={displayInsights}
-      />
-    </PageErrorBoundary>
-  );
+  // Se o setup não foi completado, redirecionar para setup-account
+  if (!profile.is_setup_complete) {
+    redirect('/setup-account');
+  }
+
+  // Se é master_admin, redirecionar para admin
+  if (profile.role === 'master_admin') {
+    redirect('/admin');
+  }
+
+  // Se tem organização, redirecionar para o tenant
+  if (profile.organization_id && profile.organizations?.slug) {
+    redirect(`/${profile.organizations.slug}`);
+  }
+
+  // Se chegou até aqui e não tem organização mas setup está completo,
+  // pode ser um caso especial (ex: usuário sem organização)
+  // Por enquanto, vamos redirecionar para uma página de erro ou dashboard genérico
+  redirect('/admin'); // ou outra página apropriada
 } 
