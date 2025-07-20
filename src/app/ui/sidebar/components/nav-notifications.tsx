@@ -1,28 +1,28 @@
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/shared/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import { BellIcon } from "lucide-react";
 
 export function NavNotifications() {
-    // TODO: Implementar lógica de fetch e listagem de notificações reais
+    // TODO: Implementar lÃ³gica de fetch e listagem de notificaÃ§Ãµes reais
     return (
         <Popover>
             <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                    {/* TODO: Adicionar indicador de notificações não lidas */}
+                    {/* TODO: Adicionar indicador de notificaÃ§Ãµes nÃ£o lidas */}
                     {/* <span className="absolute top-0 right-0 flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                     </span> */}
                     <BellIcon className="h-5 w-5" />
-                    <span className="sr-only">Notificações</span>
+                    <span className="sr-only">NotificaÃ§Ãµes</span>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-4" side="right" align="end">
                 <div className="grid gap-4">
                     <div className="space-y-2">
-                        <h4 className="font-medium leading-none">Notificações</h4>
+                        <h4 className="font-medium leading-none">NotificaÃ§Ãµes</h4>
                         {/* <p className="text-sm text-muted-foreground">
-                            Você não tem novas notificações.
+                            VocÃª nÃ£o tem novas notificaÃ§Ãµes.
                         </p> */}
                     </div>
                     

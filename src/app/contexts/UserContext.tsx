@@ -1,25 +1,28 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { createLogger } from '@/lib/utils/logger';
-import { DEBUG_MODULES } from '@/lib/utils/debug-config';
+import { useRouter } from 'next/navigation';
+import { createLogger } from '@/shared/utils/logger';
+import { DEBUG_MODULES } from '@/shared/utils/debug-config';
+import { createSupabaseBrowserClient } from '@/core/supabase/client';
 
 // Criar logger para o UserContext
 const logger = createLogger(DEBUG_MODULES.USER_CONTEXT);
 
-// 1. Definição dos Tipos (ajuste conforme necessário)
+// 1. Definição dos Tipos
 export interface UserData {
   first_name: string;
   last_name: string;
-  username: string;
+  username: string | null;
   role: string;
-  avatar_url: string;
-  job_title: string;
-  phone: string;
-  team_id: string;
+  avatar_url: string | null;
+  job_title: string | null;
+  phone: string | null;
+  team: string | null;
   theme: string;
-  location: string;
-  email: string; // Adicionado para exemplo de condição
+  location: string | null;
+  email: string;
+  organization_id: string | null;
 }
 
 export interface UserConditions {
@@ -41,15 +44,16 @@ export interface UserContextType {
 const initialUserData: UserData = {
   first_name: "",
   last_name: "",
-  username: "",
+  username: null,
   role: "",
-  avatar_url: "",
-  job_title: "",
-  phone: "",
-  team_id: "",
+  avatar_url: null,
+  job_title: null,
+  phone: null,
+  team: null,
   theme: "light", // Valor padrão
-  location: "",
+  location: null,
   email: "_placeholder_", // Alterado para não ser string vazia
+  organization_id: null,
 };
 
 // Valores iniciais para userConditions
@@ -73,51 +77,89 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [userConditions, setUserConditions] = useState<UserConditions>(initialUserConditions);
   const [loading, setLoading] = useState(true);
 
-  // Função para buscar dados do usuário da API
-  const fetchUserData = async () => {
+  // Função para buscar dados do usuário com retry
+  const fetchUserData = async (retries = 3, delay = 500) => {
     setLoading(true);
-    try {
-      // Em um cenário real, esta seria uma chamada à sua API de perfil
-      // Para este exemplo, vamos simular uma chamada e usar dados mockados
-      // ou buscar do /api/profiles/me se disponível e adequado
-      const response = await fetch("/api/profiles/me"); // Ajuste este endpoint conforme necessário
-      
-      logger.debug('Fetch user data response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch user data');
-      }
-      const data = await response.json();
-      
-      logger.debug('Fetch user data response:', data);
-      
-      // Supondo que a API retorna um objeto com uma chave 'data' contendo o perfil
-      const profileData = data?.data || {}; 
+    
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const supabase = createSupabaseBrowserClient();
+        
+        // Usar getUser() que é mais seguro que getSession()
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        
+        if (authError) {
+          logger.warn(`Erro de autenticação (tentativa ${attempt}/${retries}):`, authError.message);
+          if (attempt === retries) {
+            throw new Error('Usuário não autenticado');
+          }
+          continue;
+        }
 
-      logger.debug('Profile data before setting userData:', profileData);
-      
-      // Log adicional para a role
-      logger.debug('Role do usuário recebida da API:', profileData.role);
-      
-      setUserData({
-        first_name: profileData.first_name || initialUserData.first_name,
-        last_name: profileData.last_name || initialUserData.last_name,
-        username: profileData.username || initialUserData.username,
-        role: profileData.role || initialUserData.role,
-        avatar_url: profileData.avatar_url || initialUserData.avatar_url,
-        job_title: profileData.job_title || initialUserData.job_title,
-        phone: profileData.phone || initialUserData.phone,
-        team_id: profileData.team_id || initialUserData.team_id,
-        theme: profileData.theme || initialUserData.theme,
-        location: profileData.location || initialUserData.location,
-        email: profileData.email || (profileData.email === "" ? initialUserData.email : profileData.email), // Lógica melhorada
-      });
-    } catch (error) {
-      logger.error("Error fetching user data:", error);
-      // Em caso de erro, poderia definir userData como null ou um estado de erro
-      setUserData(initialUserData); // Ou null, dependendo de como quer tratar o erro
-    } finally {
-      setLoading(false);
+        if (!user) {
+          logger.warn(`Usuário não encontrado (tentativa ${attempt}/${retries})`);
+          if (attempt === retries) {
+            throw new Error('Usuário não autenticado');
+          }
+          continue;
+        }
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, job_title, phone, avatar_url, team, organization_id, username, location, role')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          logger.warn(`Erro ao buscar perfil (tentativa ${attempt}/${retries}):`, error.message);
+          if (attempt === retries) {
+            throw error;
+          }
+          continue;
+        }
+
+        if (!data) {
+          logger.warn(`Perfil não encontrado (tentativa ${attempt}/${retries})`);
+          if (attempt === retries) {
+            throw new Error('Perfil não encontrado');
+          }
+          continue;
+        }
+
+        // Combina os dados do perfil com o email do auth
+        const profileData: UserData = {
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          username: data.username,
+          role: data.role || '',
+          avatar_url: data.avatar_url,
+          job_title: data.job_title,
+          phone: data.phone,
+          team: data.team,
+          theme: 'light', // Valor padrão
+          location: data.location,
+          email: user.email || '',
+          organization_id: data.organization_id
+        };
+
+        setUserData(profileData);
+        logger.info("Dados do usuário carregados com sucesso");
+        setLoading(false);
+        return; // Sucesso, sair do loop
+        
+      } catch (error) {
+        logger.warn(`Erro ao buscar dados do usuário (tentativa ${attempt}/${retries}):`, error);
+        
+        if (attempt === retries) {
+          // Última tentativa falhou, definir userData como null
+          setUserData(null);
+          setLoading(false);
+          return;
+        }
+        
+        // Aguardar antes da próxima tentativa (backoff exponencial)
+        await new Promise(resolve => setTimeout(resolve, delay * attempt));
+      }
     }
   };
 

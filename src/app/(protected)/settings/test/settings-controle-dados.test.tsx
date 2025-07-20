@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+﻿import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import SettingsControleDados from '../components/settings-controle-dados'
 import React, { ReactNode, ChangeEvent } from 'react'
@@ -67,7 +67,7 @@ jest.mock('../components/controle-dados-components/anonimizacao-exclusao', () =>
   AnonimizacaoExclusao: ({ tipoExclusao, setTipoExclusao }: AnonimizacaoExclusaoProps) => (
     <div data-testid="anonimizacao-exclusao-mock">
       <span>Tipo atual: {tipoExclusao}</span>
-      <button onClick={() => setTipoExclusao('exclusao')} data-testid="change-exclusao-btn">Mudar para Exclusão</button>
+      <button onClick={() => setTipoExclusao('exclusao')} data-testid="change-exclusao-btn">Mudar para ExclusÃ£o</button>
     </div>
   ),
 }))
@@ -75,8 +75,8 @@ jest.mock('../components/controle-dados-components/anonimizacao-exclusao', () =>
 jest.mock('../components/controle-dados-components/periodo-retencao', () => ({
   PeriodoRetencao: ({ periodoRetencao, setPeriodoRetencao }: PeriodoRetencaoProps) => (
     <div data-testid="periodo-retencao-mock">
-      <span>Período atual: {periodoRetencao}</span>
-      <button onClick={() => setPeriodoRetencao('730')} data-testid="change-periodo-btn">Mudar Período</button>
+      <span>PerÃ­odo atual: {periodoRetencao}</span>
+      <button onClick={() => setPeriodoRetencao('730')} data-testid="change-periodo-btn">Mudar PerÃ­odo</button>
     </div>
   ),
 }))
@@ -98,8 +98,8 @@ jest.mock('../components/controle-dados-components/historico-consentimentos', ()
   ),
 }))
 
-// Mock de componentes UI e ícones
-jest.mock('@/components/ui/button', () => ({
+// Mock de componentes UI e Ã­cones
+jest.mock('@/shared/ui/button', () => ({
   Button: ({ children, ...props }: { children: ReactNode; [key: string]: any }) => <button {...props}>{children}</button>,
 }))
 
@@ -108,16 +108,16 @@ jest.mock('lucide-react', () => ({
 }))
 
 describe('SettingsControleDados', () => {
-  it('deve renderizar o cabeçalho e os títulos das seções corretamente', () => {
+  it('deve renderizar o cabeÃ§alho e os tÃ­tulos das seÃ§Ãµes corretamente', () => {
     render(<SettingsControleDados />)
 
     expect(screen.getByRole('heading', { name: /Controle de Dados/i, level: 2 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Exportar Dados Pessoais/i, level: 3 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Solicitar Correção de Dados/i, level: 3 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Solicitar Anonimização ou Exclusão/i, level: 3 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Período de Retenção Automática/i, level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Solicitar CorreÃ§Ã£o de Dados/i, level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Solicitar AnonimizaÃ§Ã£o ou ExclusÃ£o/i, level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /PerÃ­odo de RetenÃ§Ã£o AutomÃ¡tica/i, level: 3 })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /Download de Backups Criptografados/i, level: 3 })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /Histórico de Consentimentos/i, level: 3 })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /HistÃ³rico de Consentimentos/i, level: 3 })).toBeInTheDocument()
   })
 
   it('deve renderizar os subcomponentes mockados', () => {
@@ -131,15 +131,15 @@ describe('SettingsControleDados', () => {
     expect(screen.getByTestId('historico-consentimentos-mock')).toBeInTheDocument()
   })
 
-  it('deve renderizar botão de salvar para seção de Período de Retenção', () => {
+  it('deve renderizar botÃ£o de salvar para seÃ§Ã£o de PerÃ­odo de RetenÃ§Ã£o', () => {
     render(<SettingsControleDados />)
     
     const saveButton = screen.getByRole('button', { name: /Salvar/i })
     expect(saveButton).toBeInTheDocument()
-    expect(saveButton.closest('div')?.textContent).toContain('Período de Retenção')
+    expect(saveButton.closest('div')?.textContent).toContain('PerÃ­odo de RetenÃ§Ã£o')
   })
 
-  it('deve alterar o estado formatoExportacao ao clicar no botão', () => {
+  it('deve alterar o estado formatoExportacao ao clicar no botÃ£o', () => {
     render(<SettingsControleDados />)
     
     const changeFormatBtn = screen.getByTestId('change-format-btn')
@@ -149,13 +149,13 @@ describe('SettingsControleDados', () => {
     expect(screen.getByText(/Formato atual: csv/i)).toBeInTheDocument()
   })
 
-  it('deve alterar o tipo de exclusão ao clicar no botão', () => {
+  it('deve alterar o tipo de exclusÃ£o ao clicar no botÃ£o', () => {
     render(<SettingsControleDados />)
     
     const changeExclusaoBtn = screen.getByTestId('change-exclusao-btn')
     fireEvent.click(changeExclusaoBtn)
     
-    // Verificar se o tipo de exclusão foi alterado
+    // Verificar se o tipo de exclusÃ£o foi alterado
     expect(screen.getByText(/Tipo atual: exclusao/i)).toBeInTheDocument()
   })
 }) 

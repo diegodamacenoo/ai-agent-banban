@@ -51,19 +51,19 @@ import {
   TrendingUpIcon,
 } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
-import { toast } from "sonner"
+import { useToast } from '@/shared/ui/toast';
 import { z } from "zod"
 
-import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { useIsMobile } from "@/shared/hooks/use-mobile"
+import { Badge } from "@/shared/ui/badge"
+import { Button } from "@/shared/ui/button"
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/shared/ui/chart"
+import { Checkbox } from "@/shared/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -71,17 +71,17 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/shared/ui/dropdown-menu"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
+} from "@/shared/ui/select"
+import { Separator } from "@/shared/ui/separator"
 import {
   Sheet,
   SheetClose,
@@ -91,7 +91,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet"
+} from "@/shared/ui/sheet"
 import {
   Table,
   TableBody,
@@ -99,15 +99,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/shared/ui/table"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/shared/ui/tabs"
 
 export const schema = z.object({
+  const { toast } = useToast();
+
   id: z.number(),
   header: z.string(),
   type: z.string(),
@@ -562,7 +564,7 @@ export function DataTable({
               >
                 <SelectTrigger className="w-20" id="rows-per-page">
                   <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
+                    placeholder={table.getState().pagination.pageSize.toString()}
                   />
                 </SelectTrigger>
                 <SelectContent side="top">
@@ -672,12 +674,12 @@ function TableCellViewer({ item }: { item: z.infer<typeof schema> }) {
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="flex flex-col">
-        <SheetHeader className="gap-1">
-          <SheetTitle>{item.header}</SheetTitle>
-          <SheetDescription>
-            Showing total visitors for the last 6 months
-          </SheetDescription>
-        </SheetHeader>
+        <SheetHeader 
+          className="gap-1"
+          icon={<div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center">📊</div>}
+          title={item.header}
+          description="Showing total visitors for the last 6 months"
+        />
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto py-4 text-sm">
           {!isMobile && (
             <>

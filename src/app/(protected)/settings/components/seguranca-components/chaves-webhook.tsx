@@ -1,8 +1,8 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Input } from "@/shared/ui/input";
 import { SaveIcon, InfoIcon, CopyIcon, RefreshCwIcon, SendIcon, AlertTriangleIcon } from "lucide-react";
 
 interface ChavesWebhookProps {
@@ -30,7 +30,7 @@ export default function ChavesWebhook({
         <div className="flex items-center gap-2">
           <InfoIcon className="text-blue-500 w-5 h-5" />
           <p className="text-sm text-muted-foreground">
-            Webhooks permitem que o ERP da BanBan envie notificações automáticas para esta plataforma quando eventos ocorrem.
+            Webhooks permitem que o ERP da BanBan envie notificaÃ§Ãµes automÃ¡ticas para esta plataforma quando eventos ocorrem.
           </p>
         </div>
         
@@ -78,13 +78,13 @@ export default function ChavesWebhook({
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Esta chave deve ser configurada no ERP para validar as solicitações enviadas.
+            Esta chave deve ser configurada no ERP para validar as solicitaÃ§Ãµes enviadas.
           </p>
         </div>
         
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm">Última utilização: <span className="font-medium">{ultimoUsoWebhook}</span></p>
+            <p className="text-sm">Ãšltima utilizaÃ§Ã£o: <span className="font-medium">{ultimoUsoWebhook}</span></p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={gerarNovaChaveWebhook} className="gap-2">
@@ -102,7 +102,7 @@ export default function ChavesWebhook({
           <div className="flex items-center gap-2">
             <AlertTriangleIcon className="text-amber-500 w-5 h-5" />
             <p className="text-sm">
-              Atenção: Gerar uma nova chave invalidará a anterior e exigirá reconfiguração no ERP.
+              AtenÃ§Ã£o: Gerar uma nova chave invalidarÃ¡ a anterior e exigirÃ¡ reconfiguraÃ§Ã£o no ERP.
             </p>
           </div>
         </div>

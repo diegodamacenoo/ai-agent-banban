@@ -1,18 +1,18 @@
 'use client';
 
 import { useEffect } from 'react';
-import { initializeDebugConfig } from '@/lib/utils/debug-config';
+import { initializeDebugConfig } from '@/shared/utils/debug-config';
 
 /**
- * Componente que inicializa a configuração de debug na montagem da aplicação.
- * Sem renderização visual.
+ * Componente que inicializa a configuraÃ§Ã£o de debug na montagem da aplicaÃ§Ã£o.
+ * Sem renderizaÃ§Ã£o visual.
  */
 export default function InitDebug() {
   useEffect(() => {
-    // Inicializa a configuração de debug
+    // Inicializa a configuraÃ§Ã£o de debug
     initializeDebugConfig();
     
-    // Não há efeito visual, apenas inicialização
+    // NÃ£o hÃ¡ efeito visual, apenas inicializaÃ§Ã£o
   }, []);
 
   return null;

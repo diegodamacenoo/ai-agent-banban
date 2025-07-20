@@ -1,10 +1,10 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Slider } from "@/shared/ui/slider";
+import { Separator } from "@/shared/ui/separator";
 import { SaveIcon, InfoIcon, EyeIcon, EyeOffIcon, CheckIcon, XIcon } from "lucide-react";
 
 interface PoliticaSenhaProps {
@@ -40,12 +40,12 @@ export default function PoliticaSenha({
         <div className="flex items-center gap-2">
           <InfoIcon className="text-blue-500 w-5 h-5" />
           <p className="text-sm text-muted-foreground">
-            Uma política de senha forte é essencial para proteger o acesso à sua conta e dados sensíveis.
+            Uma polÃ­tica de senha forte Ã© essencial para proteger o acesso Ã  sua conta e dados sensÃ­veis.
           </p>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="comprimentoMinimo">Comprimento mínimo: {comprimentoMinimo} caracteres</Label>
+          <Label htmlFor="comprimentoMinimo">Comprimento mÃ­nimo: {comprimentoMinimo} caracteres</Label>
           <Slider
             id="comprimentoMinimo"
             min={6}
@@ -54,28 +54,28 @@ export default function PoliticaSenha({
             value={[comprimentoMinimo]}
             onValueChange={(value) => setComprimentoMinimo(value[0])}
           />
-          <p className="text-xs text-muted-foreground">Recomendamos no mínimo 8 caracteres para uma segurança adequada.</p>
+          <p className="text-xs text-muted-foreground">Recomendamos no mÃ­nimo 8 caracteres para uma seguranÃ§a adequada.</p>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="forcaSenha">Força da senha</Label>
+          <Label htmlFor="forcaSenha">ForÃ§a da senha</Label>
           <Select value={forcaSenha} onValueChange={setForcaSenha}>
             <SelectTrigger id="forcaSenha">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="fraca">Básica (letras minúsculas e números)</SelectItem>
-              <SelectItem value="media">Média (letras maiúsculas, minúsculas e números)</SelectItem>
-              <SelectItem value="forte">Forte (maiúsculas, minúsculas, números e caracteres especiais)</SelectItem>
+              <SelectItem value="fraca">BÃ¡sica (letras minÃºsculas e nÃºmeros)</SelectItem>
+              <SelectItem value="media">MÃ©dia (letras maiÃºsculas, minÃºsculas e nÃºmeros)</SelectItem>
+              <SelectItem value="forte">Forte (maiÃºsculas, minÃºsculas, nÃºmeros e caracteres especiais)</SelectItem>
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Senhas mais fortes incluem combinações de letras maiúsculas, minúsculas, números e caracteres especiais.
+            Senhas mais fortes incluem combinaÃ§Ãµes de letras maiÃºsculas, minÃºsculas, nÃºmeros e caracteres especiais.
           </p>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="bloqueioTentativas">Bloqueio após tentativas falhas</Label>
+          <Label htmlFor="bloqueioTentativas">Bloqueio apÃ³s tentativas falhas</Label>
           <Select value={bloqueioTentativas.toString()} onValueChange={(value) => setBloqueioTentativas(parseInt(value))}>
             <SelectTrigger id="bloqueioTentativas">
               <SelectValue />
@@ -87,7 +87,7 @@ export default function PoliticaSenha({
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Após o número definido de tentativas falhas, a conta será temporariamente bloqueada por 30 minutos.
+            ApÃ³s o nÃºmero definido de tentativas falhas, a conta serÃ¡ temporariamente bloqueada por 30 minutos.
           </p>
         </div>
         
@@ -106,19 +106,19 @@ export default function PoliticaSenha({
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Definir um período de validade para senhas ajuda a manter a segurança da conta.
+            Definir um perÃ­odo de validade para senhas ajuda a manter a seguranÃ§a da conta.
           </p>
         </div>
         
         <Separator />
         
         <div className="space-y-2">
-          <Label>Prévia da política de senha</Label>
+          <Label>PrÃ©via da polÃ­tica de senha</Label>
           <div className="bg-white p-4 rounded-md border">
-            <p className="text-sm mb-2">Com estas configurações, uma senha válida seria:</p>
+            <p className="text-sm mb-2">Com estas configuraÃ§Ãµes, uma senha vÃ¡lida seria:</p>
             <div className="flex items-center gap-2">
               <code className="bg-gray-100 p-2 rounded flex-1 font-mono">
-                {mostrarSenha ? senhaExemplo : senhaExemplo.replace(/./g, '•')}
+                {mostrarSenha ? senhaExemplo : senhaExemplo.replace(/./g, 'â€¢')}
               </code>
               <Button 
                 variant="ghost" 
@@ -134,25 +134,25 @@ export default function PoliticaSenha({
                 {comprimentoMinimo >= 8 ? 
                   <CheckIcon className="w-3 h-3 text-green-500" /> : 
                   <XIcon className="w-3 h-3 text-red-500" />} 
-                Mínimo de {comprimentoMinimo} caracteres
+                MÃ­nimo de {comprimentoMinimo} caracteres
               </li>
               <li className="flex items-center gap-1">
                 {/[A-Z]/.test(senhaExemplo) ? 
                   <CheckIcon className="w-3 h-3 text-green-500" /> : 
                   <XIcon className="w-3 h-3 text-red-500" />} 
-                Letras maiúsculas
+                Letras maiÃºsculas
               </li>
               <li className="flex items-center gap-1">
                 {/[a-z]/.test(senhaExemplo) ? 
                   <CheckIcon className="w-3 h-3 text-green-500" /> : 
                   <XIcon className="w-3 h-3 text-red-500" />} 
-                Letras minúsculas
+                Letras minÃºsculas
               </li>
               <li className="flex items-center gap-1">
                 {/[0-9]/.test(senhaExemplo) ? 
                   <CheckIcon className="w-3 h-3 text-green-500" /> : 
                   <XIcon className="w-3 h-3 text-red-500" />} 
-                Números
+                NÃºmeros
               </li>
               <li className="flex items-center gap-1">
                 {/[!@#$%^&*()_+\-=\[\]{}|;:'",.<>/?\\~`]/.test(senhaExemplo) ? 

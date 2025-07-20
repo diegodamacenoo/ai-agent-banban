@@ -1,9 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { createSupabaseClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { cookies } from 'next/headers';
-import { exportAlertsSchema, type ExportAlertsData } from '@/lib/schemas/alerts';
+import { exportAlertsSchema, type ExportAlertsData } from '@/core/schemas/alerts';
 
 export async function exportAlertsToCSV(filters: ExportAlertsData) {
   const parsed = exportAlertsSchema.safeParse(filters);
@@ -17,12 +17,11 @@ export async function exportAlertsToCSV(filters: ExportAlertsData) {
   const validatedFilters = parsed.data;
   
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     // Verificar autenticação
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
 
@@ -187,6 +186,14 @@ export async function exportAlertsToCSV(filters: ExportAlertsData) {
                  variantInfo.includes(searchTerm);
         });
       }
+      
+      // Filtro por severidade
+      if (validatedFilters?.severities && validatedFilters.severities.length > 0) {
+        filtered = filtered.filter((item: any) => {
+          const severity = item.priority_level || item.severity;
+          return severity && validatedFilters.severities!.includes(severity);
+        });
+      }
 
       return filtered;
     };
@@ -302,7 +309,7 @@ export async function exportAlertsToCSV(filters: ExportAlertsData) {
     const totalRows = csvRows.length - 1; // Excluir cabeçalho
 
     // Log da operação (sem dados sensíveis)
-    console.log(`Export de alertas realizado: ${totalRows} registros, usuário: ${session.user.email}`);
+    console.debug(`Export de alertas realizado: ${totalRows} registros, usuário: ${user.email}`);
 
     return { 
       success: true, 

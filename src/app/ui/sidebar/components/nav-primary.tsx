@@ -5,14 +5,14 @@ import { MailIcon, PlusCircleIcon, type LucideIcon } from "lucide-react"
 import clsx from "clsx"
 import { memo, useMemo } from "react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/ui/button"
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/shared/ui/sidebar"
 import { useSidebarContext } from "../contexts/sidebar-context"
 
 interface NavItem {

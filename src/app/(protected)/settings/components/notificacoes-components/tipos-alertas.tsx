@@ -1,16 +1,16 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/shared/ui/switch";
+import { Label } from "@/shared/ui/label";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Separator } from "@/shared/ui/separator";
+import { Button } from "@/shared/ui/button";
 import { SaveIcon } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { SkeletonNotificationSettings } from "@/components/ui/skeleton-loader";
-import { Slider } from '@/components/ui/slider';
+import { Input } from "@/shared/ui/input";
+import { useToast } from '@/shared/ui/toast';
+import { SkeletonNotificationSettings } from "@/shared/ui/skeleton-loader";
+import { Slider } from '@/shared/ui/slider';
 
 interface SecurityAlertSettings {
   alert_new_device: boolean;
@@ -20,6 +20,8 @@ interface SecurityAlertSettings {
 }
 
 export function TiposAlertas() {
+  const { toast } = useToast();
+
   const [settings, setSettings] = useState<SecurityAlertSettings>({
     alert_new_device: true,
     alert_failed_attempts: true,
@@ -29,7 +31,7 @@ export function TiposAlertas() {
   const [isLoading, setIsLoading] = useState(true);
   const [savingStates, setSavingStates] = useState<{[key: string]: boolean}>({});
 
-  // Carregar configurações do usuário via API Route
+  // Carregar configuraÃ§Ãµes do usuÃ¡rio via API Route
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -40,7 +42,7 @@ export function TiposAlertas() {
         });
         
         if (!response.ok) {
-          throw new Error('Erro ao carregar configurações');
+          throw new Error('Erro ao carregar configuraÃ§Ãµes');
         }
 
         const result = await response.json();
@@ -48,10 +50,10 @@ export function TiposAlertas() {
         if (result.success && result.data) {
           setSettings(result.data);
         } else {
-          toast.error(result.error || 'Erro ao carregar configurações de segurança');
+          toast.error(result.error || 'Erro ao carregar configuraÃ§Ãµes de seguranÃ§a');
         }
       } catch (error) {
-        toast.error('Erro ao carregar configurações de segurança');
+        toast.error('Erro ao carregar configuraÃ§Ãµes de seguranÃ§a');
       } finally {
         setIsLoading(false);
       }
@@ -61,14 +63,14 @@ export function TiposAlertas() {
   }, []);
 
   const handleSettingChange = async (key: keyof SecurityAlertSettings, value: boolean | number) => {
-    // Atualização otimista
+    // AtualizaÃ§Ã£o otimista
     const previousValue = settings[key];
     setSettings(prev => ({
       ...prev,
       [key]: value
     }));
 
-    // Indicar que está salvando esta configuração específica
+    // Indicar que estÃ¡ salvando esta configuraÃ§Ã£o especÃ­fica
     setSavingStates(prev => ({ ...prev, [key]: true }));
 
     try {
@@ -87,20 +89,20 @@ export function TiposAlertas() {
       });
 
       if (!response.ok) {
-        throw new Error('Erro na requisição');
+        throw new Error('Erro na requisiÃ§Ã£o');
       }
 
       const result = await response.json();
       
       if (result.success) {
-        toast.success('Configuração atualizada com sucesso');
+        toast.success('ConfiguraÃ§Ã£o atualizada com sucesso');
       } else {
         // Reverter em caso de erro
         setSettings(prev => ({
           ...prev,
           [key]: previousValue
         }));
-        toast.error(result.error || 'Erro ao salvar configuração');
+        toast.error(result.error || 'Erro ao salvar configuraÃ§Ã£o');
       }
     } catch (error) {
       // Reverter em caso de erro
@@ -108,7 +110,7 @@ export function TiposAlertas() {
         ...prev,
         [key]: previousValue
       }));
-      toast.error('Erro inesperado ao salvar configuração');
+      toast.error('Erro inesperado ao salvar configuraÃ§Ã£o');
     } finally {
       setSavingStates(prev => ({ ...prev, [key]: false }));
     }
@@ -179,7 +181,7 @@ export function TiposAlertas() {
                 />
               </div>
               <p className="text-xs text-muted-foreground">
-                Você será notificado após {settings.failed_attempts_threshold} tentativas falhadas consecutivas
+                VocÃª serÃ¡ notificado apÃ³s {settings.failed_attempts_threshold} tentativas falhadas consecutivas
               </p>
             </div>
           )}
@@ -187,12 +189,12 @@ export function TiposAlertas() {
 
         <Separator />
 
-        {/* Alertas de Exclusão de Usuário */}
+        {/* Alertas de ExclusÃ£o de UsuÃ¡rio */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h4 className="font-medium">Exclusão de Usuário</h4>
-              <p className="text-sm text-muted-foreground">Receba alertas quando usuários forem excluídos da organização</p>
+              <h4 className="font-medium">ExclusÃ£o de UsuÃ¡rio</h4>
+              <p className="text-sm text-muted-foreground">Receba alertas quando usuÃ¡rios forem excluÃ­dos da organizaÃ§Ã£o</p>
             </div>
             <div className="flex items-center gap-2">
               <Switch

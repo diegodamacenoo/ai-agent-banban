@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+import { Switch } from "@/shared/ui/switch";
+import { Label } from "@/shared/ui/label";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Separator } from "@/shared/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Input } from "@/shared/ui/input";
 
 // Tipo para o componente TimePickerComponent
 interface TimePickerProps {
@@ -15,17 +15,17 @@ interface TimePickerProps {
 }
 
 export function ConfiguracoesGeraisNotificacoes() {
-  // Estado para modo "Não Perturbe"
+  // Estado para modo "NÃ£o Perturbe"
   const [naoPerturbeModo, setNaoPerturbeModo] = useState(false);
   const [naoPerturbeInicio, setNaoPerturbeInicio] = useState("22:00");
   const [naoPerturbeFim, setNaoPerturbeFim] = useState("08:00");
 
-  // Estado para resumos periódicos
+  // Estado para resumos periÃ³dicos
   const [resumoDiarioHora, setResumoDiarioHora] = useState("18:00");
   const [resumoSemanalDia, setResumoSemanalDia] = useState("sexta");
   const [resumoSemanalHora, setResumoSemanalHora] = useState("16:00");
 
-  // Implementação simples de campo de hora usando Input
+  // ImplementaÃ§Ã£o simples de campo de hora usando Input
   const TimePickerComponent = ({ value, onChange, id, label }: TimePickerProps) => {
     return (
       <div className="space-y-2">
@@ -44,12 +44,12 @@ export function ConfiguracoesGeraisNotificacoes() {
   return (
     <Card className="shadow-none">
       <CardContent className="p-6 space-y-6">
-        {/* Modo "Não Perturbe" */}
+        {/* Modo "NÃ£o Perturbe" */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
-              <h4 className="font-medium">Modo "Não Perturbe"</h4>
-              <p className="text-sm text-muted-foreground">Suspenda notificações durante horários específicos</p>
+              <h4 className="font-medium">Modo "NÃ£o Perturbe"</h4>
+              <p className="text-sm text-muted-foreground">Suspenda notificaÃ§Ãµes durante horÃ¡rios especÃ­ficos</p>
             </div>
             <Switch
               id="nao-perturbe-switch"
@@ -62,18 +62,18 @@ export function ConfiguracoesGeraisNotificacoes() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <TimePickerComponent
                 id="nao-perturbe-inicio"
-                label="Horário de Início"
+                label="HorÃ¡rio de InÃ­cio"
                 value={naoPerturbeInicio}
                 onChange={setNaoPerturbeInicio}
               />
               <TimePickerComponent
                 id="nao-perturbe-fim"
-                label="Horário de Término"
+                label="HorÃ¡rio de TÃ©rmino"
                 value={naoPerturbeFim}
                 onChange={setNaoPerturbeFim}
               />
               <p className="text-xs text-muted-foreground col-span-2">
-                Durante este período, apenas notificações críticas serão entregues imediatamente.
+                Durante este perÃ­odo, apenas notificaÃ§Ãµes crÃ­ticas serÃ£o entregues imediatamente.
               </p>
             </div>
           )}
@@ -81,33 +81,33 @@ export function ConfiguracoesGeraisNotificacoes() {
 
         <Separator />
 
-        {/* Configurações de Resumo Diário */}
+        {/* ConfiguraÃ§Ãµes de Resumo DiÃ¡rio */}
         <div className="space-y-4">
           <div className="space-y-0.5">
-            <h4 className="font-medium">Resumo Diário</h4>
-            <p className="text-sm text-muted-foreground">Configurações para resumos diários de notificações</p>
+            <h4 className="font-medium">Resumo DiÃ¡rio</h4>
+            <p className="text-sm text-muted-foreground">ConfiguraÃ§Ãµes para resumos diÃ¡rios de notificaÃ§Ãµes</p>
           </div>
 
           <div className="space-y-4">
             <TimePickerComponent
               id="resumo-diario-hora"
-              label="Horário de Envio"
+              label="HorÃ¡rio de Envio"
               value={resumoDiarioHora}
               onChange={setResumoDiarioHora}
             />
             <p className="text-xs text-muted-foreground">
-              O resumo diário agrupará todas as notificações não críticas recebidas nas últimas 24 horas.
+              O resumo diÃ¡rio agruparÃ¡ todas as notificaÃ§Ãµes nÃ£o crÃ­ticas recebidas nas Ãºltimas 24 horas.
             </p>
           </div>
         </div>
 
         <Separator />
 
-        {/* Configurações de Resumo Semanal */}
+        {/* ConfiguraÃ§Ãµes de Resumo Semanal */}
         <div className="space-y-4">
           <div className="space-y-0.5">
             <h4 className="font-medium">Resumo Semanal</h4>
-            <p className="text-sm text-muted-foreground">Configurações para resumos semanais de notificações</p>
+            <p className="text-sm text-muted-foreground">ConfiguraÃ§Ãµes para resumos semanais de notificaÃ§Ãµes</p>
           </div>
 
           <div className="space-y-4">
@@ -122,11 +122,11 @@ export function ConfiguracoesGeraisNotificacoes() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="segunda">Segunda-feira</SelectItem>
-                  <SelectItem value="terca">Terça-feira</SelectItem>
+                  <SelectItem value="terca">TerÃ§a-feira</SelectItem>
                   <SelectItem value="quarta">Quarta-feira</SelectItem>
                   <SelectItem value="quinta">Quinta-feira</SelectItem>
                   <SelectItem value="sexta">Sexta-feira</SelectItem>
-                  <SelectItem value="sabado">Sábado</SelectItem>
+                  <SelectItem value="sabado">SÃ¡bado</SelectItem>
                   <SelectItem value="domingo">Domingo</SelectItem>
                 </SelectContent>
               </Select>
@@ -134,13 +134,13 @@ export function ConfiguracoesGeraisNotificacoes() {
 
             <TimePickerComponent
               id="resumo-semanal-hora"
-              label="Horário de Envio"
+              label="HorÃ¡rio de Envio"
               value={resumoSemanalHora}
               onChange={setResumoSemanalHora}
             />
             
             <p className="text-xs text-muted-foreground">
-              O resumo semanal fornecerá uma visão geral das atividades e notificações da semana inteira.
+              O resumo semanal fornecerÃ¡ uma visÃ£o geral das atividades e notificaÃ§Ãµes da semana inteira.
             </p>
           </div>
         </div>

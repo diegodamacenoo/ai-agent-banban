@@ -8,29 +8,26 @@ import AutenticacaoDoisFatores from "./conta-components/seguranca/autenticacao-d
 import GestaoConta from "./conta-components/gestao-conta";
 import { RefreshProvider } from '@/app/(protected)/settings/contexts/refresh-context';
 import { useUser } from "@/app/contexts/UserContext";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/shared/ui/toast';
 
 export default function SettingsConta() {
   // Toast
   const { toast } = useToast();
   // Roteador
   const router = useRouter();
-  // Contexto de usuário
+  // Contexto de usuÃ¡rio
   const { userData, fetchUserData, updateUserData } = useUser();
-  // Função para recarregar os dados do usuário
+  // FunÃ§Ã£o para recarregar os dados do usuÃ¡rio
   const handleRefresh = async () => {
     try {
       await fetchUserData();
     } catch (e: any) {
       console.error("Falha ao recarregar dados da conta via contexto: ", e.message);
-      toast({
-        description: "Não foi possível recarregar os dados da conta. Por favor, contate o administrador da sua organização.",
-        variant: "destructive",
-      });
+      toast.error("NÃ£o foi possÃ­vel recarregar os dados da conta. Por favor, contate o administrador da sua organizaÃ§Ã£o.");
     }
   }
 
-  // Se os dados do usuário não estão carregados, exibe um spinner
+  // Se os dados do usuÃ¡rio nÃ£o estÃ£o carregados, exibe um spinner
   // if (!userData) {
   //   return (
   //     <div className="flex items-center justify-center h-full p-6">
@@ -39,7 +36,7 @@ export default function SettingsConta() {
   //   );
   // }
 
-  // Se os dados do usuário estão carregados, exibe o conteúdo
+  // Se os dados do usuÃ¡rio estÃ£o carregados, exibe o conteÃºdo
   return (
     <RefreshProvider refreshFunction={handleRefresh}>
       <div className="space-y-6">
@@ -53,7 +50,7 @@ export default function SettingsConta() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-medium">Dados Pessoais</h3>
-                <p className="text-sm text-muted-foreground">Informações básicas sobre você e sua conta</p>
+                <p className="text-sm text-muted-foreground">InformaÃ§Ãµes bÃ¡sicas sobre vocÃª e sua conta</p>
               </div>
             </div>
             <ProfileData profile={userData} onProfileUpdate={updateUserData as any} />
@@ -64,40 +61,40 @@ export default function SettingsConta() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-lg font-medium">Credenciais</h3>
-                <p className="text-sm text-muted-foreground">Gerencie suas senhas e métodos de acesso</p>
+                <p className="text-sm text-muted-foreground">Gerencie suas senhas e mÃ©todos de acesso</p>
               </div>
             </div>
             <Credenciais />
           </div>
           
-          {/* Autenticação em Dois Fatores */}
+          {/* AutenticaÃ§Ã£o em Dois Fatores */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium">Autenticação em Dois Fatores (2FA)</h3>
-                <p className="text-sm text-muted-foreground">Adicione uma camada extra de segurança à sua conta</p>
+                <h3 className="text-lg font-medium">AutenticaÃ§Ã£o em Dois Fatores (2FA)</h3>
+                <p className="text-sm text-muted-foreground">Adicione uma camada extra de seguranÃ§a Ã  sua conta</p>
               </div>
             </div>
             <AutenticacaoDoisFatores />
           </div>
           
-          {/* Preferências de Interface (manter comentado) */}
+          {/* PreferÃªncias de Interface (manter comentado) */}
           {/* <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium">Preferências de Interface</h3>
-                <p className="text-sm text-muted-foreground">Personalize a aparência do sistema</p>
+                <h3 className="text-lg font-medium">PreferÃªncias de Interface</h3>
+                <p className="text-sm text-muted-foreground">Personalize a aparÃªncia do sistema</p>
               </div>
             </div>
             <PreferenciasInterface />
           </div>*/}
           
-          {/* Gestão de Conta */}
+          {/* GestÃ£o de Conta */}
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-medium">Desativação e Exclusão de Conta</h3>
-                <p className="text-sm text-muted-foreground">Gerencie suas solicitações de desativação e exclusão de conta</p>
+                <h3 className="text-lg font-medium">DesativaÃ§Ã£o e ExclusÃ£o de Conta</h3>
+                <p className="text-sm text-muted-foreground">Gerencie suas solicitaÃ§Ãµes de desativaÃ§Ã£o e exclusÃ£o de conta</p>
               </div>
             </div>
             <GestaoConta />

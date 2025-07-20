@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Label } from "@/shared/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { Badge } from "@/shared/ui/badge";
 
-// Mock de dados de histórico
+// Mock de dados de histÃ³rico
 interface NotificacaoHistorico {
   id: string;
   dataHora: Date;
@@ -16,11 +16,11 @@ interface NotificacaoHistorico {
 }
 
 export function HistoricoNotificacoes() {
-  // Mock de notificações
+  // Mock de notificaÃ§Ãµes
   const [historico] = useState<NotificacaoHistorico[]>([
     {
       id: "1",
-      dataHora: new Date(Date.now() - 1000 * 60 * 30), // 30 minutos atrás
+      dataHora: new Date(Date.now() - 1000 * 60 * 30), // 30 minutos atrÃ¡s
       tipo: "seguranca",
       canal: "email",
       status: "sucesso",
@@ -28,27 +28,27 @@ export function HistoricoNotificacoes() {
     },
     {
       id: "2",
-      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 horas atrás
+      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 horas atrÃ¡s
       tipo: "operacional",
       canal: "whatsapp_sms",
       status: "falha",
-      mensagem: "Estoque do produto SKU123 abaixo do mínimo"
+      mensagem: "Estoque do produto SKU123 abaixo do mÃ­nimo"
     },
     {
       id: "3",
-      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 horas atrás
+      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 8), // 8 horas atrÃ¡s
       tipo: "administrativo",
       canal: "email",
       status: "sucesso",
-      mensagem: "Novo usuário convidado para a plataforma"
+      mensagem: "Novo usuÃ¡rio convidado para a plataforma"
     },
     {
       id: "4",
-      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 dia atrás
+      dataHora: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 dia atrÃ¡s
       tipo: "relatorios",
       canal: "email",
       status: "sucesso",
-      mensagem: "Relatório semanal de vendas"
+      mensagem: "RelatÃ³rio semanal de vendas"
     }
   ]);
 
@@ -56,7 +56,7 @@ export function HistoricoNotificacoes() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroTipo, setFiltroTipo] = useState("todos");
 
-  // Formatação de data e hora
+  // FormataÃ§Ã£o de data e hora
   const formatarDataHora = (data: Date) => {
     return new Intl.DateTimeFormat('pt-BR', {
       day: '2-digit',
@@ -67,18 +67,18 @@ export function HistoricoNotificacoes() {
     }).format(data);
   };
 
-  // Função para formatar o tipo de notificação em texto legível
+  // FunÃ§Ã£o para formatar o tipo de notificaÃ§Ã£o em texto legÃ­vel
   const formatarTipo = (tipo: string) => {
     switch (tipo) {
       case "operacional": return "Operacional";
-      case "seguranca": return "Segurança";
+      case "seguranca": return "SeguranÃ§a";
       case "administrativo": return "Administrativo";
-      case "relatorios": return "Relatórios";
+      case "relatorios": return "RelatÃ³rios";
       default: return tipo;
     }
   };
 
-  // Função para formatar o canal em texto legível
+  // FunÃ§Ã£o para formatar o canal em texto legÃ­vel
   const formatarCanal = (canal: string) => {
     switch (canal) {
       case "email": return "E-mail";
@@ -88,7 +88,7 @@ export function HistoricoNotificacoes() {
     }
   };
 
-  // Aplicar filtros no histórico
+  // Aplicar filtros no histÃ³rico
   const historicoFiltrado = historico.filter(item => {
     if (filtroStatus !== "todos" && item.status !== filtroStatus) return false;
     if (filtroTipo !== "todos" && item.tipo !== filtroTipo) return false;
@@ -102,7 +102,7 @@ export function HistoricoNotificacoes() {
         <div className="space-y-4">
           <div className="space-y-0.5">
             <h4 className="font-medium">Filtros</h4>
-            <p className="text-sm text-muted-foreground">Refine o histórico de notificações</p>
+            <p className="text-sm text-muted-foreground">Refine o histÃ³rico de notificaÃ§Ãµes</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,20 +135,20 @@ export function HistoricoNotificacoes() {
                 <SelectContent>
                   <SelectItem value="todos">Todos</SelectItem>
                   <SelectItem value="operacional">Operacional</SelectItem>
-                  <SelectItem value="seguranca">Segurança</SelectItem>
+                  <SelectItem value="seguranca">SeguranÃ§a</SelectItem>
                   <SelectItem value="administrativo">Administrativo</SelectItem>
-                  <SelectItem value="relatorios">Relatórios</SelectItem>
+                  <SelectItem value="relatorios">RelatÃ³rios</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </div>
 
-        {/* Tabela de Histórico */}
+        {/* Tabela de HistÃ³rico */}
         <div className="space-y-4">
           <div className="space-y-0.5">
-            <h4 className="font-medium">Histórico de Envio</h4>
-            <p className="text-sm text-muted-foreground">Registro das últimas notificações enviadas</p>
+            <h4 className="font-medium">HistÃ³rico de Envio</h4>
+            <p className="text-sm text-muted-foreground">Registro das Ãºltimas notificaÃ§Ãµes enviadas</p>
           </div>
 
           <div className="rounded-md border">
@@ -166,7 +166,7 @@ export function HistoricoNotificacoes() {
                 {historicoFiltrado.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
-                      Nenhuma notificação encontrada com os filtros selecionados.
+                      Nenhuma notificaÃ§Ã£o encontrada com os filtros selecionados.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -190,7 +190,7 @@ export function HistoricoNotificacoes() {
             </Table>
           </div>
           <p className="text-xs text-muted-foreground">
-            Este histórico exibe as notificações enviadas nos últimos 30 dias.
+            Este histÃ³rico exibe as notificaÃ§Ãµes enviadas nos Ãºltimos 30 dias.
           </p>
         </div>
       </CardContent>

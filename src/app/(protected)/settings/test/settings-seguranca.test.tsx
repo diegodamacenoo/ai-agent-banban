@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+﻿import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import React, { ReactNode } from 'react'
 import SettingsSeguranca from '../components/settings-seguranca'
@@ -91,13 +91,13 @@ jest.mock('../components/seguranca-components/politica-senha', () => ({
   __esModule: true,
   default: (props: PoliticaSenhaProps) => (
     <div data-testid="politica-senha-mock">
-      <div>Comprimento Mínimo: {props.comprimentoMinimo}</div>
+      <div>Comprimento MÃ­nimo: {props.comprimentoMinimo}</div>
       <button onClick={() => props.setComprimentoMinimo(10)} data-testid="aumentar-comprimento-btn">
         Aumentar Comprimento
       </button>
-      <div>Força Senha: {props.forcaSenha}</div>
+      <div>ForÃ§a Senha: {props.forcaSenha}</div>
       <button onClick={() => props.setForcaSenha('forte')} data-testid="alterar-forca-btn">
-        Definir Força como Forte
+        Definir ForÃ§a como Forte
       </button>
     </div>
   ),
@@ -107,7 +107,7 @@ jest.mock('../components/seguranca-components/autenticacao-dois-fatores', () => 
   __esModule: true,
   default: (props: AutenticacaoDoisFatoresProps) => (
     <div data-testid="autenticacao-dois-fatores-mock">
-      <div>2FA Ativado: {props.ativar2FA ? 'Sim' : 'Não'}</div>
+      <div>2FA Ativado: {props.ativar2FA ? 'Sim' : 'NÃ£o'}</div>
       <button onClick={() => props.setAtivar2FA(!props.ativar2FA)} data-testid="toggle-2fa-btn">
         {props.ativar2FA ? 'Desativar 2FA' : 'Ativar 2FA'}
       </button>
@@ -131,9 +131,9 @@ jest.mock('../components/seguranca-components/restricoes-ip', () => ({
   __esModule: true,
   default: (props: RestricoesIPProps) => (
     <div data-testid="restricoes-ip-mock">
-      <div>Restrição IP: {props.restricaoIP ? 'Ativada' : 'Desativada'}</div>
+      <div>RestriÃ§Ã£o IP: {props.restricaoIP ? 'Ativada' : 'Desativada'}</div>
       <button onClick={() => props.setRestricaoIP(!props.restricaoIP)} data-testid="toggle-restricao-btn">
-        {props.restricaoIP ? 'Desativar Restrição' : 'Ativar Restrição'}
+        {props.restricaoIP ? 'Desativar RestriÃ§Ã£o' : 'Ativar RestriÃ§Ã£o'}
       </button>
       <div>IPs: {props.listaIPs.join(', ')}</div>
       <input 
@@ -176,7 +176,7 @@ jest.mock('../components/seguranca-components/alertas-seguranca', () => ({
   __esModule: true,
   default: (props: AlertasSegurancaProps) => (
     <div data-testid="alertas-seguranca-mock">
-      <div>Alertas Novo Dispositivo: {props.alertaNovoDispositivo ? 'Sim' : 'Não'}</div>
+      <div>Alertas Novo Dispositivo: {props.alertaNovoDispositivo ? 'Sim' : 'NÃ£o'}</div>
       <button 
         onClick={() => props.setAlertaNovoDispositivo(!props.alertaNovoDispositivo)} 
         data-testid="toggle-alerta-dispositivo-btn"
@@ -188,14 +188,14 @@ jest.mock('../components/seguranca-components/alertas-seguranca', () => ({
 }))
 
 // Mock dos componentes UI
-jest.mock('@/components/ui/card', () => ({
+jest.mock('@/shared/ui/card', () => ({
   Card: ({ className, children }: { className?: string; children: ReactNode }) => 
     <div data-testid="card" className={className}>{children}</div>,
   CardContent: ({ className, children }: { className?: string; children: ReactNode }) => 
     <div data-testid="card-content" className={className}>{children}</div>,
 }))
 
-jest.mock('@/components/ui/button', () => ({
+jest.mock('@/shared/ui/button', () => ({
   Button: ({ 
     size, 
     variant, 
@@ -224,7 +224,7 @@ jest.mock('@/components/ui/button', () => ({
   ),
 }))
 
-jest.mock('@/components/ui/dialog', () => ({
+jest.mock('@/shared/ui/dialog', () => ({
   Dialog: ({ open, onOpenChange, children }: { open: boolean; onOpenChange: (open: boolean) => void; children: ReactNode }) => (
     open ? <div data-testid="dialog">{children}</div> : null
   ),
@@ -235,7 +235,7 @@ jest.mock('@/components/ui/dialog', () => ({
   DialogFooter: ({ children }: { children: ReactNode }) => <div data-testid="dialog-footer">{children}</div>,
 }))
 
-jest.mock('@/components/ui/input', () => ({
+jest.mock('@/shared/ui/input', () => ({
   Input: ({ id, placeholder, value, onChange, type }: { id: string; placeholder?: string; value: string; onChange: (e: any) => void; type?: string }) => (
     <input 
       data-testid={`input-${id}`}
@@ -248,7 +248,7 @@ jest.mock('@/components/ui/input', () => ({
   ),
 }))
 
-jest.mock('@/components/ui/select', () => ({
+jest.mock('@/shared/ui/select', () => ({
   Select: ({ value, onValueChange, children }: { value: string; onValueChange: (value: string) => void; children: ReactNode }) => (
     <div data-testid="select" data-value={value}>
       {children}
@@ -273,13 +273,13 @@ jest.mock('@/components/ui/select', () => ({
   ),
 }))
 
-jest.mock('@/components/ui/label', () => ({
+jest.mock('@/shared/ui/label', () => ({
   Label: ({ htmlFor, children }: { htmlFor: string; children: ReactNode }) => (
     <label data-testid={`label-${htmlFor}`} htmlFor={htmlFor}>{children}</label>
   ),
 }))
 
-jest.mock('@/components/ui/table', () => ({
+jest.mock('@/shared/ui/table', () => ({
   Table: ({ children }: { children: ReactNode }) => <table data-testid="table">{children}</table>,
   TableHeader: ({ children }: { children: ReactNode }) => <thead data-testid="table-header">{children}</thead>,
   TableBody: ({ children }: { children: ReactNode }) => <tbody data-testid="table-body">{children}</tbody>,
@@ -288,7 +288,7 @@ jest.mock('@/components/ui/table', () => ({
   TableCell: ({ children }: { children: ReactNode }) => <td data-testid="table-cell">{children}</td>,
 }))
 
-jest.mock('@/components/ui/badge', () => ({
+jest.mock('@/shared/ui/badge', () => ({
   Badge: ({ className, children }: { className?: string; children: ReactNode }) => (
     <span data-testid="badge" className={className}>{children}</span>
   ),
@@ -321,7 +321,7 @@ jest.mock('lucide-react', () => ({
   CalendarIcon: () => <span data-testid="calendar-icon">CalendarIcon</span>,
 }))
 
-// Mock da função clipboard
+// Mock da funÃ§Ã£o clipboard
 const mockCopyToClipboard = jest.fn();
 Object.assign(navigator, {
   clipboard: {
@@ -332,7 +332,7 @@ Object.assign(navigator, {
 describe('SettingsSeguranca', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Espiar a função global window.alert
+    // Espiar a funÃ§Ã£o global window.alert
     jest.spyOn(window, 'alert').mockImplementation(() => {});
   });
 
@@ -340,18 +340,18 @@ describe('SettingsSeguranca', () => {
     jest.restoreAllMocks(); // Restaurar todos os mocks, incluindo window.alert
   });
 
-  it('deve renderizar o cabeçalho e todos os títulos de seção corretamente', () => {
+  it('deve renderizar o cabeÃ§alho e todos os tÃ­tulos de seÃ§Ã£o corretamente', () => {
     render(<SettingsSeguranca />);
 
-    expect(screen.getByRole('heading', { name: /Segurança/i, level: 2 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Política de Senha/i, level: 3 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Autenticação em Dois Fatores/i, level: 3 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Tempo Máximo de Inatividade/i, level: 3 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Restrições de IP/i, level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /SeguranÃ§a/i, level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /PolÃ­tica de Senha/i, level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /AutenticaÃ§Ã£o em Dois Fatores/i, level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Tempo MÃ¡ximo de Inatividade/i, level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /RestriÃ§Ãµes de IP/i, level: 3 })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Gerenciamento de Tokens API/i, level: 3 })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Chaves de Webhook/i, level: 3 })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /Logs de Auditoria/i, level: 3 })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: /Alertas de Segurança/i, level: 3 })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Alertas de SeguranÃ§a/i, level: 3 })).toBeInTheDocument();
   });
 
   it('deve renderizar todos os subcomponentes mockados', () => {
@@ -366,28 +366,28 @@ describe('SettingsSeguranca', () => {
     expect(screen.getByTestId('alertas-seguranca-mock')).toBeInTheDocument();
   });
 
-  it('deve alterar o estado da política de senha quando os botões são clicados', () => {
+  it('deve alterar o estado da polÃ­tica de senha quando os botÃµes sÃ£o clicados', () => {
     render(<SettingsSeguranca />);
 
     const aumentarComprimentoBtn = screen.getByTestId('aumentar-comprimento-btn');
     fireEvent.click(aumentarComprimentoBtn);
-    expect(screen.getByText('Comprimento Mínimo: 10')).toBeInTheDocument();
+    expect(screen.getByText('Comprimento MÃ­nimo: 10')).toBeInTheDocument();
 
     const alterarForcaBtn = screen.getByTestId('alterar-forca-btn');
     fireEvent.click(alterarForcaBtn);
-    expect(screen.getByText('Força Senha: forte')).toBeInTheDocument();
+    expect(screen.getByText('ForÃ§a Senha: forte')).toBeInTheDocument();
   });
 
-  it('deve alternar o estado de 2FA quando o botão é clicado', () => {
+  it('deve alternar o estado de 2FA quando o botÃ£o Ã© clicado', () => {
     render(<SettingsSeguranca />);
 
-    expect(screen.getByText('2FA Ativado: Não')).toBeInTheDocument();
+    expect(screen.getByText('2FA Ativado: NÃ£o')).toBeInTheDocument();
     const toggle2FABtn = screen.getByTestId('toggle-2fa-btn');
     fireEvent.click(toggle2FABtn);
     expect(screen.getByText('2FA Ativado: Sim')).toBeInTheDocument();
   });
 
-  it('deve alterar o tempo de inatividade quando o botão é clicado', () => {
+  it('deve alterar o tempo de inatividade quando o botÃ£o Ã© clicado', () => {
     render(<SettingsSeguranca />);
 
     expect(screen.getByText('Tempo de Inatividade: 30 minutos')).toBeInTheDocument();
@@ -396,7 +396,7 @@ describe('SettingsSeguranca', () => {
     expect(screen.getByText('Tempo de Inatividade: 60 minutos')).toBeInTheDocument();
   });
 
-  it('deve permitir a geração de um novo token e mostrar o diálogo', () => {
+  it('deve permitir a geraÃ§Ã£o de um novo token e mostrar o diÃ¡logo', () => {
     render(<SettingsSeguranca />);
 
     const novoTokenInput = screen.getByTestId('input-novoTokenNome');
@@ -411,14 +411,14 @@ describe('SettingsSeguranca', () => {
     expect(screen.getByTestId('dialog-title')).toHaveTextContent(/Token gerado com sucesso/i);
   });
 
-  it('deve interagir com as Restrições de IP', () => {
+  it('deve interagir com as RestriÃ§Ãµes de IP', () => {
     render(<SettingsSeguranca />);
 
-    // Alternar restrição
+    // Alternar restriÃ§Ã£o
     const toggleRestricaoBtn = screen.getByTestId('toggle-restricao-btn');
-    expect(screen.getByText('Restrição IP: Desativada')).toBeInTheDocument();
+    expect(screen.getByText('RestriÃ§Ã£o IP: Desativada')).toBeInTheDocument();
     fireEvent.click(toggleRestricaoBtn);
-    expect(screen.getByText('Restrição IP: Ativada')).toBeInTheDocument();
+    expect(screen.getByText('RestriÃ§Ã£o IP: Ativada')).toBeInTheDocument();
 
     // Adicionar IP
     const novoIpInput = screen.getByTestId('novo-ip-input');
@@ -431,57 +431,57 @@ describe('SettingsSeguranca', () => {
   it('deve interagir com as Chaves de Webhook', () => {
     render(<SettingsSeguranca />);
 
-    // Gerar nova chave (a lógica de geração real está no componente, o mock só expõe o botão)
+    // Gerar nova chave (a lÃ³gica de geraÃ§Ã£o real estÃ¡ no componente, o mock sÃ³ expÃµe o botÃ£o)
     const gerarChaveBtn = screen.getByTestId('gerar-chave-btn');
     fireEvent.click(gerarChaveBtn);
 
     // Copiar chave
     const copiarChaveBtn = screen.getByTestId('copiar-chave-btn');
     fireEvent.click(copiarChaveBtn);
-    expect(mockCopyToClipboard).toHaveBeenCalled(); // Verifica apenas se a função foi chamada, sem verificar o valor específico
+    expect(mockCopyToClipboard).toHaveBeenCalled(); // Verifica apenas se a funÃ§Ã£o foi chamada, sem verificar o valor especÃ­fico
   });
 
   it('deve interagir com os Logs de Auditoria', () => {
     render(<SettingsSeguranca />);
 
-    // Filtrar logs (a lógica de filtro real está no componente, o mock só expõe o botão)
+    // Filtrar logs (a lÃ³gica de filtro real estÃ¡ no componente, o mock sÃ³ expÃµe o botÃ£o)
     const filtrarLogsBtn = screen.getByTestId('filtrar-logs-btn');
     fireEvent.click(filtrarLogsBtn);
-    // Verifica se a função de alerta (simulando filtro) foi chamada
+    // Verifica se a funÃ§Ã£o de alerta (simulando filtro) foi chamada
     expect(window.alert).toHaveBeenCalledWith("Filtros aplicados!");
   });
 
-  it('deve interagir com os Alertas de Segurança', () => {
+  it('deve interagir com os Alertas de SeguranÃ§a', () => {
     render(<SettingsSeguranca />);
 
     // Alternar alerta
     const toggleAlertaBtn = screen.getByTestId('toggle-alerta-dispositivo-btn');
     expect(screen.getByText('Alertas Novo Dispositivo: Sim')).toBeInTheDocument();
     fireEvent.click(toggleAlertaBtn);
-    expect(screen.getByText('Alertas Novo Dispositivo: Não')).toBeInTheDocument();
+    expect(screen.getByText('Alertas Novo Dispositivo: NÃ£o')).toBeInTheDocument();
   });
 
   it('deve permitir revogar um token', () => {
     render(<SettingsSeguranca />);
 
-    // Encontrar um botão de revogar token (pode ser pelo texto ou um testid se existir no componente real)
-    // Assumindo que o primeiro token tem um botão "Revogar"
+    // Encontrar um botÃ£o de revogar token (pode ser pelo texto ou um testid se existir no componente real)
+    // Assumindo que o primeiro token tem um botÃ£o "Revogar"
     const revokeTokenButtons = screen.getAllByRole('button', { name: /Revogar/i });
-    expect(revokeTokenButtons.length).toBeGreaterThan(0); // Garante que há tokens para revogar
+    expect(revokeTokenButtons.length).toBeGreaterThan(0); // Garante que hÃ¡ tokens para revogar
     
     // Clicar para revogar o primeiro token listado
     fireEvent.click(revokeTokenButtons[0]);
 
     // Verificar se o token foi removido (a tabela de tokens deve ser atualizada)
-    // Esta verificação depende de como os tokens são renderizados. 
-    // Se o nome do token é "Power BI - Financeiro", ele não deve mais estar presente.
+    // Esta verificaÃ§Ã£o depende de como os tokens sÃ£o renderizados. 
+    // Se o nome do token Ã© "Power BI - Financeiro", ele nÃ£o deve mais estar presente.
     expect(screen.queryByText("Power BI - Financeiro")).not.toBeInTheDocument();
   });
 
-  it('deve chamar a função de teste do webhook', () => {
+  it('deve chamar a funÃ§Ã£o de teste do webhook', () => {
     render(<SettingsSeguranca />);
     
-    // Procura o botão pelo testId em vez do texto
+    // Procura o botÃ£o pelo testId em vez do texto
     const testarWebhookButton = screen.getByTestId('testar-webhook-btn');
     fireEvent.click(testarWebhookButton);
     expect(window.alert).toHaveBeenCalledWith("Payload de teste enviado com sucesso!");

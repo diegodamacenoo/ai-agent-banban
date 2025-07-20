@@ -1,28 +1,29 @@
 'use client';
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Separator } from "@/shared/ui/separator";
 import { KeyRoundIcon, MailWarningIcon, EyeIcon, EyeOffIcon, CheckIcon, XIcon, DotIcon } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useToast } from "@/components/ui/use-toast";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
+import { useToast } from '@/shared/ui/toast';
 import { useUser } from "@/app/contexts/UserContext";
-import { SkeletonForm } from "@/components/ui/skeleton-loader";
+import { SkeletonForm } from "@/shared/ui/skeleton-loader";
 import { ErrorCardContainer } from "@/app/ui/utils/error-card-container";
 
 export default function Credenciais() {
-    // Contexto de usuário
+  const { toast } = useToast();
+
+    // Contexto de usuÃ¡rio
     const { userData } = useUser();
     // Toast
-    const { toast } = useToast();
     
-    // Log para depuração
-    // console.log('DEBUG - Credenciais userData:', userData);
+    // Log para depuraÃ§Ã£o
+    // console.debug('DEBUG - Credenciais userData:', userData);
     
-    // Estados para a senha atual, nova senha, confirmação da nova senha, mostrar senha e envio
+    // Estados para a senha atual, nova senha, confirmaÃ§Ã£o da nova senha, mostrar senha e envio
     const [senhaAtual, setSenhaAtual] = React.useState("");
     const [novaSenha, setNovaSenha] = React.useState("");
     const [confirmarSenha, setConfirmarSenha] = React.useState("");
@@ -31,11 +32,11 @@ export default function Credenciais() {
     const [isRequesting, setIsRequesting] = React.useState(false);
     const [isLoading, setIsLoading] = React.useState(true);
 
-    // Função para enviar o formulário
+    // FunÃ§Ã£o para enviar o formulÃ¡rio
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!userData) {
-            toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+            toast.error("UsuÃ¡rio nÃ£o autenticado.", { title: "Erro" });
             return;
         }
         setIsSubmitting(true);
@@ -68,21 +69,21 @@ export default function Credenciais() {
                 submissionError = data.error || "Ocorreu um erro desconhecido ao alterar a senha.";
             }
         } catch (error: any) {
-            submissionError = error.message || "Falha crítica ao tentar alterar a senha.";
+            submissionError = error.message || "Falha crÃ­tica ao tentar alterar a senha.";
         } finally {
             setIsSubmitting(false);
             if (submissionSuccess) {
-                toast({ title: "Senha alterada com sucesso!" });
+                toast.success("Senha alterada com sucesso!");
             } else if (submissionError) {
-                toast({ title: "Erro ao alterar senha", description: submissionError, variant: "destructive" });
+                toast.error(submissionError, { title: "Erro ao alterar senha" });
             }
         }
     };
 
-    // Função para solicitar redefinição de senha
+    // FunÃ§Ã£o para solicitar redefiniÃ§Ã£o de senha
     const handleRequestReset = async () => {
         if (!userData) {
-            toast({ title: "Erro", description: "Usuário não autenticado.", variant: "destructive" });
+            toast.error("UsuÃ¡rio nÃ£o autenticado.", { title: "Erro" });
             return;
         }
         setIsRequesting(true);
@@ -90,24 +91,22 @@ export default function Credenciais() {
         let requestSuccess: boolean = false;
         try {
             // Chamar API Route para solicitar reset de senha (a ser implementada)
-            // Por enquanto, mantemos a funcionalidade básica
-            toast({ 
-                title: "Funcionalidade temporariamente indisponível", 
-                description: "Use o link 'Esqueci minha senha' na tela de login.",
-                variant: "default" 
+            // Por enquanto, mantemos a funcionalidade bÃ¡sica
+            toast.info("Use o link 'Esqueci minha senha' na tela de login.", {
+                title: "Funcionalidade temporariamente indisponÃ­vel",
             });
             requestSuccess = true;
         } catch (error: any) {
-            requestError = error.message || "Falha crítica ao tentar solicitar redefinição de senha.";
+            requestError = error.message || "Falha crÃ­tica ao tentar solicitar redefiniÃ§Ã£o de senha.";
         } finally {
             setIsRequesting(false);
             if (!requestSuccess && requestError) {
-                toast({ title: "Erro ao solicitar redefinição", description: requestError, variant: "destructive" });
+                toast.error(requestError, { title: "Erro ao solicitar redefiniÃ§Ã£o" });
             }
         }
     };
 
-    // Funções para verificar a força da nova senha
+    // FunÃ§Ãµes para verificar a forÃ§a da nova senha
     const hasMinLength = novaSenha.length >= 8;
     const hasUpperCase = /[A-Z]/.test(novaSenha);
     const hasLowerCase = /[a-z]/.test(novaSenha);
@@ -192,19 +191,19 @@ export default function Credenciais() {
                                     <ul className="text-xs text-muted-foreground mt-2 space-y-1">
                                         <li className={`flex items-center gap-1 ${novaSenha.length > 0 && (hasMinLength ? 'text-green-500' : 'text-red-500')}`}>
                                             {novaSenha.length === 0 ? <DotIcon className="w-3 h-3" /> : (hasMinLength ? <CheckIcon className="w-3 h-3" /> : <XIcon className="w-3 h-3" />)}
-                                            Mínimo de 8 caracteres
+                                            MÃ­nimo de 8 caracteres
                                         </li>
                                         <li className={`flex items-center gap-1 ${novaSenha.length > 0 && (hasUpperCase ? 'text-green-500' : 'text-red-500')}`}>
                                             {novaSenha.length === 0 ? <DotIcon className="w-3 h-3" /> : (hasUpperCase ? <CheckIcon className="w-3 h-3" /> : <XIcon className="w-3 h-3" />)}
-                                            Pelo menos uma letra maiúscula
+                                            Pelo menos uma letra maiÃºscula
                                         </li>
                                         <li className={`flex items-center gap-1 ${novaSenha.length > 0 && (hasLowerCase ? 'text-green-500' : 'text-red-500')}`}>
                                             {novaSenha.length === 0 ? <DotIcon className="w-3 h-3" /> : (hasLowerCase ? <CheckIcon className="w-3 h-3" /> : <XIcon className="w-3 h-3" />)}
-                                            Pelo menos uma letra minúscula
+                                            Pelo menos uma letra minÃºscula
                                         </li>
                                         <li className={`flex items-center gap-1 ${novaSenha.length > 0 && (hasNumber ? 'text-green-500' : 'text-red-500')}`}>
                                             {novaSenha.length === 0 ? <DotIcon className="w-3 h-3" /> : (hasNumber ? <CheckIcon className="w-3 h-3" /> : <XIcon className="w-3 h-3" />)}
-                                            Pelo menos um número
+                                            Pelo menos um nÃºmero
                                         </li>
                                         <li className={`flex items-center gap-1 ${novaSenha.length > 0 && (hasSpecialChar ? 'text-green-500' : 'text-red-500')}`}>
                                             {novaSenha.length === 0 ? <DotIcon className="w-3 h-3" /> : (hasSpecialChar ? <CheckIcon className="w-3 h-3" /> : <XIcon className="w-3 h-3" />)}
@@ -226,7 +225,7 @@ export default function Credenciais() {
                                         disabled={!userData}
                                     />
                                     {confirmarSenha.length > 0 && !senhasCoincidentes && (
-                                        <p className="text-xs text-red-500">As senhas não coincidem.</p>
+                                        <p className="text-xs text-red-500">As senhas nÃ£o coincidem.</p>
                                     )}
                                 </div>
                             </div>
@@ -247,7 +246,7 @@ export default function Credenciais() {
                             <MailWarningIcon className="h-4 w-4" color="oklch(47.6% 0.114 61.907)" />
                             <AlertTitle className="text-yellow-800">Esqueceu sua senha?</AlertTitle>
                             <AlertDescription className="flex flex-col gap-2 items-start">
-                                <p className="text-yellow-700">Um link para redefinição de senha será enviado para o seu e-mail cadastrado.</p>
+                                <p className="text-yellow-700">Um link para redefiniÃ§Ã£o de senha serÃ¡ enviado para o seu e-mail cadastrado.</p>
                                 <Button
                                     variant="outline"
                                     size="sm"
@@ -256,7 +255,7 @@ export default function Credenciais() {
                                     disabled={!userData || isRequesting}
                                 >
                                     <MailWarningIcon className="w-4 h-4" />
-                                    {isRequesting ? 'Solicitando...' : 'Solicitar Redefinição de Senha'}
+                                    {isRequesting ? 'Solicitando...' : 'Solicitar RedefiniÃ§Ã£o de Senha'}
                                 </Button>
                             </AlertDescription>
                         </Alert>

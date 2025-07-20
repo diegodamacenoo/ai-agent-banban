@@ -1,6 +1,6 @@
 import * as React from "react";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/shared/ui/table";
+import { Button } from "@/shared/ui/button";
 import { Loader2 } from "lucide-react";
 
 interface TableColumn {

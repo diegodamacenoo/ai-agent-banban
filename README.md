@@ -1,57 +1,100 @@
-# Agente de IA para Gestão de Produtos e Estoque da BanBan
+# Axon - Plataforma Modular de IA
 
-Este projeto consiste no desenvolvimento de uma solução baseada em Inteligência Artificial, conectada ao ERP da BanBan via webhook, com foco na gestão inteligente de produtos e estoque. A ferramenta oferece validação de cadastros, alertas automatizados, dashboards analíticos e sugestões estratégicas para otimização de giro, margem e redistribuição entre lojas.
-O principal objetivo é resolver gargalos operacionais relacionados à lentidão na ativação de produtos, ruptura de estoque e baixa visibilidade dos indicadores de performance no ponto de venda, promovendo uma tomada de decisão mais ágil e baseada em dados.
+## Visão Geral
 
-## Iniciando (Getting Started)
+O Axon é uma plataforma de software como serviço (SaaS) multi-tenant, projetada para integrar agentes de IA a sistemas legados de forma modular e extensível. A arquitetura permite o carregamento dinâmico de módulos, oferecendo soluções personalizadas para diferentes clientes e verticais de negócio, como o cliente `banban`.
 
-Instruções detalhadas de configuração do ambiente e execução local podem ser encontradas em [Configuração do Ambiente](./docs/SETUP.md).
+O projeto encontra-se em um estágio maduro de desenvolvimento, com uma base sólida, arquitetura multi-tenant funcional e múltiplos módulos complexos já implementados e refatorados.
 
-Para iniciar o servidor de desenvolvimento:
+## Principais Tecnologias
 
-```bash
-pnpm run dev
+- **Framework:** Next.js
+- **Linguagem:** TypeScript
+- **Banco de Dados & Auth:** Supabase
+- **Estilização:** Tailwind CSS & Radix UI
+- **Gerenciador de Pacotes:** pnpm
+- **Testes:** Jest & React Testing Library
+
+## Arquitetura
+
+A estrutura do projeto é desenhada para garantir uma clara separação de responsabilidades:
+
+```
+.
+├── src/
+│   ├── core/         # Lógica de negócio, serviços, handlers de API e módulos base
+│   ├── clients/      # Módulos e componentes específicos de cada cliente (ex: banban)
+│   ├── shared/       # Componentes, hooks e tipos compartilhados por toda a aplicação
+│   └── app/          # Estrutura de rotas e páginas do Next.js
+├── supabase/         # Migrations, functions e configuração do Supabase
+└── docs/             # Documentação técnica e de negócio
 ```
 
-Abra [http://localhost:3000](http://localhost:3000) (ou a porta configurada) no seu navegador para ver o resultado.
+Esta arquitetura permite que a lógica central do Axon seja mantida de forma agnóstica, enquanto as customizações e interfaces de cada cliente são desenvolvidas de forma isolada na pasta `clients`.
 
-## 📚 Documentação
+## Módulos Implementados
 
-A documentação do projeto está **totalmente reorganizada** na pasta `docs/` para facilitar navegação e manutenção:
+O sistema atualmente conta com um robusto sistema de descoberta de módulos, que identifica e gerencia os seguintes módulos principais:
 
-### **🎯 Acesso Rápido:**
-*   **[📚 Índice Completo](./docs/README.md)** - Navegação completa da documentação
-*   **[⚙️ Configuração](./docs/configuration/CONFIGURATION.md)** - Setup e configuração do ambiente
-*   **[📖 Princípios](./docs/guides/PRINCIPLES.md)** - Princípios fundamentais do projeto
-*   **[🧪 Testes](./docs/testing/)** - Documentação de testes e validações
+- **Módulos Customizados (Banban):**
+  - `insights`
+  - `performance`
+  - `inventory`
+  - `alerts`
+  - `data-processing`
+- **Módulos Padrão:**
+  - `analytics`
+  - ... (e outros módulos base do sistema)
 
-### **🗂️ Estrutura Organizada:**
-*   **[`guides/`](./docs/guides/)** - Guias fundamentais e melhores práticas
-*   **[`implementations/`](./docs/implementations/)** - Documentação de funcionalidades implementadas
-*   **[`testing/`](./docs/testing/)** - Procedimentos de teste e validação
-*   **[`configuration/`](./docs/configuration/)** - Scripts e configurações do sistema
-*   **[`reference/`](./docs/reference/)** - Referência técnica e troubleshooting
-*   **[`changelog/`](./docs/changelog/)** - Histórico de mudanças e correções
+## Como Começar
 
-**💡 Dica:** Comece pelo [README da documentação](./docs/README.md) que contém instruções completas de manutenção e navegação.
+### Pré-requisitos
 
-## Como Contribuir
+- Node.js (versão recomendada: 20.x)
+- pnpm (instalado globalmente)
+- Acesso ao projeto Supabase
 
-Quer ajudar a melhorar o projeto? Leia nosso guia de contribuição:
+### Instalação
 
-*   **[Como Contribuir](./CONTRIBUTING.md):** Diretrizes para reportar bugs, sugerir melhorias e submeter Pull Requests.
+1.  Clone o repositório:
+    ```bash
+    git clone <URL_DO_REPOSITORIO>
+    ```
+2.  Navegue até a pasta do projeto e instale as dependências:
+    ```bash
+    cd axon
+    pnpm install
+    ```
+3.  Configure suas variáveis de ambiente duplicando o arquivo `.env.example` para `.env.local` e preenchendo as chaves do Supabase e outras configurações necessárias.
 
-## Aprenda Mais sobre Next.js (Learn More)
+### Scripts Principais
 
-Para aprender mais sobre Next.js, consulte os seguintes recursos:
+- **Desenvolvimento (genérico):**
+  ```bash
+  pnpm dev
+  ```
+- **Desenvolvimento (cliente específico):**
+  ```bash
+  # Exemplo para o cliente Banban
+  pnpm dev:banban
+  ```
+- **Build para produção:**
+  ```bash
+  pnpm build
+  ```
+- **Executar testes:**
+  ```bash
+  pnpm test
+  ```
+- **Verificar regras de lint:**
+  ```bash
+  pnpm lint
+  ```
 
-*   [Next.js Documentation](https://nextjs.org/docs) - aprenda sobre os recursos e API do Next.js.
-*   [Learn Next.js](https://nextjs.org/learn) - um tutorial interativo do Next.js.
+## Contribuição
 
-Você pode conferir o [repositório do Next.js no GitHub](https://github.com/vercel/next.js/) - feedback e contribuições são bem-vindos!
+Para contribuir com o projeto, por favor, leia nosso [Guia de Contribuição](CONTRIBUTING.md).
 
-## Deploy na Vercel
+## Licença
 
-A maneira mais fácil de fazer deploy do seu app Next.js é usar a [Plataforma Vercel](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) dos criadores do Next.js.
-
-Confira nossa [documentação de deploy do Next.js](https://nextjs.org/docs/app/building-your-application/deploying) para mais detalhes.
+Este projeto é de propriedade privada e não possui uma licença de código aberto (UNLICENSED).

@@ -22,15 +22,15 @@ export default function MFACheck({ children, redirectUrl = "/auth/mfa-verify" }:
         
         if (success && data) {
           // Se currentLevel for diferente de nextLevel e nextLevel for aal2, 
-          // isso significa que o usuário precisa completar o 2FA
+          // isso significa que o usuÃ¡rio precisa completar o 2FA
           if (data.currentLevel !== data.nextLevel && data.nextLevel === 'aal2') {
             setRequiresMFA(true);
           } else {
             setRequiresMFA(false);
           }
         } else if (error) {
-          console.error("Erro ao verificar nível de autenticação:", error);
-          // Em caso de erro, não bloqueamos o acesso
+          console.error("Erro ao verificar nÃ­vel de autenticaÃ§Ã£o:", error);
+          // Em caso de erro, nÃ£o bloqueamos o acesso
           setRequiresMFA(false);
         }
       } catch (error) {
@@ -49,7 +49,7 @@ export default function MFACheck({ children, redirectUrl = "/auth/mfa-verify" }:
     return null;
   }
 
-  // Se o usuário precisa completar o 2FA, mostramos a tela de verificação
+  // Se o usuÃ¡rio precisa completar o 2FA, mostramos a tela de verificaÃ§Ã£o
   if (requiresMFA) {
     return (
       <div className="container max-w-md mx-auto p-4">
@@ -61,6 +61,6 @@ export default function MFACheck({ children, redirectUrl = "/auth/mfa-verify" }:
     );
   }
 
-  // Se não precisa de 2FA ou já completou, mostramos o conteúdo normal
+  // Se nÃ£o precisa de 2FA ou jÃ¡ completou, mostramos o conteÃºdo normal
   return <>{children}</>;
 } 

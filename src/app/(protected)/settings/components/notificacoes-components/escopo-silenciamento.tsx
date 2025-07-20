@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Separator } from "@/shared/ui/separator";
+import { Badge } from "@/shared/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
 
 // Mock de dados iniciais
 interface SilencedContext {
@@ -20,15 +20,15 @@ export function EscopoSilenciamento() {
   // Estado para lista de contextos silenciados
   const [contextosSilenciados, setContextosSilenciados] = useState<SilencedContext[]>([
     { id: "1", tipo: "sku", valor: "SKU12345", descricao: "Produto X" },
-    { id: "2", tipo: "loja", valor: "LOJA-SP-01", descricao: "Loja Centro - São Paulo" }
+    { id: "2", tipo: "loja", valor: "LOJA-SP-01", descricao: "Loja Centro - SÃ£o Paulo" }
   ]);
 
-  // Estado para formulário de adição de novo silenciamento
+  // Estado para formulÃ¡rio de adiÃ§Ã£o de novo silenciamento
   const [novoContextoTipo, setNovoContextoTipo] = useState("sku");
   const [novoContextoValor, setNovoContextoValor] = useState("");
   const [novoContextoDescricao, setNovoContextoDescricao] = useState("");
 
-  // Função para adicionar novo contexto silenciado
+  // FunÃ§Ã£o para adicionar novo contexto silenciado
   const adicionarContexto = () => {
     if (!novoContextoValor.trim()) return;
 
@@ -44,7 +44,7 @@ export function EscopoSilenciamento() {
     setNovoContextoDescricao("");
   };
 
-  // Função para remover um contexto silenciado
+  // FunÃ§Ã£o para remover um contexto silenciado
   const removerContexto = (id: string) => {
     setContextosSilenciados(contextosSilenciados.filter(ctx => ctx.id !== id));
   };
@@ -56,7 +56,7 @@ export function EscopoSilenciamento() {
         <div className="space-y-4">
           <div className="space-y-0.5">
             <h4 className="font-medium">Adicionar Silenciamento</h4>
-            <p className="text-sm text-muted-foreground">Silencie notificações para contextos específicos</p>
+            <p className="text-sm text-muted-foreground">Silencie notificaÃ§Ãµes para contextos especÃ­ficos</p>
           </div>
 
           <div className="space-y-4">
@@ -73,14 +73,14 @@ export function EscopoSilenciamento() {
                   <SelectContent>
                     <SelectItem value="sku">SKU</SelectItem>
                     <SelectItem value="loja">Loja</SelectItem>
-                    <SelectItem value="usuario">Usuário</SelectItem>
+                    <SelectItem value="usuario">UsuÃ¡rio</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="valor-contexto">{novoContextoTipo === "sku" ? "Código SKU" : 
-                  novoContextoTipo === "loja" ? "Código da Loja" : "Usuário"}</Label>
+                <Label htmlFor="valor-contexto">{novoContextoTipo === "sku" ? "CÃ³digo SKU" : 
+                  novoContextoTipo === "loja" ? "CÃ³digo da Loja" : "UsuÃ¡rio"}</Label>
                 <Input
                   id="valor-contexto"
                   placeholder={novoContextoTipo === "sku" ? "Ex: SKU12345" : 
@@ -102,10 +102,10 @@ export function EscopoSilenciamento() {
               </div>
 
               <div className="space-y-2 md:col-span-4">
-                <Label htmlFor="descricao-contexto">Descrição (opcional)</Label>
+                <Label htmlFor="descricao-contexto">DescriÃ§Ã£o (opcional)</Label>
                 <Input
                   id="descricao-contexto"
-                  placeholder="Breve descrição para identificação"
+                  placeholder="Breve descriÃ§Ã£o para identificaÃ§Ã£o"
                   value={novoContextoDescricao}
                   onChange={(e) => setNovoContextoDescricao(e.target.value)}
                 />
@@ -136,7 +136,7 @@ export function EscopoSilenciamento() {
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">
                         {contexto.tipo === "sku" ? "SKU" : 
-                         contexto.tipo === "loja" ? "Loja" : "Usuário"}
+                         contexto.tipo === "loja" ? "Loja" : "UsuÃ¡rio"}
                       </Badge>
                       <div>
                         <p className="text-sm font-medium">{contexto.valor}</p>
@@ -160,8 +160,8 @@ export function EscopoSilenciamento() {
           </div>
 
           <p className="text-xs text-muted-foreground">
-            Notificações relacionadas a estes contextos serão silenciadas em todos os canais, 
-            exceto para alertas críticos de segurança.
+            NotificaÃ§Ãµes relacionadas a estes contextos serÃ£o silenciadas em todos os canais, 
+            exceto para alertas crÃ­ticos de seguranÃ§a.
           </p>
         </div>
       </CardContent>

@@ -1,0 +1,1 @@
+export { ModuleCompletionTooltip } from './ModuleCompletionTooltip';

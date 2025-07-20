@@ -1,14 +1,13 @@
 // React
 import * as React from "react";
 // UI
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { LogOutIcon, LoaderCircleIcon } from "lucide-react";
-import { SkeletonSessionTable } from "@/components/ui/skeleton-loader";
+import { SkeletonSessionTable } from "@/shared/ui/skeleton-loader";
 // Actions
 import { getUserSessions, terminateSession, terminateAllOtherSessions } from "@/app/actions/auth/sessions";
-import { toast } from "@/components/ui/use-toast";
 import { useRouter } from "next/navigation";
 // Types
 import type { UserSession } from "@/app/(protected)/settings/types/session-types";
@@ -17,7 +16,7 @@ import type { UserSession } from "@/app/(protected)/settings/types/session-types
 // import AutenticacaoDoisFatores from "./seguranca-components/autenticacao-dois-fatores";
 // import TempoInatividade from "./seguranca-components/tempo-inatividade";
 // import RestricoesIP from "./seguranca-components/restricoes-ip";
-// import ChavesWebhook from "./seguranca-components/chaves-webhook"; // Assumindo que o nome do arquivo é chaves-webhook.tsx
+// import ChavesWebhook from "./seguranca-components/chaves-webhook"; // Assumindo que o nome do arquivo Ã© chaves-webhook.tsx
 
 // Components
 import LogsAuditoria from "./seguranca-components/logs-auditoria";
@@ -70,8 +69,7 @@ export default function SettingsSeguranca() {
       const result = await getUserSessions();
       if (result.error) {
         setErrorSessoes(result.error);
-        toast({
-          title: "Erro",
+        toast.show({ title: "Erro",
           description: result.error,
           variant: "destructive",
         });
@@ -80,8 +78,7 @@ export default function SettingsSeguranca() {
       }
     } catch (e: any) {
       setErrorSessoes(e.message || "Erro ao carregar sessões");
-      toast({
-        title: "Erro",
+      toast.show({ title: "Erro",
         description: e.message || "Erro ao carregar sessões",
         variant: "destructive",
       });
@@ -98,23 +95,20 @@ export default function SettingsSeguranca() {
     try {
       const result = await terminateSession({ sessionId: id });
       if (result.success) {
-        toast({
-          title: "Sucesso",
+        toast.show({ title: "Sucesso",
           description: "Sessão encerrada com sucesso",
         });
         // Remover a sessão da lista local
         setSessoes(sessoes.filter(s => s.id !== id));
         router.refresh();
       } else {
-        toast({
-          title: "Erro",
+        toast.show({ title: "Erro",
           description: result.error || "Erro ao encerrar sessão",
           variant: "destructive",
         });
       }
     } catch (e: any) {
-      toast({
-        title: "Erro",
+      toast.show({ title: "Erro",
         description: e.message || "Erro ao encerrar sessão",
         variant: "destructive",
       });
@@ -131,23 +125,20 @@ export default function SettingsSeguranca() {
     try {
       const result = await terminateAllOtherSessions();
       if (result.success) {
-        toast({
-          title: "Sucesso",
+        toast.show({ title: "Sucesso",
           description: "Todas as outras sessões foram encerradas",
         });
         // Manter apenas a sessão atual
         setSessoes(sessoes.filter(s => s.atual));
         router.refresh();
       } else {
-        toast({
-          title: "Erro",
+        toast.show({ title: "Erro",
           description: result.error || "Erro ao encerrar sessões",
           variant: "destructive",
         });
       }
     } catch (e: any) {
-      toast({
-        title: "Erro",
+      toast.show({ title: "Erro",
         description: e.message || "Erro ao encerrar sessões",
         variant: "destructive",
       });
@@ -213,7 +204,7 @@ export default function SettingsSeguranca() {
     // Gerar a senha de exemplo
     const senhaGerada = caracteresObrigatorios.join('');
     setSenhaExemplo(senhaGerada);
-    // console.log('Senha gerada:', senhaGerada); // Remover depois de testar
+    // console.debug('Senha gerada:', senhaGerada); // Remover depois de testar
   }, [comprimentoMinimo, forcaSenha]);
 
   // Filtrar sessões que não são a sessão atual

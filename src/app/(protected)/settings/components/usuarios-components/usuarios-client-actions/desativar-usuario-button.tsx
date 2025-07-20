@@ -1,7 +1,7 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { Trash } from "lucide-react";
 import { 
   Dialog, 
@@ -10,34 +10,34 @@ import {
   DialogTitle, 
   DialogFooter,
   DialogDescription
-} from "@/components/ui/dialog";
+} from "@/shared/ui/dialog";
 import { useRouter } from "next/navigation";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/tooltip";
+import { useToast } from "@/shared/ui/toast";
 
-// Botão para desativar usuário
+// BotÃ£o para desativar usuÃ¡rio
 interface DesativarUsuarioButtonProps {
-  userId: string; // ID do usuário
-  userName?: string; // Nome do usuário (opcional)
-  onSuccess?: () => void; // Callback após sucesso
+  userId: string; // ID do usuÃ¡rio
+  userName?: string; // Nome do usuÃ¡rio (opcional)
+  onSuccess?: () => void; // Callback apÃ³s sucesso
 }
 
 export default function DesativarUsuarioButton({ userId, userName, onSuccess }: DesativarUsuarioButtonProps) {
-  // Estados para controlar o diálogo, loading e erro
+  // Estados para controlar o diÃ¡logo, loading e erro
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const { toast } = useToast();
 
-  // Função para desativar o usuário
+  // FunÃ§Ã£o para desativar o usuÃ¡rio
   async function handleDesativar() {
     setLoading(true);
     setError(null);
     
     try {
-      // Chama a API Route para desativar usuário
+      // Chama a API Route para desativar usuÃ¡rio
       const result = await fetch('/api/user-management/users/deactivate', {
         method: 'POST',
         headers: {
@@ -53,21 +53,22 @@ export default function DesativarUsuarioButton({ userId, userName, onSuccess }: 
         setOpen(false);
         router.refresh();
         if (onSuccess) onSuccess();
-        toast({
-          description: `${userName || "Usuário"} foi desativado com sucesso.`,
+        toast.show({
+          title: "UsuÃ¡rio desativado",
+          description: `${userName || "UsuÃ¡rio"} foi desativado com sucesso.`,
           variant: "default"
         });
       } else {
-        setError(data.error || "Erro ao desativar usuário");
-        toast({
-          description: data.error || "Erro ao desativar usuário",
+        setError(data.error || "Erro ao desativar usuÃ¡rio");
+        toast.show({
+          description: data.error || "Erro ao desativar usuÃ¡rio",
           variant: "destructive"
         });
       }
     } catch (error) {
-      setError("Erro inesperado ao desativar usuário");
-      toast({
-        description: "Erro inesperado ao desativar usuário",
+      setError("Erro inesperado ao desativar usuÃ¡rio");
+      toast.show({
+        description: "Erro inesperado ao desativar usuÃ¡rio",
         variant: "destructive"
       });
     } finally {
@@ -77,7 +78,7 @@ export default function DesativarUsuarioButton({ userId, userName, onSuccess }: 
 
   return (
     <>
-      {/* Botão de desativar com tooltip */}
+      {/* BotÃ£o de desativar com tooltip */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -87,25 +88,25 @@ export default function DesativarUsuarioButton({ userId, userName, onSuccess }: 
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Desativar usuário</p>
+            <p>Desativar usuÃ¡rio</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
-      {/* Diálogo de confirmação */}
+      {/* DiÃ¡logo de confirmaÃ§Ã£o */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Desativar Usuário</DialogTitle>
+            <DialogTitle>Desativar UsuÃ¡rio</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja desativar o usuário {userName || "selecionado"}? Esta ação impedirá o acesso do usuário ao sistema.
+              Tem certeza que deseja desativar o usuÃ¡rio {userName || "selecionado"}? Esta aÃ§Ã£o impedirÃ¡ o acesso do usuÃ¡rio ao sistema.
             </DialogDescription>
           </DialogHeader>
           {/* Exibe erro, se houver */}
           {error && <div className="text-red-500 text-sm">{error}</div>}
           <DialogFooter>
-            {/* Botão cancelar */}
+            {/* BotÃ£o cancelar */}
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            {/* Botão desativar */}
+            {/* BotÃ£o desativar */}
             <Button variant="destructive" onClick={handleDesativar} disabled={loading}>
               {loading ? "Desativando..." : "Desativar"}
             </Button>

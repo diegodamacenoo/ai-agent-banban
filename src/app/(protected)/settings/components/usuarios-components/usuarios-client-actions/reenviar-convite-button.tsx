@@ -1,57 +1,73 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { SendIcon } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { useToast } from "@/shared/ui/toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/tooltip";
+import { createSupabaseBrowserClient } from '@/core/supabase/client';
 
-// Botão para reenviar convite de usuário
+// BotÃ£o para reenviar convite de usuÃ¡rio
 interface ReenviarConviteButtonProps {
   inviteId: string; // ID do convite
-  onSuccess?: () => void; // Callback após sucesso
+  onSuccess?: () => void; // Callback apÃ³s sucesso
 }
 
 export default function ReenviarConviteButton({ inviteId, onSuccess }: ReenviarConviteButtonProps) {
   // Estados para loading
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const supabase = createSupabaseBrowserClient();
 
-  // Função para reenviar o convite
+  // Função para reenviar o convite usando Edge Function
   async function handleReenviar() {
     if (!confirm("Tem certeza que deseja reenviar este convite?")) return;
     
     setLoading(true);
     
     try {
-      // Chama a API Route para reenviar convite
-      const result = await fetch('/api/user-management/invites/resend', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      console.debug('🚀 CHAMANDO EDGE FUNCTION resend-invite');
+      console.debug('Dados:', { invite_id: inviteId });
+
+      // Chamar a edge function para reenviar convite
+      const { data, error } = await supabase.functions.invoke('resend-invite', {
+        body: {
+          invite_id: inviteId,
         },
-        credentials: 'include',
-        body: JSON.stringify({ id: inviteId }),
       });
 
-      const data = await result.json();
+      console.debug('📥 RESPOSTA DA EDGE FUNCTION:', { data, error });
 
-      if (result.ok && data.success) {
-        toast({
-          description: "Convite reenviado com sucesso.",
+      if (error) {
+        console.error('Erro da edge function:', error);
+        toast.show({
+          title: "Erro ao reenviar convite",
+          description: error.message || "Erro interno da função",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data?.success) {
+        toast.show({
+          title: "Convite reenviado",
+          description: data.message || "Convite reenviado com sucesso.",
           variant: "default"
         });
         if (onSuccess) onSuccess();
       } else {
-        toast({
-          description: data.error || "Erro ao reenviar convite",
+        toast.show({
+          title: "Erro ao reenviar convite",
+          description: data?.error || "Erro desconhecido",
           variant: "destructive"
         });
       }
-    } catch (error) {
-      toast({
-        description: "Erro ao reenviar convite",
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast.show({
+        title: "Erro ao reenviar convite",
+        description: "Erro inesperado ao reenviar convite",
         variant: "destructive"
       });
     } finally {
@@ -69,7 +85,7 @@ export default function ReenviarConviteButton({ inviteId, onSuccess }: ReenviarC
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Reenviar convite</p>
+          <p>Reenviar convite (Edge Function)</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

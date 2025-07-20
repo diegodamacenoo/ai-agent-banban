@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/shared/ui/switch";
+import { Label } from "@/shared/ui/label";
+import { Input } from "@/shared/ui/input";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Separator } from "@/shared/ui/separator";
 
 // Mock de dados/estado inicial - isso viria de props ou de um hook de estado global
 const initialCanaisState = {
@@ -20,7 +20,7 @@ const initialCanaisState = {
   push_webhook: {
     enabled: true,
     url: "https://api.exemplo.com/webhook/123",
-    isMandatory: true, // Exemplo de canal obrigatório pelo Admin
+    isMandatory: true, // Exemplo de canal obrigatÃ³rio pelo Admin
   },
 };
 
@@ -49,7 +49,7 @@ export function CanaisDisponiveis() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h4 className="font-medium">E-mail</h4>
-              <p className="text-sm text-muted-foreground">Receba notificações via e-mail</p>
+              <p className="text-sm text-muted-foreground">Receba notificaÃ§Ãµes via e-mail</p>
             </div>
             <Switch
               id="email-switch"
@@ -67,7 +67,7 @@ export function CanaisDisponiveis() {
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h4 className="font-medium">WhatsApp / SMS</h4>
-              <p className="text-sm text-muted-foreground">Receba notificações via mensagem de texto</p>
+              <p className="text-sm text-muted-foreground">Receba notificaÃ§Ãµes via mensagem de texto</p>
             </div>
             <Switch
               id="whatsapp-sms-switch"
@@ -79,13 +79,13 @@ export function CanaisDisponiveis() {
           
           {canais.whatsapp_sms.isMandatory && (
             <p className="text-xs text-amber-600">
-              Este canal é obrigatório e não pode ser desabilitado.
+              Este canal Ã© obrigatÃ³rio e nÃ£o pode ser desabilitado.
             </p>
           )}
 
           {canais.whatsapp_sms.enabled && (
             <div className="pl-0 space-y-2">
-              <Label htmlFor="whatsapp-sms-phone">Número de Telefone (com código do país)</Label>
+              <Label htmlFor="whatsapp-sms-phone">NÃºmero de Telefone (com cÃ³digo do paÃ­s)</Label>
               <Input
                 id="whatsapp-sms-phone"
                 type="tel"

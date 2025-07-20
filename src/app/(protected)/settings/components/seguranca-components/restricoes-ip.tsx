@@ -1,11 +1,11 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
 import { TrashIcon, PlusIcon, GlobeIcon, InfoIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 
 interface RestricoesIPProps {
   restricaoIP: boolean;
@@ -100,7 +100,7 @@ export default function RestricoesIP({
               <div className="flex items-start gap-2">
                 <InfoIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400 shrink-0 mt-0.5" />
                 <div className="text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
-                  <p>Certifique-se de incluir seu IP atual ou perderá acesso ao sistema.</p>
+                  <p>Certifique-se de incluir seu IP atual ou perderÃ¡ acesso ao sistema.</p>
                   <p className="font-medium">Seu IP atual: <span className="font-mono">192.168.1.10</span></p>
                 </div>
               </div>

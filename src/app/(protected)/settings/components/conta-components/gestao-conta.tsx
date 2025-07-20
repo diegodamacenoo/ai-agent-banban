@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+} from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -17,19 +17,19 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
     AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+} from "@/shared/ui/select";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Separator } from "@/shared/ui/separator";
+import { Badge } from "@/shared/ui/badge";
+import { useToast } from '@/shared/ui/toast';
 import { Trash2Icon, DownloadIcon, ArchiveIcon, ShieldXIcon, AlertTriangleIcon, CheckCircleIcon, ClockIcon } from "lucide-react";
 
 // Server Actions imports
@@ -61,10 +61,10 @@ export default function GestaoConta() {
     const router = useRouter();
     const { toast } = useToast();    
 
-    // Estados para desativação
+    // Estados para desativaÃ§Ã£o
     const [isDeactivating, setIsDeactivating] = React.useState(false);
 
-    // Estados para exclusão
+    // Estados para exclusÃ£o
     const [isDeleting, setIsDeleting] = React.useState(false);
     const [senhaConfirmacao, setSenhaConfirmacao] = React.useState("");
     const [deletionRequest, setDeletionRequest] = React.useState<DeletionRequest | null>(null);
@@ -83,17 +83,13 @@ export default function GestaoConta() {
             if (result.success) {
                 setDeletionRequest(result.data as DeletionRequest | null);
             } else if (result.error) {
-                toast({
-                    variant: "destructive",
-                    title: "Erro ao verificar exclusão",
-                    description: result.error,
+                toast.error(result.error, {
+                    title: "Erro ao verificar exclusÃ£o",
                 });
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
+            toast.error("Erro ao verificar solicitaÃ§Ã£o de exclusÃ£o.", {
                 title: "Erro inesperado",
-                description: "Erro ao verificar solicitação de exclusão.",
             });
         } finally {
             setLoadingDeletion(false);
@@ -107,26 +103,21 @@ export default function GestaoConta() {
             const result = await deactivateAccount();
             
             if (result.success) {
-                toast({
+                toast.success('Conta desativada com sucesso. Redirecionando...', {
                     title: "Conta desativada com sucesso",
-                    description: result.data?.message || 'Conta desativada com sucesso. Redirecionando...',
                 });
-                // Redirecionar para login após alguns segundos
+                // Redirecionar para login apÃ³s alguns segundos
                 setTimeout(() => {
                     router.push('/login');
                 }, 2000);
             } else {
-                toast({
-                    variant: "destructive",
+                toast.error(result.error || 'Erro ao desativar conta.', {
                     title: "Erro ao desativar conta",
-                    description: result.error || 'Erro ao desativar conta.',
                 });
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
+            toast.error("Erro inesperado ao desativar conta.", {
                 title: "Erro inesperado",
-                description: "Erro inesperado ao desativar conta.",
             });
         } finally {
             setIsDeactivating(false);
@@ -135,10 +126,8 @@ export default function GestaoConta() {
 
     const handleExcluirConta = async () => {
         if (!senhaConfirmacao.trim()) {
-            toast({
-                variant: "destructive",
-                title: "Senha obrigatória",
-                description: "Por favor, digite sua senha para confirmar.",
+            toast.error("Por favor, digite sua senha para confirmar.", {
+                title: "Senha obrigatÃ³ria",
             });
             return;
         }
@@ -148,24 +137,19 @@ export default function GestaoConta() {
             const result = await requestAccountDeletion(senhaConfirmacao);
             
             if (result.success) {
-                toast({
-                    title: "Solicitação de exclusão enviada",
-                    description: result.data?.message || 'Um email de confirmação foi enviado. Verifique sua caixa de entrada.',
+                toast.success('Um email de confirmaÃ§Ã£o foi enviado. Verifique sua caixa de entrada.', {
+                    title: "SolicitaÃ§Ã£o de exclusÃ£o enviada",
                 });
                 setSenhaConfirmacao("");
                 await loadDeletionRequest(); // Recarregar status
             } else {
-                toast({
-                    variant: "destructive",
-                    title: "Erro ao solicitar exclusão",
-                    description: result.error || 'Erro ao solicitar exclusão.',
+                toast.error(result.error || 'Erro ao solicitar exclusÃ£o.', {
+                    title: "Erro ao solicitar exclusÃ£o",
                 });
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
+            toast.error("Erro inesperado ao solicitar exclusÃ£o.", {
                 title: "Erro inesperado",
-                description: "Erro inesperado ao solicitar exclusão.",
             });
         } finally {
             setIsDeleting(false);
@@ -177,23 +161,18 @@ export default function GestaoConta() {
             const result = await cancelAccountDeletion();
             
             if (result.success) {
-                toast({
-                    title: "Exclusão cancelada",
-                    description: result.data?.message || 'Solicitação de exclusão cancelada com sucesso.',
+                toast.success('SolicitaÃ§Ã£o de exclusÃ£o cancelada com sucesso.', {
+                    title: "ExclusÃ£o cancelada",
                 });
                 await loadDeletionRequest(); // Recarregar status
             } else {
-                toast({
-                    variant: "destructive",
-                    title: "Erro ao cancelar exclusão",
-                    description: result.error || 'Erro ao cancelar exclusão.',
+                toast.error(result.error || 'Erro ao cancelar exclusÃ£o.', {
+                    title: "Erro ao cancelar exclusÃ£o",
                 });
             }
         } catch (error) {
-            toast({
-                variant: "destructive",
+            toast.error("Erro inesperado ao cancelar exclusÃ£o.", {
                 title: "Erro inesperado",
-                description: "Erro inesperado ao cancelar exclusão.",
             });
         }
     };
@@ -207,7 +186,7 @@ export default function GestaoConta() {
                     <div>
                         <h4 className="font-medium">Desativar Conta Temporariamente</h4>
                         <p className="text-xs text-muted-foreground">
-                            Congele seu acesso e pause atividades, preservando seus dados para reativação futura.
+                            Congele seu acesso e pause atividades, preservando seus dados para reativaÃ§Ã£o futura.
                         </p>
                     </div>
                     <AlertDialog>
@@ -220,8 +199,8 @@ export default function GestaoConta() {
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Desativar Conta Temporariamente?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    Sua conta será congelada e você perderá o acesso temporariamente. Todas as suas configurações e histórico de ações serão preservados.
-                                    Você poderá reativar sua conta a qualquer momento fazendo login novamente. Deseja continuar?
+                                    Sua conta serÃ¡ congelada e vocÃª perderÃ¡ o acesso temporariamente. Todas as suas configuraÃ§Ãµes e histÃ³rico de aÃ§Ãµes serÃ£o preservados.
+                                    VocÃª poderÃ¡ reativar sua conta a qualquer momento fazendo login novamente. Deseja continuar?
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -236,19 +215,19 @@ export default function GestaoConta() {
                 
                 <Separator className="my-6"/>
 
-                {/* Status da Solicitação de Exclusão */}
+                {/* Status da SolicitaÃ§Ã£o de ExclusÃ£o */}
                 {!loadingDeletion && deletionRequest && (
                     <div className="p-4 border border-orange-200 rounded-md bg-orange-50">
                         <div className="flex items-center justify-between gap-2">
                             <div>
                                 <h4 className="font-medium text-orange-800 flex items-center gap-1.5">
                                     <ClockIcon className="w-5 h-5"/> 
-                                    Solicitação de Exclusão {deletionRequest.status === 'pending' ? 'Pendente' : 'Confirmada'}
+                                    SolicitaÃ§Ã£o de ExclusÃ£o {deletionRequest.status === 'pending' ? 'Pendente' : 'Confirmada'}
                                 </h4>
                                 <p className="text-sm text-orange-700 mt-1">
-                                    {deletionRequest.status === 'pending' && 'Verifique seu email para confirmar a exclusão.'}
+                                    {deletionRequest.status === 'pending' && 'Verifique seu email para confirmar a exclusÃ£o.'}
                                     {deletionRequest.status === 'confirmed' && deletionRequest.scheduled_deletion_date && 
-                                        `Sua conta será excluída em ${formatDate(deletionRequest.scheduled_deletion_date)}.`
+                                        `Sua conta serÃ¡ excluÃ­da em ${formatDate(deletionRequest.scheduled_deletion_date)}.`
                                     }
                                 </p>
                             </div>
@@ -258,7 +237,7 @@ export default function GestaoConta() {
                                 onClick={handleCancelarExclusao}
                                 className="text-orange-800 border-orange-300 hover:bg-orange-100"
                             >
-                                Cancelar Exclusão
+                                Cancelar ExclusÃ£o
                             </Button>
                         </div>
                     </div>
@@ -273,7 +252,7 @@ export default function GestaoConta() {
                                     <ShieldXIcon className="w-5 h-5"/> Excluir Minha Conta Permanentemente
                                 </h4>
                                 <p className="text-xs text-destructive/80 mt-1">
-                                    Esta ação iniciará um processo irreversível que removerá todas as suas configurações e dados após 7 dias.
+                                    Esta aÃ§Ã£o iniciarÃ¡ um processo irreversÃ­vel que removerÃ¡ todas as suas configuraÃ§Ãµes e dados apÃ³s 7 dias.
                                 </p>
                             </div>
                             <AlertDialog>
@@ -284,11 +263,11 @@ export default function GestaoConta() {
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle>Você tem CERTEZA?</AlertDialogTitle>
+                                        <AlertDialogTitle>VocÃª tem CERTEZA?</AlertDialogTitle>
                                         <AlertDialogDescription className="space-y-3">
-                                            <p>A exclusão da sua conta é uma ação <strong>permanente e irreversível</strong>.</p>
-                                            <p>Todos os seus dados pessoais, configurações, histórico de atividades e qualquer conteúdo associado à sua conta serão excluídos após um período de carência de 7 dias. Após a exclusão, não será possível recuperar sua conta ou seus dados.</p>
-                                            <p>Para prosseguir, digite sua senha atual e confirme. Um email de verificação será enviado para finalizar o processo.</p>
+                                            <p>A exclusÃ£o da sua conta Ã© uma aÃ§Ã£o <strong>permanente e irreversÃ­vel</strong>.</p>
+                                            <p>Todos os seus dados pessoais, configuraÃ§Ãµes, histÃ³rico de atividades e qualquer conteÃºdo associado Ã  sua conta serÃ£o excluÃ­dos apÃ³s um perÃ­odo de carÃªncia de 7 dias. ApÃ³s a exclusÃ£o, nÃ£o serÃ¡ possÃ­vel recuperar sua conta ou seus dados.</p>
+                                            <p>Para prosseguir, digite sua senha atual e confirme. Um email de verificaÃ§Ã£o serÃ¡ enviado para finalizar o processo.</p>
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <div className="space-y-2 py-2">
@@ -310,7 +289,7 @@ export default function GestaoConta() {
                                             disabled={!senhaConfirmacao.trim() || isDeleting} 
                                             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                         >
-                                            {isDeleting ? 'Processando...' : 'Confirmar Exclusão'}
+                                            {isDeleting ? 'Processando...' : 'Confirmar ExclusÃ£o'}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>

@@ -1,0 +1,362 @@
+{
+  "$schema": "../../templates/schemas/core_module_manifest.schema.json",
+  "id": "banban-performance",
+  "name": "BanBan Performance System",
+  "version": "2.0.0",
+  "category": "custom",
+  "vendor": "Axon Development Team",
+  "client_id": "banban",
+  "description": "Sistema avançado de análise de performance para varejo de moda BanBan, especializado em métricas de calçados, acessórios e análise sazonal. Oferece dashboards executivos, análise de giro de estoque, performance por marca e previsões de tendências.",
+  "keywords": ["performance", "fashion", "analytics", "inventory", "turnover", "margins", "seasonal", "kpi"],
+  "license": "Proprietary",
+  "pricing": {
+    "tier": "premium",
+    "model": "subscription",
+    "base_cost": 399.99,
+    "currency": "BRL",
+    "billing_cycle": "monthly"
+  },
+  "compatibility": {
+    "min_node_version": "18.0.0",
+    "supported_platforms": ["web", "mobile", "api"],
+    "dependencies": {
+      "fastify": "^4.0.0",
+      "zod": "^3.22.0",
+      "date-fns": "^2.30.0",
+      "lodash": "^4.17.21"
+    }
+  },
+  "features": [
+    {
+      "id": "fashion_metrics",
+      "name": "Métricas de Moda",
+      "description": "Análise específica para varejo de calçados e acessórios",
+      "enabled": true
+    },
+    {
+      "id": "inventory_turnover",
+      "name": "Giro de Estoque",
+      "description": "Análise detalhada de turnover por produto, categoria e marca",
+      "enabled": true
+    },
+    {
+      "id": "seasonal_analysis",
+      "name": "Análise Sazonal",
+      "description": "Performance por temporadas e coleções",
+      "enabled": true
+    },
+    {
+      "id": "brand_performance",
+      "name": "Performance por Marca",
+      "description": "Análise comparativa entre marcas e fornecedores",
+      "enabled": true
+    },
+    {
+      "id": "executive_dashboard",
+      "name": "Dashboard Executivo",
+      "description": "KPIs principais para tomada de decisão",
+      "enabled": true
+    },
+    {
+      "id": "product_margins",
+      "name": "Análise de Margens",
+      "description": "Margens por produto, categoria e período",
+      "enabled": true
+    },
+    {
+      "id": "size_matrix_performance",
+      "name": "Performance Matriz Tamanho/Cor",
+      "description": "Análise específica da grade de produtos",
+      "enabled": true
+    },
+    {
+      "id": "collection_performance",
+      "name": "Performance por Coleção",
+      "description": "Análise de performance por coleção e lançamentos",
+      "enabled": true
+    },
+    {
+      "id": "forecasting",
+      "name": "Previsões",
+      "description": "Previsões de vendas e performance baseadas em histórico",
+      "enabled": true
+    },
+    {
+      "id": "growth_trends",
+      "name": "Tendências de Crescimento",
+      "description": "Identificação de tendências e oportunidades",
+      "enabled": true
+    },
+    {
+      "id": "performance_alerts",
+      "name": "Alertas de Performance",
+      "description": "Alertas automáticos para indicadores críticos",
+      "enabled": true
+    },
+    {
+      "id": "real_time_monitoring",
+      "name": "Monitoramento em Tempo Real",
+      "description": "Acompanhamento contínuo de métricas principais",
+      "enabled": true
+    }
+  ],
+  "business_rules": {
+    "turnover_thresholds": {
+      "excellent": 12,
+      "good": 8,
+      "average": 6,
+      "poor": 4,
+      "critical": 2
+    },
+    "margin_targets": {
+      "calçados": 0.45,
+      "acessórios": 0.55,
+      "bolsas": 0.50,
+      "carteiras": 0.60
+    },
+    "seasonal_periods": {
+      "verão": ["12", "01", "02", "03"],
+      "outono": ["03", "04", "05", "06"],
+      "inverno": ["06", "07", "08", "09"],
+      "primavera": ["09", "10", "11", "12"]
+    },
+    "performance_calculation": {
+      "update_frequency_minutes": 15,
+      "data_retention_days": 365,
+      "cache_duration_minutes": 30
+    }
+  },
+  "performance_metrics": {
+    "target_response_time": "< 2s",
+    "target_throughput": "500 requests/min",
+    "target_availability": "99.5%",
+    "dashboard_load_time": "< 3s",
+    "calculation_max_time": "< 10s"
+  },
+  "api": {
+    "version": "v2",
+    "base_path": "/api/modules/banban/performance",
+    "endpoints": [
+      {
+        "path": "/fashion-metrics",
+        "method": "GET",
+        "description": "Métricas específicas de moda e varejo",
+        "auth_required": true
+      },
+      {
+        "path": "/inventory-turnover",
+        "method": "GET",
+        "description": "Análise de giro de estoque por produto",
+        "auth_required": true
+      },
+      {
+        "path": "/seasonal-analysis",
+        "method": "GET",
+        "description": "Análise sazonal de performance",
+        "auth_required": true
+      },
+      {
+        "path": "/brand-performance",
+        "method": "GET",
+        "description": "Performance detalhada por marca",
+        "auth_required": true
+      },
+      {
+        "path": "/executive-dashboard",
+        "method": "GET",
+        "description": "Dashboard executivo com KPIs principais",
+        "auth_required": true
+      },
+      {
+        "path": "/product-margins",
+        "method": "GET",
+        "description": "Análise de margens por produto",
+        "auth_required": true
+      },
+      {
+        "path": "/size-matrix",
+        "method": "GET",
+        "description": "Performance da matriz tamanho/cor",
+        "auth_required": true
+      },
+      {
+        "path": "/collection-performance",
+        "method": "GET",
+        "description": "Performance por coleção",
+        "auth_required": true
+      },
+      {
+        "path": "/forecast",
+        "method": "GET",
+        "description": "Previsões de performance",
+        "auth_required": true
+      },
+      {
+        "path": "/growth-trends",
+        "method": "GET",
+        "description": "Tendências de crescimento",
+        "auth_required": true
+      },
+      {
+        "path": "/alerts",
+        "method": "GET",
+        "description": "Alertas de performance",
+        "auth_required": true
+      },
+      {
+        "path": "/metrics/refresh",
+        "method": "POST",
+        "description": "Forçar recálculo de métricas",
+        "auth_required": true
+      },
+      {
+        "path": "/export",
+        "method": "POST",
+        "description": "Exportar dados de performance",
+        "auth_required": true
+      },
+      {
+        "path": "/health",
+        "method": "GET",
+        "description": "Health check do módulo performance",
+        "auth_required": false
+      }
+    ]
+  },
+  "database": {
+    "tables": [
+      {
+        "name": "tenant_performance_metrics",
+        "description": "Métricas de performance calculadas",
+        "estimated_rows": 50000
+      },
+      {
+        "name": "tenant_performance_cache",
+        "description": "Cache de cálculos de performance",
+        "estimated_rows": 10000
+      },
+      {
+        "name": "tenant_performance_config",
+        "description": "Configurações de performance por tenant",
+        "estimated_rows": 100
+      },
+      {
+        "name": "tenant_performance_alerts",
+        "description": "Alertas de performance gerados",
+        "estimated_rows": 5000
+      },
+      {
+        "name": "tenant_turnover_analysis",
+        "description": "Análise de turnover por produto",
+        "estimated_rows": 100000
+      },
+      {
+        "name": "tenant_seasonal_performance",
+        "description": "Performance sazonal histórica",
+        "estimated_rows": 20000
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "name": "metrics_calculator",
+      "description": "Cálculo periódico de métricas de performance",
+      "schedule": "*/15 * * * *",
+      "timeout": 600000
+    },
+    {
+      "name": "turnover_analyzer",
+      "description": "Análise de giro de estoque",
+      "schedule": "0 */6 * * *",
+      "timeout": 900000
+    },
+    {
+      "name": "seasonal_analyzer",
+      "description": "Análise sazonal e tendências",
+      "schedule": "0 2 * * *",
+      "timeout": 1200000
+    },
+    {
+      "name": "performance_alerts",
+      "description": "Geração de alertas de performance",
+      "schedule": "*/30 * * * *",
+      "timeout": 300000
+    },
+    {
+      "name": "cache_cleanup",
+      "description": "Limpeza de cache antigo",
+      "schedule": "0 3 * * *",
+      "timeout": 300000
+    }
+  ],
+  "monitoring": {
+    "metrics": [
+      {
+        "name": "performance_calculations_total",
+        "type": "counter",
+        "description": "Total de cálculos de performance executados"
+      },
+      {
+        "name": "dashboard_requests_total",
+        "type": "counter",
+        "description": "Total de requisições ao dashboard"
+      },
+      {
+        "name": "calculation_duration_seconds",
+        "type": "histogram",
+        "description": "Tempo de cálculo de métricas"
+      },
+      {
+        "name": "cached_metrics_count",
+        "type": "gauge",
+        "description": "Número de métricas em cache"
+      }
+    ],
+    "alerts": [
+      {
+        "name": "slow_calculations",
+        "condition": "calculation_duration_seconds > 30",
+        "severity": "warning"
+      },
+      {
+        "name": "calculation_failures",
+        "condition": "calculation_error_rate > 0.05",
+        "severity": "critical"
+      }
+    ]
+  },
+  "integrations": {
+    "data_sources": [
+      "sales_data",
+      "inventory_data",
+      "product_catalog",
+      "financial_data"
+    ],
+    "export_formats": [
+      "excel",
+      "pdf",
+      "csv"
+    ],
+    "internal_modules": [
+      "banban-inventory",
+      "banban-insights",
+      "banban-alerts"
+    ]
+  },
+  "security": {
+    "data_classification": "internal",
+    "encryption_required": true,
+    "audit_logging": true,
+    "access_control": "rbac"
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "health_check_path": "/health",
+    "readiness_probe": "/ready",
+    "resource_requirements": {
+      "cpu": "1000m",
+      "memory": "1Gi",
+      "storage": "5Gi"
+    }
+  }
+}

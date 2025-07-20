@@ -2,22 +2,22 @@ import * as React from "react";
 import {
     Card,
     CardContent,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+} from "@/shared/ui/card";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+} from "@/shared/ui/select";
+import { Checkbox } from "@/shared/ui/checkbox";
+import { Input } from "@/shared/ui/input";
 import { MailIcon, MessageSquareIcon, SmartphoneIcon, MoonIcon } from "lucide-react";
 
 export default function PreferenciasNotificacoes() {
-    // TODO: Adicionar estados e lógica
+    // TODO: Adicionar estados e lÃ³gica
     const [canalPreferido, setCanalPreferido] = React.useState("email");
     const [alertasProduto, setAlertasProduto] = React.useState(true);
     const [alertasSeguranca, setAlertasSeguranca] = React.useState(true);
@@ -30,7 +30,7 @@ export default function PreferenciasNotificacoes() {
         <Card className="shadow-none">
             <CardContent className="p-6 space-y-6">
                 <div className="space-y-2">
-                    <Label htmlFor="canalPreferido">Canal Preferido para Notificações</Label>
+                    <Label htmlFor="canalPreferido">Canal Preferido para NotificaÃ§Ãµes</Label>
                     <Select value={canalPreferido} onValueChange={setCanalPreferido}>
                         <SelectTrigger id="canalPreferido">
                             <SelectValue placeholder="Selecione um canal" />
@@ -48,14 +48,14 @@ export default function PreferenciasNotificacoes() {
                         </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                        Selecione o meio principal pelo qual você gostaria de ser notificado.
+                        Selecione o meio principal pelo qual vocÃª gostaria de ser notificado.
                     </p>
                 </div>
 
                 <div className="space-y-3">
                     <Label>Tipos de Alerta</Label>
                     <p className="text-xs text-muted-foreground pb-1">
-                        Escolha quais tipos de notificações você deseja receber.
+                        Escolha quais tipos de notificaÃ§Ãµes vocÃª deseja receber.
                     </p>
                     <div className="flex items-center space-x-2">
                         <Checkbox id="alertas-produto" checked={alertasProduto} onCheckedChange={(checked) => setAlertasProduto(Boolean(checked))} />
@@ -63,7 +63,7 @@ export default function PreferenciasNotificacoes() {
                             htmlFor="alertas-produto"
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                            Novidades e atualizações de produtos
+                            Novidades e atualizaÃ§Ãµes de produtos
                         </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -72,7 +72,7 @@ export default function PreferenciasNotificacoes() {
                             htmlFor="alertas-seguranca"
                             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
-                            Alertas importantes de segurança da conta
+                            Alertas importantes de seguranÃ§a da conta
                         </label>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -89,7 +89,7 @@ export default function PreferenciasNotificacoes() {
                 <div className="space-y-3 pt-4 border-t">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="nao-perturbe" className="flex items-center gap-1.5">
-                           <MoonIcon className="w-4 h-4" /> Modo "Não Perturbe"
+                           <MoonIcon className="w-4 h-4" /> Modo "NÃ£o Perturbe"
                         </Label>
                         <Switch
                             id="nao-perturbe"
@@ -98,12 +98,12 @@ export default function PreferenciasNotificacoes() {
                         />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                        Defina um intervalo diário para não receber notificações.
+                        Defina um intervalo diÃ¡rio para nÃ£o receber notificaÃ§Ãµes.
                     </p>
                     {naoPerturbe && (
                         <div className="grid grid-cols-2 gap-4 pt-2">
                             <div className="space-y-1.5">
-                                <Label htmlFor="hora-inicio-np">Início</Label>
+                                <Label htmlFor="hora-inicio-np">InÃ­cio</Label>
                                 <Input id="hora-inicio-np" type="time" value={horaInicioNaoPerturbe} onChange={(e) => setHoraInicioNaoPerturbe(e.target.value)} />
                             </div>
                             <div className="space-y-1.5">

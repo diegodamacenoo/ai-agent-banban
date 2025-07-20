@@ -1,0 +1,132 @@
+'use server';
+
+import { createSupabaseServerClient } from "@/core/supabase/server";
+import { CoreModule, ModuleMaturity } from "@/shared/types/module-catalog";
+import { OrphanModule } from "@/shared/types/module-system";
+import { revalidatePath } from "next/cache";
+import { ModuleDiscoveryService } from "@/core/services/module-discovery";
+
+export async function getAvailableModules(): Promise<{ success: boolean; data?: CoreModule[]; error?: string }> {
+  console.debug('📊 [ModuleCatalog] Buscando módulos disponíveis...');
+  const supabase = await createSupabaseServerClient();
+  
+  try {
+    console.debug('🔍 [ModuleCatalog] Consultando banco de dados...');
+    const { data, error } = await supabase
+      .from('core_modules')
+      .select('*')
+      .eq('is_deleted', false) // Filtrar apenas módulos não deletados
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('❌ [ModuleCatalog] Erro ao buscar módulos:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.debug('✅ [ModuleCatalog] Módulos encontrados (excluindo deletados):', data?.length);
+    console.debug('📋 [ModuleCatalog] Dados:', data);
+
+    return { success: true, data: data as CoreModule[] };
+  } catch (e: any) {
+    console.error('💥 [ModuleCatalog] Erro inesperado:', e);
+    return { success: false, error: e.message || 'An unexpected error occurred' };
+  }
+}
+
+export async function updateModuleMaturity(moduleId: string, maturity: ModuleMaturity): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createSupabaseServerClient();
+
+  try {
+    const { error } = await supabase
+      .from('core_modules')
+      .update({ maturity_status: maturity, updated_at: new Date().toISOString() })
+      .eq('id', moduleId);
+
+    if (error) {
+      console.error(`Error updating module ${moduleId} to maturity ${maturity}:`, error);
+      return { success: false, error: error.message };
+    }
+
+    // Revalida o path para garantir que a UI seja atualizada
+    revalidatePath('/admin/modules');
+
+    return { success: true };
+  } catch (e: any) {
+    console.error('Unexpected error in updateModuleMaturity:', e);
+    return { success: false, error: e.message || 'An unexpected error occurred' };
+  }
+}
+
+export async function getModuleById(moduleId: string): Promise<{ success?: boolean; data?: CoreModule; error?: string }> {
+  console.debug('📊 [ModuleCatalog] Buscando módulo por ID:', moduleId);
+  const supabase = await createSupabaseServerClient();
+  
+  try {
+    console.debug('🔍 [ModuleCatalog] Consultando banco de dados...');
+    const { data, error } = await supabase
+      .from('core_modules')
+      .select('*')
+      .eq('id', moduleId)
+      .single();
+
+    if (error) {
+      console.error('❌ [ModuleCatalog] Erro ao buscar módulo:', error);
+      return { error: error.message };
+    }
+
+    if (!data) {
+      console.warn('⚠️ [ModuleCatalog] Módulo não encontrado:', moduleId);
+      return { error: 'Módulo não encontrado' };
+    }
+
+    console.debug('✅ [ModuleCatalog] Módulo encontrado:', data);
+    return { data: data as CoreModule };
+  } catch (e: any) {
+    console.error('💥 [ModuleCatalog] Erro inesperado:', e);
+    return { error: e.message || 'An unexpected error occurred' };
+  }
+}
+
+export async function detectOrphanModules(): Promise<{ success: boolean; data?: OrphanModule[]; error?: string }> {
+  console.debug('🔍 [ModuleCatalog] Iniciando detecção de módulos órfãos...');
+  
+  try {
+    const moduleDiscovery = new ModuleDiscoveryService();
+    console.debug('✨ [ModuleCatalog] Serviço de detecção instanciado');
+    
+    const orphans = await moduleDiscovery.detectOrphanModules();
+    console.debug('📊 [ModuleCatalog] Órfãos detectados:', orphans);
+
+    return { success: true, data: orphans };
+  } catch (e: any) {
+    console.error('💥 [ModuleCatalog] Erro ao detectar módulos órfãos:', e);
+    return { success: false, error: e.message || 'An unexpected error occurred' };
+  }
+}
+
+export async function getDeletedModules(): Promise<{ success: boolean; data?: CoreModule[]; error?: string }> {
+  console.debug('🗑️ [ModuleCatalog] Buscando módulos deletados...');
+  const supabase = await createSupabaseServerClient();
+  
+  try {
+    console.debug('🔍 [ModuleCatalog] Consultando módulos deletados...');
+    const { data, error } = await supabase
+      .from('core_modules')
+      .select('*')
+      .eq('is_deleted', true) // Buscar apenas módulos deletados
+      .order('deleted_at', { ascending: false }); // Mais recentes primeiro
+
+    if (error) {
+      console.error('❌ [ModuleCatalog] Erro ao buscar módulos deletados:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.debug('✅ [ModuleCatalog] Módulos deletados encontrados:', data?.length);
+    console.debug('📋 [ModuleCatalog] Dados:', data);
+
+    return { success: true, data: data as CoreModule[] };
+  } catch (e: any) {
+    console.error('💥 [ModuleCatalog] Erro inesperado:', e);
+    return { success: false, error: e.message || 'An unexpected error occurred' };
+  }
+} 

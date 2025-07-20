@@ -1,0 +1,189 @@
+[
+  {
+    "name": "Test: Purchase Order Created",
+    "event_type": "purchase_order_created",
+    "payload": {
+      "event_type": "purchase_order_created",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "data": {
+        "purchase_order": {
+          "order_number": "PO-TEST-001",
+          "supplier_code": "SUPPLIER001",
+          "supplier_name": "Fornecedor Teste",
+          "total_value": 1000.00,
+          "issue_date": "2025-01-15T10:00:00Z",
+          "destination": "CD001",
+          "approved_by": "USER001",
+          "approval_date": "2025-01-15T10:30:00Z"
+        },
+        "items": [
+          {
+            "item_sequence": 1,
+            "product_code": "PROD001",
+            "product_name": "Produto Teste",
+            "variant_code": "VAR001",
+            "size": "M",
+            "color": "Azul",
+            "quantity_ordered": 10,
+            "unit_cost": 50.00,
+            "notes": "Item de teste"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Test: Goods Received CD",
+    "event_type": "goods_received_cd",
+    "payload": {
+      "event_type": "goods_received_cd",
+      "timestamp": "2025-01-15T14:00:00Z",
+      "data": {
+        "purchase_order": {
+          "order_number": "PO-TEST-001"
+        },
+        "invoice": {
+          "invoice_number": "NFE-TEST-001",
+          "issue_date": "2025-01-15",
+          "total_value": 500.00,
+          "supplier_code": "SUPPLIER001"
+        },
+        "received_items": [
+          {
+            "item_sequence": 1,
+            "variant_code": "VAR001",
+            "quantity_invoiced": 10,
+            "quantity_received": 10,
+            "quantity_divergence": 0,
+            "unit_price": 50.00
+          }
+        ],
+        "location": {
+          "location_code": "CD001",
+          "location_name": "Centro de Distribuicao 1"
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Receipt Verified OK",
+    "event_type": "receipt_item_scanned_ok",
+    "payload": {
+      "event_type": "receipt_item_scanned_ok",
+      "timestamp": "2025-01-15T14:30:00Z",
+      "data": {
+        "invoice": {
+          "invoice_number": "NFE-TEST-001"
+        },
+        "conference": {
+          "conference_date": "2025-01-15",
+          "conference_by": "USER002",
+          "total_items_checked": 1,
+          "items_approved": 1,
+          "items_rejected": 0
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Receipt with Discrepancy",
+    "event_type": "receipt_item_scanned_diff",
+    "payload": {
+      "event_type": "receipt_item_scanned_diff",
+      "timestamp": "2025-01-15T14:35:00Z",
+      "data": {
+        "invoice": {
+          "invoice_number": "NFE-TEST-002"
+        },
+        "conference": {
+          "conference_date": "2025-01-15",
+          "conference_by": "USER002",
+          "total_items_checked": 1,
+          "items_approved": 0,
+          "items_rejected": 1,
+          "divergence_details": [
+            {
+              "variant_code": "VAR001",
+              "expected_qty": 10,
+              "received_qty": 9,
+              "rejected_qty": 1,
+              "rejection_reason": "Produto danificado"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Receipt Effective in CD",
+    "event_type": "store_receipt_effective",
+    "payload": {
+      "event_type": "store_receipt_effective",
+      "timestamp": "2025-01-15T16:00:00Z",
+      "data": {
+        "invoice": {
+          "invoice_number": "NFE-TEST-001"
+        },
+        "effectuation": {
+          "effectuation_date": "2025-01-15",
+          "effectuation_by": "USER003",
+          "total_items_effectuated": 1,
+          "inventory_updated": true,
+          "cost_updated": true
+        },
+        "inventory_impact": [
+          {
+            "variant_code": "VAR001",
+            "location_code": "CD001",
+            "previous_stock": 0,
+            "received_qty": 10,
+            "new_stock": 10
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Test: Purchase Completed",
+    "payload": {
+      "event_type": "purchase_completed",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T08:00:00Z",
+      "data": {
+        "purchase": {
+          "purchase_id": "PO001",
+          "purchase_date": "2025-01-15",
+          "supplier_id": "SUP001",
+          "store_id": "STORE001",
+          "total_amount": 1499.95,
+          "items": [
+            {
+              "product_code": "PROD001",
+              "variant_code": "VAR001",
+              "quantity": 5,
+              "unit_cost": 299.99,
+              "total_cost": 1499.95
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Purchase Cancelled",
+    "payload": {
+      "event_type": "purchase_cancelled",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T09:00:00Z",
+      "data": {
+        "purchase": {
+          "purchase_id": "PO001",
+          "cancellation_date": "2025-01-15",
+          "cancellation_reason": "SUPPLIER_OUT_OF_STOCK",
+          "supplier_id": "SUP001",
+          "store_id": "STORE001"
+        }
+      }
+    }
+  }
+] 

@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://axon.dev/schemas/module_settings.schema.json",
+  "title": "Module Settings Schema",
+  "description": "Schema para validação de configurações de módulos por tenant",
+  "type": "object",
+  "properties": {
+    "general": {
+      "type": "object",
+      "description": "Configurações gerais do módulo",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Se o módulo está habilitado",
+          "default": true
+        },
+        "debug_mode": {
+          "type": "boolean",
+          "description": "Modo de debug ativado",
+          "default": false
+        },
+        "log_level": {
+          "type": "string",
+          "enum": ["error", "warn", "info", "debug", "trace"],
+          "default": "info"
+        },
+        "max_concurrent_operations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        }
+      },
+      "default": {}
+    },
+    "api": {
+      "type": "object",
+      "description": "Configurações de API",
+      "properties": {
+        "rate_limit": {
+          "type": "object",
+          "properties": {
+            "requests_per_minute": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10000,
+              "default": 100
+            },
+            "burst_limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 1000,
+              "default": 20
+            }
+          },
+          "default": {}
+        },
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 30
+        },
+        "retry_attempts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 3
+        },
+        "enable_caching": {
+          "type": "boolean",
+          "default": true
+        },
+        "cache_ttl_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 86400,
+          "default": 3600
+        }
+      },
+      "default": {}
+    },
+    "database": {
+      "type": "object",
+      "description": "Configurações de banco de dados",
+      "properties": {
+        "connection_pool_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        },
+        "query_timeout_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 300,
+          "default": 30
+        },
+        "enable_query_logging": {
+          "type": "boolean",
+          "default": false
+        },
+        "auto_vacuum": {
+          "type": "boolean",
+          "default": true
+        },
+        "partition_strategy": {
+          "type": "string",
+          "enum": ["none", "daily", "weekly", "monthly"],
+          "default": "monthly"
+        }
+      },
+      "default": {}
+    },
+    "notifications": {
+      "type": "object",
+      "description": "Configurações de notificações",
+      "properties": {
+        "email_enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "webhook_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "webhook_url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "notification_levels": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["critical", "warning", "info"]
+          },
+          "default": ["critical", "warning"]
+        },
+        "quiet_hours": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false
+            },
+            "start_time": {
+              "type": "string",
+              "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "end_time": {
+              "type": "string",
+              "pattern": "^([01]?[0-9]|2[0-3]):[0-5][0-9]$"
+            },
+            "timezone": {
+              "type": "string",
+              "default": "America/Sao_Paulo"
+            }
+          },
+          "default": {}
+        }
+      },
+      "default": {}
+    },
+    "security": {
+      "type": "object",
+      "description": "Configurações de segurança",
+      "properties": {
+        "encryption_enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "audit_logging": {
+          "type": "boolean",
+          "default": true
+        },
+        "ip_whitelist": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "ipv4"
+          },
+          "default": []
+        },
+        "require_mfa": {
+          "type": "boolean",
+          "default": false
+        },
+        "session_timeout_minutes": {
+          "type": "integer",
+          "minimum": 5,
+          "maximum": 1440,
+          "default": 480
+        },
+        "password_policy": {
+          "type": "object",
+          "properties": {
+            "min_length": {
+              "type": "integer",
+              "minimum": 8,
+              "maximum": 128,
+              "default": 12
+            },
+            "require_uppercase": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_lowercase": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_numbers": {
+              "type": "boolean",
+              "default": true
+            },
+            "require_symbols": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          "default": {}
+        }
+      },
+      "default": {}
+    },
+    "performance": {
+      "type": "object",
+      "description": "Configurações de performance",
+      "properties": {
+        "enable_compression": {
+          "type": "boolean",
+          "default": true
+        },
+        "compression_level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "default": 6
+        },
+        "enable_minification": {
+          "type": "boolean",
+          "default": true
+        },
+        "cdn_enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "memory_limit_mb": {
+          "type": "integer",
+          "minimum": 128,
+          "maximum": 8192,
+          "default": 512
+        },
+        "cpu_limit_percent": {
+          "type": "integer",
+          "minimum": 10,
+          "maximum": 100,
+          "default": 80
+        }
+      },
+      "default": {}
+    },
+    "billing": {
+      "type": "object",
+      "description": "Configurações de cobrança",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false
+        },
+        "billing_model": {
+          "type": "string",
+          "enum": ["fixed", "usage_based", "hybrid"],
+          "default": "fixed"
+        },
+        "usage_limits": {
+          "type": "object",
+          "properties": {
+            "api_calls_per_month": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 10000000
+            },
+            "storage_gb": {
+              "type": "number",
+              "minimum": 0.1,
+              "maximum": 1000
+            },
+            "bandwidth_gb": {
+              "type": "number",
+              "minimum": 1,
+              "maximum": 10000
+            }
+          },
+          "default": {}
+        },
+        "overage_policy": {
+          "type": "string",
+          "enum": ["block", "charge", "warn"],
+          "default": "warn"
+        }
+      },
+      "default": {}
+    },
+    "custom": {
+      "type": "object",
+      "description": "Configurações específicas do módulo",
+      "additionalProperties": true,
+      "default": {}
+    }
+  },
+  "additionalProperties": false,
+  "default": {
+    "general": {},
+    "api": {},
+    "database": {},
+    "notifications": {},
+    "security": {},
+    "performance": {},
+    "billing": {},
+    "custom": {}
+  }
+} 

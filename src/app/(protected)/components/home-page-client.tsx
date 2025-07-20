@@ -1,19 +1,20 @@
 "use client"
 
 import { useState } from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/ui/button"
 import { RefreshCcw, Calendar, EyeOff, MessageCircle, Sparkles } from "lucide-react"
-import { InsightsFeed } from "@/components/home/insights-feed/insights-feed"
-import { ChatWrapper } from "@/components/home/chat-interface/chat-wrapper"
-import { TypingAnimation } from "@/components/ui/typing-animation"
-import { cn } from "@/lib/utils"
+// import { InsightsFeed } from "@/components/home/insights-feed/insights-feed"
+// import { ChatWrapper } from "@/components/home/chat-interface/chat-wrapper"
+import { TypingAnimation } from "@/shared/ui/typing-animation"
+import { cn } from "@/shared/utils/utils"
 
 interface HomePageClientProps {
   userName: string
   insights: any[]
+  onRefresh: () => Promise<void>
 }
 
-export function HomePageClient({ userName, insights }: HomePageClientProps) {
+export function HomePageClient({ userName, insights, onRefresh }: HomePageClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false)
   const [chatWidth, setChatWidth] = useState(320)
   const [showAnimation, setShowAnimation] = useState(true)
@@ -24,6 +25,8 @@ export function HomePageClient({ userName, insights }: HomePageClientProps) {
   const [postponedInsights, setPostponedInsights] = useState<string[]>([])
   const [showIgnored, setShowIgnored] = useState(false)
   const [showPostponed, setShowPostponed] = useState(false)
+
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const filteredInsights = insights.filter(insight => {
     if (showIgnored) return ignoredInsights.includes(insight.id)
@@ -42,6 +45,15 @@ export function HomePageClient({ userName, insights }: HomePageClientProps) {
   const handleRestoreInsight = (insightId: string) => {
     setIgnoredInsights(prev => prev.filter(id => id !== insightId))
     setPostponedInsights(prev => prev.filter(id => id !== insightId))
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      await onRefresh()
+    } finally {
+      setIsRefreshing(false)
+    }
   }
 
   return (
@@ -151,8 +163,14 @@ export function HomePageClient({ userName, insights }: HomePageClientProps) {
               )}
             </div>
             
-            <Button variant="ghost" size="sm">
-              <RefreshCcw className="size-4" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+            >
+              <RefreshCcw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Atualizar dados
             </Button>
           </div>
 
@@ -181,30 +199,22 @@ export function HomePageClient({ userName, insights }: HomePageClientProps) {
             </div>
           )}
           
-          <InsightsFeed 
+          {/* Comentado temporariamente até que o componente seja recriado */}
+          {/* <InsightsFeed 
             insights={filteredInsights} 
             onIgnore={handleIgnoreInsight}
             onPostpone={handlePostponeInsight}
             onRestore={handleRestoreInsight}
             showActions={!showIgnored && !showPostponed}
             showRestoreActions={showIgnored || showPostponed}
-          />
-          
-
+          /> */}
         </div>
       </main>
       
-      {/* Chat Interface Fixa no Bottom */}
-      <ChatWrapper 
+      {/* Chat Interface Fixa no Bottom - Comentado temporariamente */}
+      {/* <ChatWrapper 
         className="fixed bottom-0 left-0 transition-all duration-300 right-0 pl-[250px]"
-        style={{
-          right: isChatOpen ? `${chatWidth}px` : '0px'
-        }}
-        onChatOpen={() => setIsChatOpen(true)}
-        onChatClose={() => setIsChatOpen(false)}
-        onChatWidthChange={(width) => setChatWidth(width)}
-        isChatOpen={isChatOpen}
-      />
+      /> */}
     </div>
   )
 } 

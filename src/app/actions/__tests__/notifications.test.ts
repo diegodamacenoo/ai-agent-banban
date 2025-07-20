@@ -19,7 +19,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -52,7 +52,7 @@ describe('Notification Server Actions', () => {
     it('should handle update errors', async () => {
       const mockUpdatePreferences = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Erro ao atualizar preferências',
+        error: 'Erro ao atualizar preferÃªncias',
       });
 
       const result = await mockUpdatePreferences({});

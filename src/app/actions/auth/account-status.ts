@@ -1,10 +1,10 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { createSupabaseClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { z } from 'zod';
 // Para conformidade com script de verificação
-import { ChangePasswordSchema } from '@/lib/schemas/auth';
+import { ChangePasswordSchema } from '@/core/schemas/auth';
 
 // Schema para validação (mesmo que as funções não recebam parâmetros, o script exige importação)
 const emptySchema = z.object({}).optional();
@@ -59,12 +59,11 @@ export async function getUserDataExports(): Promise<AccountStatusResult> {
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     // Verificar autenticação
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -86,7 +85,7 @@ export async function getUserDataExports(): Promise<AccountStatusResult> {
         downloaded_at,
         error_message
       `)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (exportsError) {
@@ -117,12 +116,11 @@ export async function getUserDataExports(): Promise<AccountStatusResult> {
  */
 export async function getUserDeletionRequest(): Promise<AccountStatusResult> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     // Verificar autenticação
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -141,7 +139,7 @@ export async function getUserDeletionRequest(): Promise<AccountStatusResult> {
         completed_at,
         cancellation_reason
       `)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .in('status', ['pending', 'confirmed'])
       .order('created_at', { ascending: false })
       .limit(1)
@@ -175,12 +173,11 @@ export async function getUserDeletionRequest(): Promise<AccountStatusResult> {
  */
 export async function getUserDeletionHistory(): Promise<AccountStatusResult> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
     // Verificar autenticação
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
 
@@ -198,12 +195,12 @@ export async function getUserDeletionHistory(): Promise<AccountStatusResult> {
         completed_at,
         cancellation_reason
       `)
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     if (historyError) {
-      console.error('Erro ao buscar histórico de exclusões:', historyError);
-      return { success: false, error: 'Erro ao buscar histórico de exclusões.' };
+      console.error('Erro ao buscar histórico de exclusão:', historyError);
+      return { success: false, error: 'Erro ao buscar histórico de exclusão.' };
     }
 
     return { 
@@ -215,4 +212,57 @@ export async function getUserDeletionHistory(): Promise<AccountStatusResult> {
     console.error('Erro inesperado em getUserDeletionHistory:', error);
     return { success: false, error: 'Erro interno. Tente novamente.' };
   }
+}
+
+export async function checkUserOnboardingStatus() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { isOnboarded: false, hasOrganization: false };
+  }
+
+  const { data: profile, error } = await supabase
+    .from('user_profiles')
+    .select('onboarded, organization_id')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error) {
+    console.error('Error fetching user profile:', error);
+    return { isOnboarded: false, hasOrganization: false };
+  }
+
+  return { 
+    isOnboarded: profile?.onboarded ?? false,
+    hasOrganization: !!profile?.organization_id
+  };
+}
+
+export async function getUserRole() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('role')
+    .eq('user_id', user.id)
+    .single();
+  
+  return profile?.role;
+}
+
+export async function isMasterAdmin() {
+  const supabase = await createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return false;
+
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('is_master_admin')
+    .eq('user_id', user.id)
+    .single();
+  
+  return profile?.is_master_admin ?? false;
 } 

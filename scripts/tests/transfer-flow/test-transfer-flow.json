@@ -1,0 +1,294 @@
+[
+  {
+    "name": "Test: Transfer Order Created",
+    "event_type": "transfer_order_created",
+    "payload": {
+      "event_type": "transfer_order_created",
+      "timestamp": "2025-01-15T09:00:00Z",
+      "data": {
+        "transfer_order": {
+          "order_number": "TRANSFER-TEST-001",
+          "origin_location": "CD001",
+          "destination_location": "STORE001",
+          "total_items": 1,
+          "issue_date": "2025-01-15",
+          "expected_delivery": "2025-01-16",
+          "priority": "NORMAL",
+          "notes": "Transferencia de teste"
+        },
+        "items": [
+          {
+            "item_sequence": 1,
+            "product_code": "PROD001",
+            "product_name": "Produto Teste",
+            "variant_code": "VAR001",
+            "size": "M",
+            "color": "Azul",
+            "quantity_ordered": 5,
+            "unit_cost": 50.00,
+            "notes": "Item de transferencia"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Test: Transfer Shipped",
+    "event_type": "transfer_shipped",
+    "payload": {
+      "event_type": "transfer_shipped",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "data": {
+        "transfer_order": {
+          "order_number": "TRANSFER-TEST-001",
+          "origin_location": "CD001",
+          "destination_location": "STORE001"
+        },
+        "shipment": {
+          "tracking_number": "TRACK123456",
+          "carrier": "Transportadora Teste",
+          "shipped_date": "2025-01-15T10:00:00Z",
+          "estimated_delivery": "2025-01-16T14:00:00Z",
+          "shipped_by": "USER001"
+        },
+        "items": [
+          {
+            "item_sequence": 1,
+            "variant_code": "VAR001",
+            "quantity_ordered": 5,
+            "quantity_shipped": 5
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Test: Transfer Received",
+    "event_type": "transfer_received",
+    "payload": {
+      "event_type": "transfer_received",
+      "timestamp": "2025-01-16T14:30:00Z",
+      "data": {
+        "transfer_order": {
+          "order_number": "TRANSFER-TEST-001",
+          "destination_location": "STORE001"
+        },
+        "receipt": {
+          "received_date": "2025-01-16",
+          "received_by": "USER002",
+          "total_items_received": 1,
+          "items_approved": 1,
+          "items_rejected": 0
+        },
+        "items": [
+          {
+            "item_sequence": 1,
+            "variant_code": "VAR001",
+            "quantity_ordered": 5,
+            "quantity_received": 5
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Test: Transfer Completed",
+    "event_type": "transfer_completed",
+    "payload": {
+      "event_type": "transfer_completed",
+      "timestamp": "2025-01-16T15:00:00Z",
+      "data": {
+        "transfer_order": {
+          "order_number": "TRANSFER-TEST-001",
+          "origin_location": "CD001",
+          "destination_location": "STORE001"
+        },
+        "completion": {
+          "completion_date": "2025-01-16",
+          "completion_by": "USER002",
+          "total_items_completed": 1,
+          "inventory_updated": true
+        },
+        "items": [
+          {
+            "item_sequence": 1,
+            "variant_code": "VAR001",
+            "quantity_received": 5
+          }
+        ],
+        "inventory_impact": [
+          {
+            "variant_code": "VAR001",
+            "origin_location": "CD001",
+            "destination_location": "STORE001",
+            "quantity_transferred": 5,
+            "origin_previous_stock": 20,
+            "origin_new_stock": 15,
+            "destination_previous_stock": 0,
+            "destination_new_stock": 5
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "Solicitação de Transferência",
+    "payload": {
+      "event_type": "transfer_requested",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T14:00:00Z",
+      "data": {
+        "transfer_id": "TRANSFER-001",
+        "origin_location_id": "LOC-001",
+        "destination_location_id": "LOC-002",
+        "items": [
+          {
+            "product_id": "PROD-001",
+            "quantity": 5,
+            "unit_cost": 80.00
+          },
+          {
+            "product_id": "PROD-002",
+            "quantity": 3,
+            "unit_cost": 120.00
+          }
+        ],
+        "transfer_date": "2024-03-20T14:00:00Z",
+        "status": "requested",
+        "notes": "Transferência para reposição de estoque"
+      }
+    }
+  },
+  {
+    "name": "Envio de Transferência",
+    "payload": {
+      "event_type": "transfer_shipped",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T15:00:00Z",
+      "data": {
+        "transfer_id": "TRANSFER-001",
+        "origin_location_id": "LOC-001",
+        "destination_location_id": "LOC-002",
+        "items": [
+          {
+            "product_id": "PROD-001",
+            "quantity": 5,
+            "unit_cost": 80.00
+          },
+          {
+            "product_id": "PROD-002",
+            "quantity": 3,
+            "unit_cost": 120.00
+          }
+        ],
+        "transfer_date": "2024-03-20T15:00:00Z",
+        "status": "shipped",
+        "shipping_info": {
+          "carrier": "Transportadora XYZ",
+          "tracking_number": "TRK123456789",
+          "estimated_delivery": "2024-03-22T15:00:00Z"
+        }
+      }
+    }
+  },
+  {
+    "name": "Recebimento de Transferência",
+    "payload": {
+      "event_type": "transfer_received",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-22T14:00:00Z",
+      "data": {
+        "transfer_id": "TRANSFER-001",
+        "origin_location_id": "LOC-001",
+        "destination_location_id": "LOC-002",
+        "items": [
+          {
+            "product_id": "PROD-001",
+            "quantity": 5,
+            "unit_cost": 80.00
+          },
+          {
+            "product_id": "PROD-002",
+            "quantity": 3,
+            "unit_cost": 120.00
+          }
+        ],
+        "transfer_date": "2024-03-22T14:00:00Z",
+        "status": "received"
+      }
+    }
+  },
+  {
+    "name": "Cancelamento de Transferência",
+    "payload": {
+      "event_type": "transfer_cancelled",
+      "organization_id": "org_123",
+      "timestamp": "2024-03-20T16:00:00Z",
+      "data": {
+        "transfer_id": "TRANSFER-002",
+        "origin_location_id": "LOC-001",
+        "destination_location_id": "LOC-002",
+        "items": [
+          {
+            "product_id": "PROD-003",
+            "quantity": 2,
+            "unit_cost": 150.00
+          }
+        ],
+        "transfer_date": "2024-03-20T16:00:00Z",
+        "status": "cancelled",
+        "notes": "Cancelado devido a erro na quantidade solicitada"
+      }
+    }
+  },
+  {
+    "name": "Test: Transfer Initiated",
+    "payload": {
+      "event_type": "transfer_initiated",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T08:00:00Z",
+      "data": {
+        "transfer": {
+          "transfer_id": "TRF001",
+          "origin_store_id": "STORE001",
+          "destination_store_id": "STORE002",
+          "transfer_date": "2025-01-15",
+          "status": "INITIATED",
+          "items": [
+            {
+              "product_code": "PROD001",
+              "variant_code": "VAR001",
+              "quantity": 3,
+              "unit_cost": 299.99
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "Test: Transfer Completed",
+    "payload": {
+      "event_type": "transfer_completed",
+      "organization_id": "org_123",
+      "timestamp": "2025-01-15T10:00:00Z",
+      "data": {
+        "transfer": {
+          "transfer_id": "TRF001",
+          "origin_store_id": "STORE001",
+          "destination_store_id": "STORE002",
+          "completion_date": "2025-01-15",
+          "status": "COMPLETED",
+          "items": [
+            {
+              "product_code": "PROD001",
+              "variant_code": "VAR001",
+              "quantity": 3,
+              "unit_cost": 299.99
+            }
+          ]
+        }
+      }
+    }
+  }
+] 

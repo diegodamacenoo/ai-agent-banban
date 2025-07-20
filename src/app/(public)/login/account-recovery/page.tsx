@@ -1,7 +1,7 @@
 'use client';
 import * as React from "react"
 import { Suspense } from "react";
-import { Button, buttonVariants } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/shared/ui/button"
 import {
   Card,
   CardContent,
@@ -9,12 +9,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/shared/ui/card"
+import { Input } from "@/shared/ui/input"
+import { Label } from "@/shared/ui/label"
 import Link from "next/link"
 import clsx from 'clsx';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
 import { AlertTriangle } from 'lucide-react';
 import AccountRecoveryForm from './account-recovery-form';
 

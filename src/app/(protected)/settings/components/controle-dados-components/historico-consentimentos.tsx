@@ -1,9 +1,9 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { useEffect, useState } from "react";
-import { SkeletonConsentTable } from "@/components/ui/skeleton-loader";
-import { toast } from "sonner";
+import { SkeletonConsentTable } from "@/shared/ui/skeleton-loader";
+import { useToast } from '@/shared/ui/toast';
 
 interface ConsentRecord {
   id: string;
@@ -15,9 +15,11 @@ interface ConsentRecord {
 }
 
 const formatConsentType = (type: string): string => {
+  const { toast } = useToast();
+
   const types: Record<string, string> = {
     'terms_of_service': 'Termos de Uso',
-    'privacy_policy': 'Política de Privacidade',
+    'privacy_policy': 'PolÃ­tica de Privacidade',
     'marketing': 'Marketing'
   };
   return types[type] || type;
@@ -34,9 +36,9 @@ const formatDate = (dateString: string): string => {
 };
 
 const formatUserAgent = (userAgent: string | null): string => {
-  if (!userAgent) return 'Não disponível';
+  if (!userAgent) return 'NÃ£o disponÃ­vel';
   
-  // Extrair informações básicas do user agent
+  // Extrair informaÃ§Ãµes bÃ¡sicas do user agent
   const browserMatch = userAgent.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/);
   const osMatch = userAgent.match(/(Windows|Mac|Linux|Android|iOS)/);
   
@@ -61,7 +63,7 @@ export function HistoricoConsentimentos() {
         });
         
         if (!response.ok) {
-          throw new Error('Erro ao carregar histórico');
+          throw new Error('Erro ao carregar histÃ³rico');
         }
 
         const result = await response.json();
@@ -69,11 +71,11 @@ export function HistoricoConsentimentos() {
         if (result.success) {
           setConsents(result.data || []);
         } else {
-          setError(result.error || 'Erro ao carregar histórico de consentimentos');
+          setError(result.error || 'Erro ao carregar histÃ³rico de consentimentos');
         }
       } catch (err) {
-        setError('Erro ao carregar histórico de consentimentos');
-        toast.error('Erro ao carregar histórico de consentimentos');
+        setError('Erro ao carregar histÃ³rico de consentimentos');
+        toast.error('Erro ao carregar histÃ³rico de consentimentos');
       } finally {
         setIsLoading(false);
       }
@@ -114,7 +116,7 @@ export function HistoricoConsentimentos() {
             <TableHeader>
               <TableRow>
                 <TableHead>Tipo de consentimento</TableHead>
-                <TableHead>Versão</TableHead>
+                <TableHead>VersÃ£o</TableHead>
                 <TableHead>Data e hora</TableHead>
                 <TableHead>IP</TableHead>
                 <TableHead>Dispositivo</TableHead>
@@ -126,7 +128,7 @@ export function HistoricoConsentimentos() {
                   <TableCell>{formatConsentType(consent.consent_type)}</TableCell>
                   <TableCell>{consent.version}</TableCell>
                   <TableCell>{formatDate(consent.accepted_at)}</TableCell>
-                  <TableCell>{consent.ip_address || 'Não disponível'}</TableCell>
+                  <TableCell>{consent.ip_address || 'NÃ£o disponÃ­vel'}</TableCell>
                   <TableCell>{formatUserAgent(consent.user_agent)}</TableCell>
                 </TableRow>
               ))}

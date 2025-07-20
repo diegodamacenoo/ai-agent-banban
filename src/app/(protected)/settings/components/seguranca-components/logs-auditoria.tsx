@@ -1,18 +1,18 @@
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Input } from "@/shared/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
+import { Skeleton } from "@/shared/ui/skeleton";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { InfoIcon, FilterIcon, RefreshCw, AlertCircle, ChevronLeft, ChevronRight, Download, Search, FileText, Database } from "lucide-react"; 
-import { useAuditLogs } from "@/hooks/useAuditLogs"; 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuditLogs } from "@/shared/hooks/useAuditLogs"; 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem } from "@/shared/ui/dropdown-menu";
+import { DropdownMenuTrigger } from "@/shared/ui/dropdown-menu";
 import { useState } from "react";
-import { SkeletonAuditTable } from "@/components/ui/skeleton-loader";
+import { SkeletonAuditTable } from "@/shared/ui/skeleton-loader";
 
 interface LogsAuditoriaProps { className?: string; }
 
@@ -42,7 +42,7 @@ export default function LogsAuditoria() {
       <InfoIcon className="mx-auto h-12 w-12 text-gray-400" />
       <h3 className="mt-2 text-sm font-medium text-gray-900">Nenhum log encontrado</h3>
       <p className="mt-1 text-sm text-gray-500">
-        Tente ajustar os filtros ou verificar se há atividade registrada.
+        Tente ajustar os filtros ou verificar se hÃ¡ atividade registrada.
       </p>
       <Button
         variant="outline"
@@ -59,11 +59,11 @@ export default function LogsAuditoria() {
   return (
     <Card className="shadow-none">
       <CardContent className="p-6 space-y-4">
-        {/* Info sobre retenção de logs */}
+        {/* Info sobre retenÃ§Ã£o de logs */}
         <div className="flex items-center gap-2">
           <InfoIcon className="text-blue-500 w-5 h-5" />
           <p className="text-sm text-muted-foreground">
-            Logs de auditoria são mantidos por no mínimo 6 meses e são somente leitura para garantir a integridade dos registros.
+            Logs de auditoria sÃ£o mantidos por no mÃ­nimo 6 meses e sÃ£o somente leitura para garantir a integridade dos registros.
           </p>
         </div>
 
@@ -77,7 +77,7 @@ export default function LogsAuditoria() {
         </div>
 
 
-        {/* Ações dos filtros e exportação */}
+        {/* AÃ§Ãµes dos filtros e exportaÃ§Ã£o */}
         <div className="flex justify-between items-center">
           <div className="flex gap-2">
             <Button onClick={() => setIsFiltering(!isFiltering)} variant={isFiltering ? "default" : "outline"} size="sm" className="gap-2" disabled={isLoading}>
@@ -91,7 +91,7 @@ export default function LogsAuditoria() {
             )}
           </div>
           <div className="flex gap-2">
-            {/* Botões de Exportação */}
+            {/* BotÃµes de ExportaÃ§Ã£o */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-2" disabled={isLoading || isExporting}>
@@ -115,7 +115,7 @@ export default function LogsAuditoria() {
         {isFiltering && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="filtroData">Data início</Label>
+              <Label htmlFor="filtroData">Data inÃ­cio</Label>
               <Input id="filtroDataInicio" placeholder="DD/MM/AAAA" value={filters.dateFrom} onChange={(e) => setFilters({ dateFrom: e.target.value })} />
             </div>
             <div className="space-y-2">
@@ -123,22 +123,22 @@ export default function LogsAuditoria() {
               <Input id="filtroDataFim" placeholder="DD/MM/AAAA" value={filters.dateTo} onChange={(e) => setFilters({ dateTo: e.target.value })} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="filtroAcao">Tipo de ação</Label>
+              <Label htmlFor="filtroAcao">Tipo de aÃ§Ã£o</Label>
               <Select value={filters.actionType || "all"} onValueChange={(value) => setFilters({ actionType: value === "all" ? "" : value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecionar ação..." />
+                  <SelectValue placeholder="Selecionar aÃ§Ã£o..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as ações</SelectItem>
+                  <SelectItem value="all">Todas as aÃ§Ãµes</SelectItem>
                   <SelectItem value="login">Login</SelectItem>
                   <SelectItem value="logout">Logout</SelectItem>
-                  <SelectItem value="password_changed">Alteração de senha</SelectItem>
-                  <SelectItem value="profile_updated">Atualização de perfil</SelectItem>
-                  <SelectItem value="data_export">Exportação de dados</SelectItem>
-                  <SelectItem value="mfa">Autenticação 2FA</SelectItem>
+                  <SelectItem value="password_changed">AlteraÃ§Ã£o de senha</SelectItem>
+                  <SelectItem value="profile_updated">AtualizaÃ§Ã£o de perfil</SelectItem>
+                  <SelectItem value="data_export">ExportaÃ§Ã£o de dados</SelectItem>
+                  <SelectItem value="mfa">AutenticaÃ§Ã£o 2FA</SelectItem>
                   <SelectItem value="audit_logs">Logs de auditoria</SelectItem>
-                  <SelectItem value="security_alert_settings_updated">Configuração de alertas</SelectItem>
-                  <SelectItem value="organization_settings_updated">Configuração da organização</SelectItem>
+                  <SelectItem value="security_alert_settings_updated">ConfiguraÃ§Ã£o de alertas</SelectItem>
+                  <SelectItem value="organization_settings_updated">ConfiguraÃ§Ã£o da organizaÃ§Ã£o</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -162,7 +162,7 @@ export default function LogsAuditoria() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Erro na exportação: {exportError}
+              Erro na exportaÃ§Ã£o: {exportError}
             </AlertDescription>
           </Alert>)}
 
@@ -174,8 +174,8 @@ export default function LogsAuditoria() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Usuário</TableHead>
-                  <TableHead>Ação</TableHead>
+                  <TableHead>UsuÃ¡rio</TableHead>
+                  <TableHead>AÃ§Ã£o</TableHead>
                   <TableHead>Data e hora</TableHead>
                   <TableHead>IP</TableHead>
                   <TableHead>Dispositivo</TableHead>
@@ -198,12 +198,12 @@ export default function LogsAuditoria() {
           <EmptyState />
         )}
 
-        {/* Estatísticas e Paginação */}
+        {/* EstatÃ­sticas e PaginaÃ§Ã£o */}
         {pagination && (
           <div className="flex justify-between items-center">
             <div className="flex flex-col gap-1">
               <p className="text-xs text-muted-foreground">
-                Exibindo {logs.length} de {pagination.total} registros {pagination.totalPages > 1 && ` (Página ${currentPage} de ${pagination.totalPages})`}
+                Exibindo {logs.length} de {pagination.total} registros {pagination.totalPages > 1 && ` (PÃ¡gina ${currentPage} de ${pagination.totalPages})`}
               </p>
               {searchText && (
                 <p className="text-xs text-blue-600">
@@ -236,7 +236,7 @@ export default function LogsAuditoria() {
                   disabled={!pagination.hasNextPage || isLoading}
                   className="gap-1"
                 >
-                  Próximo
+                  PrÃ³ximo
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

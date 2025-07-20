@@ -25,13 +25,13 @@ export default function AppHeader({ userData }: AppHeaderProps) {
             {/* Centro: Menu */}
             <HeaderMenu />
 
-            {/* Direita: Notificações, Menu Usuário, Botão Mobile */}
+            {/* Direita: NotificaÃ§Ãµes, Menu UsuÃ¡rio, BotÃ£o Mobile */}
             <div className="flex items-center gap-2">
                 <HeaderNotifications />
                 <HeaderUserMenu userData={userData} />
 
-                {/* Botão de Menu para Mobile (opcional) */}
-                {/* TODO: Implementar lógica para abrir/fechar menu mobile */}
+                {/* BotÃ£o de Menu para Mobile (opcional) */}
+                {/* TODO: Implementar lÃ³gica para abrir/fechar menu mobile */}
                 <button className="md:hidden p-2">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Abrir menu</span>

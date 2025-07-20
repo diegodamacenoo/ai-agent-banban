@@ -1,0 +1,30 @@
+SISTEMA DE TENANTS IMPLEMENTADO!
+
+INSTRUÇÕES PARA TESTE:
+
+1. Abra o navegador em modo incógnito
+2. Acesse: http://localhost:3000/login
+3. Faça login normalmente
+4. Deve ser redirecionado para: http://localhost:3000/banban/
+5. Teste também: http://localhost:3000/banban/performance
+
+URLS DISPONÍVEIS:
+• /banban/ (Dashboard BanBan Fashion)
+• /banban/performance (Performance BanBan)
+• /riachuelo/ (Dashboard Riachuelo)
+• /ca/ (Dashboard C&A)
+• / (Dashboard padrão)
+
+O QUE FOI IMPLEMENTADO:
+• Sistema de tenants baseado em slugs de URL
+• Middleware inteligente que detecta organização do usuário
+• Redirecionamento automático para tenant correto
+• Configurações específicas por tenant (cores, features)
+• Dashboard personalizado para clientes fashion
+• Hook useTenantPath para facilitar navegação
+
+IMPORTANTE:
+• Use modo incógnito para cookies limpos
+• Backend funcionando na porta 4000
+• Frontend funcionando na porta 3000
+• Sem problemas de CORS ou subdomínios complexos 

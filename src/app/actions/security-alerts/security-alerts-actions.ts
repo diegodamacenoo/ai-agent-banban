@@ -1,27 +1,37 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { createAuditLog, AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES, captureRequestInfo } from '@/lib/utils/audit-logger';
-import { 
-  updateSecurityAlertSettingsSchema,
-  type SecurityAlertSettings,
-  type UpdateSecurityAlertSettings 
-} from '@/lib/schemas/security-alerts';
+import { createAuditLog, captureRequestInfo } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { z } from 'zod';
+
+// Schemas locais para validação
+const updateSecurityAlertSettingsSchema = z.object({
+  alert_new_device: z.boolean(),
+  alert_failed_attempts: z.boolean(),
+  alert_user_deletion: z.boolean(),
+  failed_attempts_threshold: z.number().min(1).max(10),
+});
+
+export type SecurityAlertSettings = {
+  alert_new_device: boolean;
+  alert_failed_attempts: boolean;
+  alert_user_deletion: boolean;
+  failed_attempts_threshold: number;
+};
+
+export type UpdateSecurityAlertSettings = z.infer<typeof updateSecurityAlertSettingsSchema>;
 
 // Função para obter configurações de alertas do usuário
 export async function getSecurityAlertSettings() {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
-
-    const user = session.user;
 
     const { data, error } = await supabase
       .from('security_alert_settings')
@@ -57,15 +67,12 @@ export async function updateSecurityAlertSettings(
   settings: UpdateSecurityAlertSettings
 ) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
-
-    const user = session.user;
 
     // Validar dados de entrada
     const validatedSettings = updateSecurityAlertSettingsSchema.parse(settings);
@@ -101,8 +108,8 @@ export async function updateSecurityAlertSettings(
       const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
       await createAuditLog({
         actor_user_id: user.id,
-        action_type: AUDIT_ACTION_TYPES.SECURITY_ALERT_SETTINGS_UPDATED,
-        resource_type: AUDIT_RESOURCE_TYPES.SECURITY_ALERT_SETTINGS,
+        action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+        resource_type: AUDIT_RESOURCE_TYPES.USER,
         resource_id: user.id,
         ip_address: ipAddress,
         user_agent: userAgent,
@@ -123,8 +130,8 @@ export async function updateSecurityAlertSettings(
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.SECURITY_ALERT_SETTINGS_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.SECURITY_ALERT_SETTINGS,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: user.id,
       ip_address: ipAddress,
       user_agent: userAgent,
@@ -143,15 +150,12 @@ export async function updateSecurityAlertSettings(
 // Função para obter dispositivos conhecidos do usuário
 export async function getUserKnownDevices() {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
-
-    const user = session.user;
 
     const { data, error } = await supabase
       .from('user_known_devices')
@@ -174,15 +178,12 @@ export async function getUserKnownDevices() {
 // Função para remover dispositivo conhecido
 export async function removeKnownDevice(deviceId: string) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError || !session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado' };
     }
-
-    const user = session.user;
 
     const { error } = await supabase
       .from('user_known_devices')
@@ -199,8 +200,8 @@ export async function removeKnownDevice(deviceId: string) {
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.KNOWN_DEVICE_REMOVED,
-      resource_type: AUDIT_RESOURCE_TYPES.KNOWN_DEVICE,
+      action_type: AUDIT_ACTION_TYPES.USER_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.USER,
       resource_id: deviceId,
       ip_address: ipAddress,
       user_agent: userAgent,

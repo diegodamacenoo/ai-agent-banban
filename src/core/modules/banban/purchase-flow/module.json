@@ -1,0 +1,55 @@
+{
+  "name": "BanBan Purchase Flow",
+  "slug": "banban-purchase-flow",
+  "version": "2.0.0",
+  "description": "Fluxo completo de compras migrado das edge functions para módulo backend",
+  "category": "custom",
+  "maturity_status": "GA",
+  "entrypoint": "src/index.ts",
+  "api_endpoints": [
+    {
+      "path": "/api/modules/banban/purchase-flow",
+      "method": "POST",
+      "description": "Processar ações do fluxo (purchase_order_created, purchase_order_approved, etc.)",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/purchase-flow",
+      "method": "GET",
+      "description": "Consultar dados com analytics de fornecedores",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/purchase-flow/analytics",
+      "method": "GET",
+      "description": "Analytics específicas do fluxo de compras",
+      "authenticated": true
+    }
+  ],
+  "features": [
+    "purchase-order-processing",
+    "supplier-performance-analytics",
+    "procurement-optimization",
+    "abc-analysis-automatic",
+    "lead-time-prediction",
+    "automated-purchase-workflows"
+  ],
+  "dependencies": [
+    "banban-analytics-engine"
+  ],
+  "permissions": [
+    "read:purchase-orders",
+    "write:purchase-orders",
+    "read:suppliers",
+    "write:suppliers",
+    "read:analytics"
+  ],
+  "database_tables": [
+    "tenant_business_entities",
+    "tenant_business_transactions",
+    "core_orders",
+    "core_order_items",
+    "core_documents",
+    "core_document_items"
+  ]
+}

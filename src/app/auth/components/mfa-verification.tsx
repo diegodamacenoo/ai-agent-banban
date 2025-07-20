@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { useToast } from '@/shared/ui/toast';
 import { verifyMFA, listMFAFactors } from "@/app/actions/auth/mfa";
 import { Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/shared/ui/alert";
+import { createSupabaseBrowserClient } from "@/core/supabase/client";
 
 interface MFAVerificationProps {
   redirectUrl?: string;
@@ -24,6 +24,7 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
   const [carregando, setCarregando] = useState(true);
   const { toast } = useToast();
   const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
     async function carregarFatores() {
@@ -37,16 +38,16 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
           if (fator) {
             setFactorId(fator.id);
           } else {
-            setErro("Nenhum fator de autenticação ativo encontrado.");
+            setErro("Nenhum fator de autenticaÃ§Ã£o ativo encontrado.");
           }
         } else if (error) {
           setErro(error);
         } else {
-          setErro("Nenhum fator de autenticação configurado.");
+          setErro("Nenhum fator de autenticaÃ§Ã£o configurado.");
         }
       } catch (error) {
         console.error("Erro ao carregar fatores MFA:", error);
-        setErro("Ocorreu um erro ao verificar seus métodos de autenticação.");
+        setErro("Ocorreu um erro ao verificar seus mÃ©todos de autenticaÃ§Ã£o.");
       } finally {
         setCarregando(false);
       }
@@ -57,12 +58,12 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
 
   const handleVerificar = async () => {
     if (!factorId) {
-      setErro("Não foi possível identificar seu método de autenticação.");
+      setErro("NÃ£o foi possÃ­vel identificar seu mÃ©todo de autenticaÃ§Ã£o.");
       return;
     }
     
     if (!codigo || codigo.length !== 6) {
-      setErro("Por favor, insira um código de 6 dígitos.");
+      setErro("Por favor, insira um cÃ³digo de 6 dÃ­gitos.");
       return;
     }
     
@@ -76,9 +77,8 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
       });
       
       if (success) {
-        toast({
-          title: "Verificação bem-sucedida",
-          description: "Autenticação de dois fatores concluída.",
+        toast.success("VerificaÃ§Ã£o bem-sucedida", {
+          description: "AutenticaÃ§Ã£o de dois fatores concluÃ­da.",
           duration: 3000,
         });
         
@@ -91,8 +91,8 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
         setErro(error);
       }
     } catch (error) {
-      console.error("Erro ao verificar código MFA:", error);
-      setErro("Ocorreu um erro ao verificar o código de autenticação.");
+      console.error("Erro ao verificar cÃ³digo MFA:", error);
+      setErro("Ocorreu um erro ao verificar o cÃ³digo de autenticaÃ§Ã£o.");
     } finally {
       setVerificando(false);
     }
@@ -109,9 +109,9 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
   return (
     <div className="space-y-4">
       <div className="text-center mb-6">
-        <h2 className="text-xl font-semibold">Verificação em Dois Fatores</h2>
+        <h2 className="text-xl font-semibold">VerificaÃ§Ã£o em Dois Fatores</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Digite o código de 6 dígitos do seu aplicativo autenticador
+          Digite o cÃ³digo de 6 dÃ­gitos do seu aplicativo autenticador
         </p>
       </div>
 
@@ -150,7 +150,6 @@ export default function MFAVerification({ redirectUrl = "/", onSuccess, onCancel
         </div>
         <div className="flex justify-center">
           <Button variant="outline" onClick={() => {
-            const supabase = createSupabaseClient();
             supabase.auth.signOut();
             router.push("/login");
           }}>

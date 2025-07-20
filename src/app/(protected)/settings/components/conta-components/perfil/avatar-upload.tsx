@@ -1,13 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { useToast } from "@/components/ui/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useToast } from '@/shared/ui/toast';
+import { Avatar, AvatarFallback, AvatarImage } from "@/shared/ui/avatar";
 import { CameraIcon } from "lucide-react";
-import { getUserInitials } from "@/lib/utils/get-user-initials";
+import { getUserInitials } from "@/shared/utils/get-user-initials";
 import type { UserData } from "@/app/contexts/UserContext";
 import { CropAvatarDialog } from './crop-avatar-dialog';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/shared/ui/button';
 
 interface AvatarUploadProps {
   profile: UserData | null;
@@ -18,6 +18,8 @@ interface AvatarUploadProps {
 }
 
 export default function AvatarUpload({
+  const { toast } = useToast();
+
   profile,
   currentFormAvatarUrl,
   setCurrentFormAvatarUrl,
@@ -25,7 +27,7 @@ export default function AvatarUpload({
   disabled = false,
 }: AvatarUploadProps) {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
+  
   const [cropDialogOpen, setCropDialogOpen] = React.useState(false);
   const [imageToCrop, setImageToCrop] = React.useState<string | null>(null);
   const [originalAvatarUrl, setOriginalAvatarUrl] = React.useState<string | null>(null);
@@ -35,22 +37,20 @@ export default function AvatarUpload({
   }, [profile, currentFormAvatarUrl]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('AvatarUpload - handleFileSelect event:', e.target.files);
+    console.debug('AvatarUpload - handleFileSelect event:', e.target.files);
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      console.log('AvatarUpload - selected file:', file);
+      console.debug('AvatarUpload - selected file:', file);
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: "Arquivo inválido",
-          description: "Por favor, selecione um arquivo de imagem.",
-          variant: "destructive",
+        toast.error("Por favor, selecione um arquivo de imagem.", {
+          title: "Arquivo invÃ¡lido",
         });
         return;
       }
       const reader = new FileReader();
-      reader.addEventListener('loadstart', () => console.log('AvatarUpload - FileReader loadstart'));
+      reader.addEventListener('loadstart', () => console.debug('AvatarUpload - FileReader loadstart'));
       reader.addEventListener('load', () => {
-        console.log('AvatarUpload - FileReader result:', reader.result);
+        console.debug('AvatarUpload - FileReader result:', reader.result);
         setImageToCrop(reader.result as string);
         setCropDialogOpen(true);
       });
@@ -62,20 +62,19 @@ export default function AvatarUpload({
   };
 
   const handleCropComplete = (croppedImageBlob: Blob | null) => {
-    console.log('AvatarUpload - handleCropComplete called with blob:', croppedImageBlob);
+    console.debug('AvatarUpload - handleCropComplete called with blob:', croppedImageBlob);
     if (!croppedImageBlob) {
       setCurrentFormAvatarUrl(originalAvatarUrl);
       setCropDialogOpen(false);
       setImageToCrop(null);
-      toast({
+      toast.info("Nenhuma alteraÃ§Ã£o foi feita no avatar.", {
         title: "Recorte Cancelado",
-        description: "Nenhuma alteração foi feita no avatar.",
       });
       return;
     }
 
     const previewUrl = URL.createObjectURL(croppedImageBlob);
-    console.log('AvatarUpload - previewUrl created:', previewUrl);
+    console.debug('AvatarUpload - previewUrl created:', previewUrl);
     setCurrentFormAvatarUrl(previewUrl);
     setCropDialogOpen(false);
     setImageToCrop(null);
@@ -92,9 +91,8 @@ export default function AvatarUpload({
     if (onImageCrop) {
       onImageCrop(null);
     }
-    toast({
+    toast.info("O avatar serÃ¡ removido ao salvar as alteraÃ§Ãµes do perfil.", {
       title: "Avatar Removido",
-      description: "O avatar será removido ao salvar as alterações do perfil.",
     });
   };
 
@@ -108,7 +106,7 @@ export default function AvatarUpload({
           <Avatar className="w-32 h-32 border-4 border-primary/10 text-3xl">
             <AvatarImage 
               src={displayAvatarUrl || undefined} 
-              alt="Avatar do usuário" 
+              alt="Avatar do usuÃ¡rio" 
             />
             <AvatarFallback>{userInitials}</AvatarFallback>
           </Avatar>

@@ -1,7 +1,7 @@
 'use client';
 
 import { XIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,15 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/shared/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useToast } from "@/components/ui/use-toast";
-import { toast } from "sonner";
+} from "@/shared/ui/tooltip";
+import { useToast } from "@/shared/ui/toast";
 import { useState } from "react";
 
 interface SoftDeleteUsuarioButtonProps {
@@ -29,7 +28,9 @@ interface SoftDeleteUsuarioButtonProps {
   onSuccess?: () => void;
 }
 
-export default function SoftDeleteUsuarioButton({ userId, userName, onSuccess }: SoftDeleteUsuarioButtonProps) {
+export default function SoftDeleteUsuarioButton({
+  const { toast } = useToast();
+ userId, userName, onSuccess }: SoftDeleteUsuarioButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSoftDelete = async () => {
@@ -48,16 +49,16 @@ export default function SoftDeleteUsuarioButton({ userId, userName, onSuccess }:
       const data = await result.json();
 
       if (result.ok && data.success) {
-        toast.success(`${userName} foi movido para usuários desativados.`);
+        toast.success(`${userName} foi movido para usuÃ¡rios desativados.`);
         onSuccess?.();
       } else {
-        toast.error("Erro ao desativar usuário", {
+        toast.error("Erro ao desativar usuÃ¡rio", {
           description: data.error || "Ocorreu um erro inesperado.",
         });
       }
     } catch (error) {
-      toast.error("Erro ao desativar usuário", {
-        description: "Ocorreu um erro inesperado ao desativar o usuário.",
+      toast.error("Erro ao desativar usuÃ¡rio", {
+        description: "Ocorreu um erro inesperado ao desativar o usuÃ¡rio.",
       });
     } finally {
       setIsLoading(false);
@@ -77,18 +78,18 @@ export default function SoftDeleteUsuarioButton({ userId, userName, onSuccess }:
                 disabled={isLoading}
               >
                 <XIcon className="h-4 w-4" />
-                <span className="sr-only">Excluir usuário {userName}</span>
+                <span className="sr-only">Excluir usuÃ¡rio {userName}</span>
               </Button>
             </AlertDialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
-            <p>Desativar usuário</p>
+            <p>Desativar usuÃ¡rio</p>
           </TooltipContent>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Tem certeza de que deseja desativar {userName}?</AlertDialogTitle>
               <AlertDialogDescription>
-                O usuário será movido para a área de <span className="font-semibold">Usuários Desativados</span> e poderá ser reativado posteriormente. <span className="font-semibold">Esta ação pode ser desfeita.</span>
+                O usuÃ¡rio serÃ¡ movido para a Ã¡rea de <span className="font-semibold">UsuÃ¡rios Desativados</span> e poderÃ¡ ser reativado posteriormente. <span className="font-semibold">Esta aÃ§Ã£o pode ser desfeita.</span>
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

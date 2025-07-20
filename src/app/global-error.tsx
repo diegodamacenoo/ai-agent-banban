@@ -1,6 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Manrope } from "next/font/google";
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+
+// Importação do CSS global
+
+
+// Configuração da fonte Roboto
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ['400', '500', '700'],
+  variable: "--font-manrope",
+  display: "swap",
+  preload: true,
+  adjustFontFallback: true
+});
 
 export default function GlobalError({
   error,
@@ -15,18 +30,24 @@ export default function GlobalError({
   }, [error]);
 
   return (
-    <html>
-      <body>
-        <div className="min-h-screen flex items-center justify-center bg-red-50">
+    <html lang="pt-BR" className={`${manrope.variable} antialiased`}>
+      <head>
+        <title>Erro Crítico - Sistema Banban</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body className="min-h-screen bg-background font-sans">
+        <div className="min-h-screen flex items-center justify-center">
           <div className="text-center space-y-6 max-w-md mx-auto px-4">
             <div className="space-y-4">
-              <div className="text-6xl">⚠️</div>
+              <div className="flex justify-center">
+                <AlertTriangle className="h-16 w-16 text-destructive" />
+              </div>
               
               <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-red-900">
+                <h1 className="text-2xl font-bold text-foreground">
                   Erro Crítico do Sistema
                 </h1>
-                <p className="text-red-700">
+                <p className="text-muted-foreground">
                   Ocorreu um erro crítico que impediu o carregamento da aplicação. 
                   Nossa equipe foi notificada automaticamente.
                 </p>
@@ -36,29 +57,28 @@ export default function GlobalError({
             <div className="space-y-4">
               <button 
                 onClick={reset}
-                className="w-full bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                className="w-full inline-flex items-center justify-center bg-destructive text-destructive-foreground px-4 py-2 rounded-md hover:bg-destructive/90 transition-colors"
               >
-                🔄 Tentar novamente
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Tentar novamente
               </button>
               
               <button 
                 onClick={() => window.location.href = '/'}
-                className="w-full bg-white text-red-600 border border-red-600 px-4 py-2 rounded-md hover:bg-red-50 transition-colors"
+                className="w-full bg-background text-foreground border border-input px-4 py-2 rounded-md hover:bg-accent transition-colors"
               >
-                🏠 Recarregar aplicação
+                Voltar ao início
               </button>
             </div>
             
-            <div className="text-sm text-red-600">
-              <p>
-                Se o problema persistir, entre em contato com o suporte técnico.
-              </p>
-              {error.digest && (
-                <p className="mt-2 font-mono text-xs">
-                  ID do erro: {error.digest}
-                </p>
-              )}
+            {process.env.NODE_ENV === 'development' && error.digest && (
+              <div className="text-sm text-muted-foreground">
+                <pre className="mt-2 font-mono text-xs whitespace-pre-wrap break-words">
+                  {error.message}
+                  {`\nID do erro: ${error.digest}`}
+                </pre>
             </div>
+            )}
           </div>
         </div>
       </body>

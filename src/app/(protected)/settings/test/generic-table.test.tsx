@@ -1,9 +1,9 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+﻿import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { GenericTable } from "../components/common/table/generic-table";
 
 // Mock dos componentes internos
-jest.mock("@/components/ui/table", () => ({
+jest.mock("@/shared/ui/table", () => ({
   Table: ({ children }: any) => <table data-testid="table">{children}</table>,
   TableHeader: ({ children }: any) => <thead data-testid="table-header">{children}</thead>,
   TableBody: ({ children }: any) => <tbody data-testid="table-body">{children}</tbody>,
@@ -12,7 +12,7 @@ jest.mock("@/components/ui/table", () => ({
   TableCell: ({ children }: any) => <td data-testid="table-cell">{children}</td>,
 }));
 
-jest.mock("@/components/ui/button", () => ({
+jest.mock("@/shared/ui/button", () => ({
   Button: ({ children, ...props }: any) => (
     <button data-testid={`button-${props.variant || 'default'}`} {...props}>
       {children}
@@ -23,9 +23,9 @@ jest.mock("@/components/ui/button", () => ({
 describe("GenericTable", () => {
   // Dados de teste
   const mockData = [
-    { id: "1", nome: "Item 1", descricao: "Descrição do item 1" },
-    { id: "2", nome: "Item 2", descricao: "Descrição do item 2" },
-    { id: "3", nome: "Item 3", descricao: "Descrição do item 3" },
+    { id: "1", nome: "Item 1", descricao: "DescriÃ§Ã£o do item 1" },
+    { id: "2", nome: "Item 2", descricao: "DescriÃ§Ã£o do item 2" },
+    { id: "3", nome: "Item 3", descricao: "DescriÃ§Ã£o do item 3" },
   ];
 
   const mockColumns = [
@@ -34,7 +34,7 @@ describe("GenericTable", () => {
       cell: (row: any) => row.nome,
     },
     {
-      header: "Descrição",
+      header: "DescriÃ§Ã£o",
       cell: (row: any) => row.descricao,
     },
   ];
@@ -43,12 +43,12 @@ describe("GenericTable", () => {
   const mockActions = [
     {
       label: "Editar",
-      icon: () => <span>📝</span>,
+      icon: () => <span>ðŸ“</span>,
       onClick: mockActionClick,
     },
     {
       label: "Remover",
-      icon: () => <span>🗑️</span>,
+      icon: () => <span>ðŸ—‘ï¸</span>,
       onClick: mockActionClick,
       disabled: (row: any) => row.id === "3", // Desabilita para o item 3
     },
@@ -65,7 +65,7 @@ describe("GenericTable", () => {
     expect(screen.getByTestId("table-header")).toBeInTheDocument();
     expect(screen.getByTestId("table-body")).toBeInTheDocument();
     
-    // Verificar cabeçalhos
+    // Verificar cabeÃ§alhos
     mockColumns.forEach(column => {
       expect(screen.getByText(column.header)).toBeInTheDocument();
     });
@@ -74,17 +74,17 @@ describe("GenericTable", () => {
   it("deve renderizar dados corretamente", () => {
     render(<GenericTable data={mockData} columns={mockColumns} />);
     
-    // Verificar se todos os dados estão presentes
+    // Verificar se todos os dados estÃ£o presentes
     mockData.forEach(item => {
       expect(screen.getByText(item.nome)).toBeInTheDocument();
       expect(screen.getByText(item.descricao)).toBeInTheDocument();
     });
   });
 
-  it("deve renderizar ações corretamente", () => {
+  it("deve renderizar aÃ§Ãµes corretamente", () => {
     render(<GenericTable data={mockData} columns={mockColumns} actions={mockActions} />);
     
-    // Verificar botões de ação para cada linha
+    // Verificar botÃµes de aÃ§Ã£o para cada linha
     const editarButtons = screen.getAllByText("Editar");
     const removerButtons = screen.getAllByText("Remover");
     
@@ -92,25 +92,25 @@ describe("GenericTable", () => {
     expect(removerButtons).toHaveLength(mockData.length);
   });
 
-  it("deve chamar a função de ação corretamente", () => {
+  it("deve chamar a funÃ§Ã£o de aÃ§Ã£o corretamente", () => {
     render(<GenericTable data={mockData} columns={mockColumns} actions={mockActions} />);
     
-    // Clica no primeiro botão "Editar"
+    // Clica no primeiro botÃ£o "Editar"
     const editarButtons = screen.getAllByText("Editar");
     fireEvent.click(editarButtons[0]);
     
     expect(mockActionClick).toHaveBeenCalledWith(mockData[0]);
   });
 
-  it("deve desabilitar botões conforme a regra definida", () => {
+  it("deve desabilitar botÃµes conforme a regra definida", () => {
     render(<GenericTable data={mockData} columns={mockColumns} actions={mockActions} />);
     
     const removerButtons = screen.getAllByText("Remover");
     
-    // O botão para o item 3 deve estar desabilitado
+    // O botÃ£o para o item 3 deve estar desabilitado
     expect(removerButtons[2]).toBeDisabled();
     
-    // Os outros botões não devem estar desabilitados
+    // Os outros botÃµes nÃ£o devem estar desabilitados
     expect(removerButtons[0]).not.toBeDisabled();
     expect(removerButtons[1]).not.toBeDisabled();
   });

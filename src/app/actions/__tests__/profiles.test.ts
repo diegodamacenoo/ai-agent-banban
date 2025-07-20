@@ -25,7 +25,7 @@ const mockSupabase = {
   },
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -40,25 +40,25 @@ describe('Profile Server Actions', () => {
         success: true,
         data: {
           id: '123',
-          name: 'João Silva',
+          name: 'JoÃ£o Silva',
           email: 'joao@example.com',
           updated_at: new Date().toISOString(),
         },
       });
 
       const result = await mockUpdateProfile({
-        name: 'João Silva',
+        name: 'JoÃ£o Silva',
         email: 'joao@example.com',
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe('João Silva');
+      expect(result.data.name).toBe('JoÃ£o Silva');
     });
 
     it('should validate profile data', async () => {
       const mockUpdateProfile = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Nome é obrigatório',
+        error: 'Nome Ã© obrigatÃ³rio',
       });
 
       const result = await mockUpdateProfile({
@@ -67,7 +67,7 @@ describe('Profile Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('obrigatório');
+      expect(result.error).toContain('obrigatÃ³rio');
     });
   });
 
@@ -90,14 +90,14 @@ describe('Profile Server Actions', () => {
     it('should validate file type', async () => {
       const mockUploadAvatar = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Tipo de arquivo não suportado',
+        error: 'Tipo de arquivo nÃ£o suportado',
       });
 
       const mockFile = new File([''], 'document.pdf', { type: 'application/pdf' });
       const result = await mockUploadAvatar({ file: mockFile });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('não suportado');
+      expect(result.error).toContain('nÃ£o suportado');
     });
   });
 
@@ -107,7 +107,7 @@ describe('Profile Server Actions', () => {
         success: true,
         data: {
           id: '123',
-          name: 'João Silva',
+          name: 'JoÃ£o Silva',
           email: 'joao@example.com',
           avatar_url: 'https://example.com/avatar.jpg',
           role: 'user',
@@ -117,7 +117,7 @@ describe('Profile Server Actions', () => {
       const result = await mockGetProfile();
 
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe('João Silva');
+      expect(result.data.name).toBe('JoÃ£o Silva');
       expect(result.data.role).toBe('user');
     });
   });

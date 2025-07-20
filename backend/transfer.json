@@ -1,0 +1,16 @@
+{
+    "action": "transfer_between_stores",
+    "attributes": {
+        "external_id": "TRANSF-DEV-001",
+        "origin_store_external_id": "LOJA-RJ-001",
+        "destination_store_external_id": "LOJA-SP-001",
+        "transfer_reason": "Regularizacao",
+        "items": [
+            {
+                "variant_external_id": "SKU-FINAL-1",
+                "qty": 1,
+                "product_name": "Produto 1"
+            }
+        ]
+    }
+}

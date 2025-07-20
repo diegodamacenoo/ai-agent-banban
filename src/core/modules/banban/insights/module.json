@@ -1,0 +1,173 @@
+{
+  "name": "BanBan Insights",
+  "slug": "banban-insights",
+  "version": "2.0.0",
+  "description": "Módulo avançado de insights para varejo de moda, gerando análises inteligentes sobre estoque, vendas e oportunidades de negócio",
+  "category": "custom",
+  "maturity_status": "GA",
+  "pricing_tier": "premium",
+  "author": "BanBan Development Team",
+  "vendor": "BanBan Fashion Systems",
+  "entrypoint": "src/index.ts",
+  "dependencies": [
+    {
+      "name": "fastify",
+      "version": "^4.0.0",
+      "type": "runtime"
+    },
+    {
+      "name": "chart.js",
+      "version": "^4.0.0",
+      "type": "runtime"
+    }
+  ],
+  "compatibility_matrix": {
+    "min_axon_version": "1.0.0",
+    "max_axon_version": "2.0.0",
+    "supported_features": [
+      "multi-tenant",
+      "rls",
+      "audit-logging",
+      "custom-billing",
+      "advanced-analytics",
+      "real-time-insights",
+      "financial-calculations"
+    ]
+  },
+  "usage_based_pricing": {
+    "per_call": 0.005,
+    "per_token": 0.0002,
+    "per_gb": 0.15
+  },
+  "repository_url": "https://github.com/banban/modules/banban-insights",
+  "documentation_url": "https://docs.banban.com.br/modules/insights",
+  "is_internal_only": true,
+  "requires_approval": false,
+  "api_endpoints": [
+    {
+      "path": "/api/modules/banban/insights/health",
+      "method": "GET",
+      "description": "Health check endpoint",
+      "authenticated": false
+    },
+    {
+      "path": "/api/modules/banban/insights",
+      "method": "GET",
+      "description": "Get cached insights for organization",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/generate",
+      "method": "POST",
+      "description": "Generate new insights for organization",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/analysis/category",
+      "method": "GET",
+      "description": "Get category-specific analysis",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/analysis/customer",
+      "method": "GET",
+      "description": "Get customer behavior insights",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/forecast",
+      "method": "GET",
+      "description": "Get sales forecast for category",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/opportunities",
+      "method": "GET",
+      "description": "Get business opportunities",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/financial-impact",
+      "method": "GET",
+      "description": "Calculate financial impact of insights",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/metrics",
+      "method": "GET",
+      "description": "Get module performance metrics",
+      "authenticated": true
+    },
+    {
+      "path": "/api/modules/banban/insights/cache",
+      "method": "DELETE",
+      "description": "Clear insights cache",
+      "authenticated": true
+    }
+  ],
+  "database_tables": [
+    "tenant_insights_cache",
+    "tenant_insights_history",
+    "tenant_insights_config",
+    "tenant_insights_metrics"
+  ],
+  "environment_variables": [
+    {
+      "name": "BANBAN_INSIGHTS_LOG_LEVEL",
+      "description": "Log level for the insights module",
+      "required": false,
+      "default_value": "info"
+    },
+    {
+      "name": "BANBAN_INSIGHTS_CACHE_TTL",
+      "description": "Cache TTL in seconds",
+      "required": false,
+      "default_value": "1800"
+    },
+    {
+      "name": "BANBAN_INSIGHTS_MAX_CONCURRENT",
+      "description": "Maximum concurrent analysis processes",
+      "required": false,
+      "default_value": "5"
+    },
+    {
+      "name": "BANBAN_INSIGHTS_FINANCIAL_PRECISION",
+      "description": "Decimal precision for financial calculations",
+      "required": false,
+      "default_value": "2"
+    }
+  ],
+  "health_check": {
+    "endpoint": "/health",
+    "interval_seconds": 180,
+    "timeout_seconds": 30
+  },
+  "data_retention": {
+    "default_retention_days": 365,
+    "auto_purge": true,
+    "export_before_purge": true
+  },
+  "features": [
+    "low-stock-analysis",
+    "margin-optimization",
+    "slow-moving-detection",
+    "seasonal-trends",
+    "cross-selling-opportunities",
+    "supplier-performance",
+    "distribution-optimization",
+    "financial-impact-calculation",
+    "real-time-alerts",
+    "predictive-analytics"
+  ],
+  "business_rules": {
+    "critical_stock_level": 10,
+    "low_margin_threshold": 0.31,
+    "slow_moving_days_threshold": 30,
+    "max_insights_per_generation": 50
+  },
+  "performance_metrics": {
+    "target_generation_time_ms": 5000,
+    "target_cache_hit_rate": 0.85,
+    "max_error_rate": 0.02
+  }
+}

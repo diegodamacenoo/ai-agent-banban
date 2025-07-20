@@ -1,4 +1,16 @@
 {
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
   "css.validate": false,
-  "tailwindCSS.validate": true
-} 
+
+  // ── Deno integration ─────────────────────────────────
+  "deno.enable": true,
+  "deno.path": "/usr/local/bin/deno",
+  "deno.enablePaths": ["supabase/functions"],
+  "deno.lint": true,
+  "deno.unstable": true,
+
+  "tailwindCSS.validate": true,
+  "git.ignoreLimitWarning": true
+}

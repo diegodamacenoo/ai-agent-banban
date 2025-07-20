@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+﻿import "@testing-library/jest-dom";
 
 // Mock Supabase
 const mockSupabase = {
@@ -23,7 +23,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
 }));
 
@@ -39,28 +39,28 @@ describe('Account Management Server Actions', () => {
         data: {
           id: 'user-123',
           email: 'user@example.com',
-          name: 'João Silva',
+          name: 'JoÃ£o Silva',
           updated_at: new Date().toISOString(),
         },
       });
 
       const result = await mockUpdateAccount({
-        name: 'João Silva',
+        name: 'JoÃ£o Silva',
         email: 'user@example.com',
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.name).toBe('João Silva');
+      expect(result.data.name).toBe('JoÃ£o Silva');
     });
 
     it('should handle account deactivation request', async () => {
       const mockDeactivateAccount = jest.fn().mockResolvedValue({
         success: true,
-        message: 'Solicitação de desativação registrada',
+        message: 'SolicitaÃ§Ã£o de desativaÃ§Ã£o registrada',
       });
 
       const result = await mockDeactivateAccount({
-        reason: 'Não uso mais o serviço',
+        reason: 'NÃ£o uso mais o serviÃ§o',
       });
 
       expect(result.success).toBe(true);
@@ -73,7 +73,7 @@ describe('Account Management Server Actions', () => {
       const mockGetStatus = jest.fn().mockResolvedValue({
         success: true,
         data: {
-          status: 'active',
+          status: 'ACTIVE',
           last_login: new Date().toISOString(),
           mfa_enabled: true,
           email_verified: true,
@@ -83,7 +83,7 @@ describe('Account Management Server Actions', () => {
       const result = await mockGetStatus();
 
       expect(result.success).toBe(true);
-      expect(result.data.status).toBe('active');
+      expect(result.data.status).toBe('ACTIVE');
       expect(result.data.mfa_enabled).toBe(true);
     });
 
@@ -91,19 +91,19 @@ describe('Account Management Server Actions', () => {
       const mockUpdateStatus = jest.fn().mockResolvedValue({
         success: true,
         data: {
-          status: 'suspended',
+          status: 'INACTIVE',
           reason: 'Security review',
           updated_at: new Date().toISOString(),
         },
       });
 
       const result = await mockUpdateStatus({
-        status: 'suspended',
+        status: 'INACTIVE',
         reason: 'Security review',
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.status).toBe('suspended');
+      expect(result.data.status).toBe('INACTIVE');
     });
   });
 

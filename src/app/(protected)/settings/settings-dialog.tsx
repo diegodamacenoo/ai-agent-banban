@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/shared/ui/dialog"
 import {
   Sidebar,
   SidebarContent,
@@ -23,17 +23,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-} from "@/components/ui/sidebar"
-import { SectionErrorBoundary } from "@/components/ui/error-boundary"
+} from "@/shared/ui/sidebar"
+import { SectionErrorBoundary } from "@/shared/ui/error-boundary"
+import { useUser } from "@/app/contexts/UserContext"
 
 const data = {
   nav: [
     { name: "Conta", icon: UserIcon },
-    { name: "Usuários", icon: UsersIcon },
-    { name: "Segurança", icon: ShieldIcon },
-    { name: "Notificações", icon: BellIcon },
+    { name: "UsuÃ¡rios", icon: UsersIcon },
+    { name: "SeguranÃ§a", icon: ShieldIcon },
+    { name: "NotificaÃ§Ãµes", icon: BellIcon },
     { name: "Controle de Dados", icon: DatabaseIcon },
-    { name: "Organização", icon: BuildingIcon },
+    { name: "OrganizaÃ§Ã£o", icon: BuildingIcon },
   ],
 };
 
@@ -51,16 +52,29 @@ import { PerfilUsuarioProvider } from "./contexts/perfis-context";
 import SettingsOrganizacao from "./components/settings-organizacao";
 
 export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
-  // Estado local para selecionar o item do menu
+  const { userData } = useUser();
   const [selected, setSelected] = React.useState(data.nav[0].name);
+
+  const navItems = data.nav.filter(item => {
+    if (item.name === "UsuÃ¡rios" && userData?.role === "master_admin") {
+      return false;
+    }
+    return true;
+  });
+
+  React.useEffect(() => {
+    if (userData?.role === "master_admin" && selected === "UsuÃ¡rios") {
+      setSelected("Conta");
+    }
+  }, [userData, selected]);
 
   return (
     <PerfilUsuarioProvider>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="overflow-hidden p-0 md:max-h-[700px] md:max-w-[700px] lg:max-w-[1080px] lg:rounded-xl">
-          <DialogTitle className="sr-only">Configurações</DialogTitle>
+          <DialogTitle className="sr-only">ConfiguraÃ§Ãµes</DialogTitle>
           <DialogDescription className="sr-only">
-            Configure as preferências do sistema.
+            Configure as preferÃªncias do sistema.
           </DialogDescription>
           <SidebarProvider className="items-start">
             <Sidebar collapsible="none" className="hidden md:flex w-[200px] border-r">
@@ -68,7 +82,7 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
                 <SidebarGroup>
                   <SidebarGroupContent>
                     <SidebarMenu>
-                      {data.nav.map((item) => (
+                      {navItems.map((item) => (
                         <SidebarMenuItem key={item.name}>
                           <SidebarMenuButton
                             asChild
@@ -89,20 +103,20 @@ export const SettingsDialog = ({ open, onOpenChange }: SettingsDialogProps) => {
             </Sidebar>
             <main className="flex h-[700px] flex-1 flex-col overflow-hidden bg-zinc-50">
               <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 pt-0">
-                <SectionErrorBoundary sectionName="Configurações">
+                <SectionErrorBoundary sectionName="ConfiguraÃ§Ãµes">
                   {(() => {
                     switch (selected) { 
                       case "Conta":
                         return <SettingsConta />;
-                      case "Usuários":
+                      case "UsuÃ¡rios":
                         return <SettingsUsuarios />;
-                      case "Segurança":
+                      case "SeguranÃ§a":
                         return <SettingsSeguranca />;
-                      case "Notificações":
+                      case "NotificaÃ§Ãµes":
                         return <SettingsNotificacoes />;
                       case "Controle de Dados":
                         return <SettingsControleDados />;
-                      case "Organização":
+                      case "OrganizaÃ§Ã£o":
                         return <SettingsOrganizacao />;
                       default:
                         return null;

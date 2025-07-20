@@ -8,41 +8,75 @@ import {
   DialogFooter,
   DialogDescription,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+} from "@/shared/ui/dialog";
+import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/shared/ui/select";
 import { userRoleOptions } from "@/app/(protected)/settings/types/user-settings-types";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/shared/ui/toast";
+import { createSupabaseBrowserClient } from '@/core/supabase/client';
 
-// Componente de diálogo para convidar usuários por e-mail
+// Componente de diÃ¡logo para convidar usuÃ¡rios por e-mail
 export function UsuariosInviteDialog({
   trigger,
   onSuccess,
 }: {
-  trigger: React.ReactNode; // Elemento que dispara a abertura do diálogo
-  onSuccess?: () => void; // Callback após sucesso
+  trigger: React.ReactNode; // Elemento que dispara a abertura do diÃ¡logo
+  onSuccess?: () => void; // Callback apÃ³s sucesso
 }) {
-  // Estados para controlar o formulário e o diálogo
+  // Estados para controlar o formulÃ¡rio e o diÃ¡logo
   const [email, setEmail] = React.useState("");
-  const [perfil, setPerfil] = React.useState("reader");
+  const [perfil, setPerfil] = React.useState("user");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
+  const [organizationId, setOrganizationId] = React.useState<string | null>(null);
   const { toast } = useToast();
+  const supabase = createSupabaseBrowserClient();
 
-  // Função para lidar com o envio do convite
+  // Buscar organizaÃ§Ã£o do usuÃ¡rio logado quando o componente monta
+  React.useEffect(() => {
+    async function fetchUserOrganization() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('organization_id')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.organization_id) {
+          setOrganizationId(profile.organization_id);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar organizaÃ§Ã£o do usuÃ¡rio:', error);
+      }
+    }
+
+    fetchUserOrganization();
+  }, []);
+
+  // FunÃ§Ã£o para lidar com o envio do convite via Edge Function
   async function handleInvite() {
     if (!email) {
-      toast({
-        title: "E-mail obrigatório",
+      toast.show({ title: "E-mail obrigatÃ³rio",
         description: "Por favor, preencha o e-mail para convidar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!organizationId) {
+      toast.show({ title: "Erro de configuraÃ§Ã£o",
+        description: "NÃ£o foi possÃ­vel identificar sua organizaÃ§Ã£o.",
         variant: "destructive",
       });
       return;
@@ -51,40 +85,48 @@ export function UsuariosInviteDialog({
     setIsSubmitting(true);
 
     try {
-      // Chama a API Route para enviar convite
-      const result = await fetch("/api/user-management/invites/invite", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
+      console.debug('ðŸš€ CHAMANDO EDGE FUNCTION invite-new-user');
+      console.debug('Dados:', { email, organization_id: organizationId, role: perfil });
+
+      // Chamar a edge function diretamente
+      const { data, error } = await supabase.functions.invoke('invite-new-user', {
+        body: {
           email,
+          organization_id: organizationId,
           role: perfil,
-          expiresIn: 7, // Padrão de 7 dias
-        }),
+        },
       });
 
-      const data = await result.json();
+      console.debug('ðŸ“¥ RESPOSTA DA EDGE FUNCTION:', { data, error });
 
-      if (result.ok && data.success) {
+      if (error) {
+        console.error('Erro da edge function:', error);
+        toast.show({ title: "Erro ao enviar convite",
+          description: error.message || "Erro interno da funÃ§Ã£o",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (data?.success) {
         setEmail("");
-        setPerfil("reader");
+        setPerfil("user");
         setOpen(false);
-        toast({
-          description: "O convite foi enviado com sucesso.",
+        toast.show({ title: "Convite enviado!",
+          description: data.message || "O convite foi enviado com sucesso.",
           variant: "default",
         });
         if (onSuccess) onSuccess();
       } else {
-        toast({
-          description: data.error || "Erro ao enviar convite",
+        toast.show({ title: "Erro ao enviar convite",
+          description: data?.error || "Erro desconhecido",
           variant: "destructive",
         });
       }
     } catch (err) {
-      toast({
-        description: "Erro ao enviar convite",
+      console.error('Erro inesperado:', err);
+      toast.show({ title: "Erro ao enviar convite",
+        description: "Erro inesperado ao processar o convite",
         variant: "destructive",
       });
     } finally {
@@ -94,14 +136,14 @@ export function UsuariosInviteDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      {/* Botão ou elemento que abre o diálogo */}
+      {/* BotÃ£o ou elemento que abre o diÃ¡logo */}
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Convidar usuário por e-mail</DialogTitle>
+          <DialogTitle>Convidar usuÃ¡rio por e-mail</DialogTitle>
           <DialogDescription>
-            Informe o e-mail do usuário e selecione o perfil para enviar o
-            convite.
+            Informe o e-mail do usuÃ¡rio e selecione o perfil para enviar o
+            convite via Edge Function.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
@@ -116,7 +158,7 @@ export function UsuariosInviteDialog({
               onChange={(e) => setEmail(e.target.value)}
             />
           </div>
-          {/* Seleção de perfil */}
+          {/* SeleÃ§Ã£o de perfil */}
           <div className="space-y-2">
             <Label htmlFor="invite-perfil">Perfil</Label>
             <Select value={perfil} onValueChange={setPerfil}>
@@ -126,23 +168,34 @@ export function UsuariosInviteDialog({
               <SelectContent>
                 {userRoleOptions.map((role) => (
                   <SelectItem key={role} value={role}>
-                    {role === "organization_admin"
-                      ? "Administrador"
-                      : role === "editor"
-                        ? "Editor"
-                        : role === "reader"
-                          ? "Leitor"
-                          : "Visitante"}
+                    {role === "master_admin"
+                      ? "Master Admin"
+                      : role === "organization_admin"
+                        ? "Administrador"
+                        : role === "user"
+                          ? "Usuário"
+                          : role}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
+          
+          {/* Debug info */}
+          {organizationId && (
+            <div className="text-xs text-muted-foreground">
+              OrganizaÃ§Ã£o: {organizationId.slice(0, 8)}...
+            </div>
+          )}
         </div>
         <DialogFooter>
-          {/* Botão de envio do convite */}
-          <Button type="submit" onClick={handleInvite} disabled={isSubmitting}>
-            {isSubmitting ? "Enviando..." : "Enviar convite"}
+          {/* BotÃ£o de envio do convite */}
+          <Button 
+            type="submit" 
+            onClick={handleInvite} 
+            disabled={isSubmitting || !organizationId}
+          >
+            {isSubmitting ? "Enviando..." : "Enviar convite (Edge Function)"}
           </Button>
         </DialogFooter>
       </DialogContent>

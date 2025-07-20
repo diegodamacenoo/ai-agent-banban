@@ -1,13 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
+import { useUser } from "@/app/contexts/UserContext";
 import type {
   UserProfile,
   RoleEnum,
   UserStatusEnum,
 } from "../types/perfis";
 
-// Types para o contexto de usuários
+// Types para o contexto de usuÃ¡rios
 type PerfilUsuarioState = {
   perfis: UserProfile[];
   isLoading: boolean;
@@ -30,13 +31,20 @@ interface PerfilUsuarioProviderProps {
 const PerfilUsuarioContext = createContext<PerfilUsuarioContextType | undefined>(undefined);
 
 export function PerfilUsuarioProvider({ children }: PerfilUsuarioProviderProps) {
+  const { userData } = useUser();
   const [state, setState] = useState<PerfilUsuarioState>({
     perfis: [],
-    isLoading: false,
+    isLoading: false, // ComeÃ§a como false, pois a aÃ§Ã£o de carregar depende do role
     error: null,
   });
 
   const carregarPerfisAction = useCallback(async () => {
+    // SÃ³ busca se for admin de organizaÃ§Ã£o
+    if (userData?.role !== 'organization_admin') {
+      setState((prev) => ({ ...prev, isLoading: false, perfis: [], error: null }));
+      return;
+    }
+
     setState((prev) => ({ ...prev, isLoading: true, error: null }));
     const result = await fetchPerfisUsuario();
     if (!result.success || result.error) {
@@ -44,11 +52,18 @@ export function PerfilUsuarioProvider({ children }: PerfilUsuarioProviderProps) 
     } else {
       setState((prev) => ({ ...prev, perfis: result.data, isLoading: false }));
     }
-  }, []);
+  }, [userData]);
 
   useEffect(() => {
-    carregarPerfisAction();
-  }, [carregarPerfisAction]);
+    // A verificaÃ§Ã£o do role agora estÃ¡ dentro da action, mas Ã© bom ter aqui tambÃ©m
+    // para evitar chamadas desnecessÃ¡rias na montagem.
+    if (userData?.role === 'organization_admin') {
+      carregarPerfisAction();
+    } else {
+      // Para master_admin, explicitamente definimos o carregamento como concluÃ­do.
+      setState(prev => ({ ...prev, isLoading: false }));
+    }
+  }, [userData, carregarPerfisAction]);
 
   const actions: PerfilUsuarioActions = {
     criarPerfil: useCallback(async (perfilData: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>) => {

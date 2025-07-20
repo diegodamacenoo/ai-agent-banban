@@ -1,16 +1,16 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+﻿import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { GenericDialog } from "../components/common/dialog/generic-dialog";
 
 // Mock dos componentes internos
-jest.mock("@/components/ui/dialog", () => ({
+jest.mock("@/shared/ui/dialog", () => ({
   Dialog: ({ children, open, onOpenChange }: any) => (
     <div 
       data-testid="dialog" 
       role="dialog" 
       aria-modal={open} 
       className={open ? "dialog-open" : "dialog-closed"}
-      onClick={() => onOpenChange && onOpenChange(false)}
+      onClick={() => onOpenChange?.(false)}
     >
       {children}
     </div>
@@ -25,7 +25,7 @@ jest.mock("@/components/ui/dialog", () => ({
   DialogDescription: ({ children }: any) => <div data-testid="dialog-description">{children}</div>,
 }));
 
-jest.mock("@/components/ui/button", () => ({
+jest.mock("@/shared/ui/button", () => ({
   Button: ({ children, ...props }: any) => (
     <button data-testid="button" {...props}>
       {children}
@@ -34,10 +34,10 @@ jest.mock("@/components/ui/button", () => ({
 }));
 
 describe("GenericDialog", () => {
-  const mockTitle = "Título do Diálogo";
-  const mockDescription = "Descrição do diálogo";
-  const mockContent = <div data-testid="mock-content">Conteúdo do diálogo</div>;
-  const mockFooter = <div data-testid="mock-footer">Rodapé do diálogo</div>;
+  const mockTitle = "TÃ­tulo do DiÃ¡logo";
+  const mockDescription = "DescriÃ§Ã£o do diÃ¡logo";
+  const mockContent = <div data-testid="mock-content">ConteÃºdo do diÃ¡logo</div>;
+  const mockFooter = <div data-testid="mock-footer">RodapÃ© do diÃ¡logo</div>;
   const mockOnOpenChange = jest.fn();
 
   beforeEach(() => {
@@ -56,7 +56,7 @@ describe("GenericDialog", () => {
       </GenericDialog>
     );
     
-    // Verificar se os elementos estão presentes
+    // Verificar se os elementos estÃ£o presentes
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
     expect(screen.getByTestId("dialog")).toHaveClass("dialog-open");
     expect(screen.getByTestId("dialog-title")).toHaveTextContent(mockTitle);
@@ -64,7 +64,7 @@ describe("GenericDialog", () => {
     expect(screen.getByTestId("mock-content")).toBeInTheDocument();
   });
 
-  it("não deve renderizar conteúdo quando fechado", () => {
+  it("nÃ£o deve renderizar conteÃºdo quando fechado", () => {
     const { container } = render(
       <GenericDialog
         open={false}
@@ -76,11 +76,11 @@ describe("GenericDialog", () => {
       </GenericDialog>
     );
     
-    // O diálogo não deve estar visível
+    // O diÃ¡logo nÃ£o deve estar visÃ­vel
     expect(container.querySelector('[data-testid="dialog"]')).toHaveClass("dialog-closed");
   });
 
-  it("deve chamar onOpenChange quando o diálogo é clicado", () => {
+  it("deve chamar onOpenChange quando o diÃ¡logo Ã© clicado", () => {
     render(
       <GenericDialog
         open={true}
@@ -91,13 +91,13 @@ describe("GenericDialog", () => {
       </GenericDialog>
     );
     
-    // Simula o clique no diálogo para fechá-lo
+    // Simula o clique no diÃ¡logo para fechÃ¡-lo
     fireEvent.click(screen.getByTestId("dialog"));
     
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it("deve renderizar o rodapé quando fornecido", () => {
+  it("deve renderizar o rodapÃ© quando fornecido", () => {
     render(
       <GenericDialog
         open={true}
@@ -140,9 +140,9 @@ describe("GenericDialog", () => {
       </GenericDialog>
     );
     
-    // Verificar se está no modo de carregamento
-    // Note: Este teste é apenas para demonstração, já que o componente real
-    // pode não ter uma indicação visual de carregamento
+    // Verificar se estÃ¡ no modo de carregamento
+    // Note: Este teste Ã© apenas para demonstraÃ§Ã£o, jÃ¡ que o componente real
+    // pode nÃ£o ter uma indicaÃ§Ã£o visual de carregamento
     expect(screen.getByTestId("dialog")).toBeInTheDocument();
   });
 }); 

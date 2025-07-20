@@ -1,9 +1,10 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { z } from 'zod';
-import { GetTeamsSchema } from '@/lib/schemas/profiles';
+
+// Schema local para validação
+const GetTeamsSchema = z.object({});
 
 export type Team = {
   id: string;
@@ -26,17 +27,14 @@ export async function getTeams(): Promise<{ success: boolean; data?: Team[]; err
   }
 
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     
-    if (sessionError || !session?.user) {
+    if (authError || !user) {
       console.error('Usuário não autenticado');
       return { success: false, error: 'Usuário não autenticado' };
     }
-    
-    const user = session.user;
     
     // Primeiro, obtém o organization_id do perfil do usuário
     const { data: profileData, error: profileError } = await supabase

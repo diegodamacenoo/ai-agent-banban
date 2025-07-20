@@ -30,7 +30,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
   createSupabaseAdminClient: jest.fn(() => mockSupabase),
 }));
@@ -51,7 +51,7 @@ describe('User Management Server Actions', () => {
     it('should validate email format', async () => {
       const mockInviteUser = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Email inválido',
+        error: 'Email invÃ¡lido',
       });
 
       const result = await mockInviteUser({
@@ -60,7 +60,7 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('inválido');
+      expect(result.error).toContain('invÃ¡lido');
     });
 
     it('should create user invitation', async () => {
@@ -70,7 +70,7 @@ describe('User Management Server Actions', () => {
           id: '123',
           email: 'user@example.com',
           role: 'user',
-          status: 'pending',
+          status: 'PENDING',
         },
       });
 
@@ -81,7 +81,7 @@ describe('User Management Server Actions', () => {
 
       expect(result.success).toBe(true);
       expect(result.data.email).toBe('user@example.com');
-      expect(result.data.status).toBe('pending');
+      expect(result.data.status).toBe('PENDING');
     });
   });
 
@@ -89,7 +89,7 @@ describe('User Management Server Actions', () => {
     it('should validate user permissions', async () => {
       const mockUpdateRole = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Permissão negada',
+        error: 'PermissÃ£o negada',
       });
 
       const result = await mockUpdateRole({
@@ -98,7 +98,7 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('Permissão negada');
+      expect(result.error).toContain('PermissÃ£o negada');
     });
 
     it('should update user role successfully', async () => {
@@ -125,7 +125,7 @@ describe('User Management Server Actions', () => {
     it('should prevent self-deactivation', async () => {
       const mockDeactivateUser = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Não é possível desativar sua própria conta',
+        error: 'NÃ£o Ã© possÃ­vel desativar sua prÃ³pria conta',
       });
 
       const result = await mockDeactivateUser({
@@ -133,7 +133,7 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('própria conta');
+      expect(result.error).toContain('prÃ³pria conta');
     });
 
     it('should deactivate user successfully', async () => {
@@ -141,7 +141,7 @@ describe('User Management Server Actions', () => {
         success: true,
         data: {
           id: '123',
-          status: 'inactive',
+          status: 'INACTIVE',
           deactivated_at: new Date().toISOString(),
         },
       });
@@ -151,7 +151,7 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.status).toBe('inactive');
+      expect(result.data.status).toBe('INACTIVE');
     });
   });
 
@@ -159,9 +159,9 @@ describe('User Management Server Actions', () => {
     it('should restore deactivated user', async () => {
       const mockRestoreUser = jest.fn().mockResolvedValue({
         success: true,
-        data: {
-          id: '123',
-          status: 'active',
+                  data: {
+            id: '123',
+            status: 'ACTIVE',
           restored_at: new Date().toISOString(),
         },
       });
@@ -171,13 +171,13 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.status).toBe('active');
+      expect(result.data.status).toBe('ACTIVE');
     });
 
     it('should handle restore errors', async () => {
       const mockRestoreUser = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Usuário não encontrado',
+        error: 'UsuÃ¡rio nÃ£o encontrado',
       });
 
       const result = await mockRestoreUser({
@@ -185,7 +185,7 @@ describe('User Management Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('não encontrado');
+      expect(result.error).toContain('nÃ£o encontrado');
     });
   });
 
@@ -198,13 +198,13 @@ describe('User Management Server Actions', () => {
             id: '1',
             email: 'user1@example.com',
             role: 'user',
-            status: 'active',
+            status: 'ACTIVE',
           },
           {
             id: '2',
             email: 'user2@example.com',
             role: 'admin',
-            status: 'active',
+            status: 'ACTIVE',
           },
         ],
       });

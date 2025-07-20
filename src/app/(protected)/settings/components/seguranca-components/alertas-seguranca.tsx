@@ -1,16 +1,16 @@
 'use client';
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import { Slider } from "@/components/ui/slider";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { Switch } from "@/shared/ui/switch";
+import { Separator } from "@/shared/ui/separator";
+import { Slider } from "@/shared/ui/slider";
+import { Alert, AlertDescription } from "@/shared/ui/alert";
 import { InfoIcon, BellIcon, ShieldIcon, TrashIcon, AlertCircleIcon, RefreshCwIcon } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { useSecurityAlerts } from "@/hooks/useSecurityAlerts";
+import { useToast } from '@/shared/ui/toast';
+import { useSecurityAlerts } from "@/shared/hooks/useSecurityAlerts";
 import { useUser } from "@/app/contexts/UserContext";
 
 export default function AlertasSeguranca() {
@@ -27,22 +27,19 @@ export default function AlertasSeguranca() {
     removeDevice
   } = useSecurityAlerts();
 
-  // Verifica se o usuário é administrador da organização
+  // Verifica se o usuÃ¡rio Ã© administrador da organizaÃ§Ã£o
   const { userData } = useUser();
   const isAdmin = userData?.role === "organization_admin";
 
   const handleUpdateSettings = async (newSettings: Parameters<typeof updateSettings>[0]) => {
     const success = await updateSettings(newSettings);
     if (success) {
-      toast({
+      toast.success("ConfiguraÃ§Ãµes de alerta atualizadas", {
         title: "Sucesso",
-        description: "Configurações de alerta atualizadas",
       });
     } else {
-      toast({
+      toast.error(error || "Erro ao atualizar configuraÃ§Ãµes", {
         title: "Erro",
-        description: error || "Erro ao atualizar configurações",
-        variant: "destructive"
       });
     }
   };
@@ -50,15 +47,12 @@ export default function AlertasSeguranca() {
   const handleRemoveDevice = async (deviceId: string) => {
     const success = await removeDevice(deviceId);
     if (success) {
-      toast({
+      toast.success("Dispositivo removido com sucesso", {
         title: "Sucesso",
-        description: "Dispositivo removido com sucesso",
       });
     } else {
-      toast({
+      toast.error(error || "Erro ao remover dispositivo", {
         title: "Erro",
-        description: error || "Erro ao remover dispositivo",
-        variant: "destructive"
       });
     }
   };
@@ -66,7 +60,7 @@ export default function AlertasSeguranca() {
   const formatDeviceInfo = (device: typeof knownDevices[0]) => {
     if (!device.user_agent) return 'Dispositivo desconhecido';
     
-    // Extração básica de informações do user agent
+    // ExtraÃ§Ã£o bÃ¡sica de informaÃ§Ãµes do user agent
     const browserMatch = device.user_agent.match(/(Chrome|Firefox|Safari|Edge|Opera)\/(\d+)/);
     const osMatch = device.user_agent.match(/(Windows|Mac|Linux|Android|iOS)/);
     
@@ -108,7 +102,7 @@ export default function AlertasSeguranca() {
           <div className="flex items-center gap-2">
             <InfoIcon className="text-blue-500 w-5 h-5" />
             <p className="text-sm text-muted-foreground">
-              Alertas automáticos ajudam a identificar rapidamente possíveis problemas de segurança na sua conta.
+              Alertas automÃ¡ticos ajudam a identificar rapidamente possÃ­veis problemas de seguranÃ§a na sua conta.
             </p>
           </div>
           
@@ -119,7 +113,7 @@ export default function AlertasSeguranca() {
                   Novo login em dispositivo desconhecido
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Envia alerta quando um login for realizado em um dispositivo não reconhecido
+                  Envia alerta quando um login for realizado em um dispositivo nÃ£o reconhecido
                 </p>
               </div>
               <Switch 
@@ -138,7 +132,7 @@ export default function AlertasSeguranca() {
                   Tentativas consecutivas de acesso com senha errada
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Envia alerta após {settings.failed_attempts_threshold} tentativas falhas de login consecutivas
+                  Envia alerta apÃ³s {settings.failed_attempts_threshold} tentativas falhas de login consecutivas
                 </p>
               </div>
               <Switch 
@@ -176,10 +170,10 @@ export default function AlertasSeguranca() {
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label htmlFor="alertaExclusaoUsuario" className="font-medium">
-                  Exclusão de usuário
+                  ExclusÃ£o de usuÃ¡rio
                 </Label>
                 <p className="text-xs text-muted-foreground">
-                  Envia alerta quando um usuário for excluído da plataforma
+                  Envia alerta quando um usuÃ¡rio for excluÃ­do da plataforma
                 </p>
               </div>
               <Switch 
@@ -197,14 +191,14 @@ export default function AlertasSeguranca() {
             <div className="flex items-center gap-2">
               <BellIcon className="text-amber-500 w-5 h-5" />
               <p className="text-sm">
-                Os alertas são enviados para o e-mail da sua conta quando as condições configuradas são atendidas.
+                Os alertas sÃ£o enviados para o e-mail da sua conta quando as condiÃ§Ãµes configuradas sÃ£o atendidas.
               </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Seção de Dispositivos Conhecidos */}
+      {/* SeÃ§Ã£o de Dispositivos Conhecidos */}
       <Card className="shadow-none">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center justify-between">
@@ -223,7 +217,7 @@ export default function AlertasSeguranca() {
           </div>
           
           <p className="text-sm text-muted-foreground">
-            Dispositivos que você já usou para fazer login. Logins de dispositivos desconhecidos acionarão alertas.
+            Dispositivos que vocÃª jÃ¡ usou para fazer login. Logins de dispositivos desconhecidos acionarÃ£o alertas.
           </p>
 
           {isLoadingDevices ? (
@@ -241,10 +235,10 @@ export default function AlertasSeguranca() {
                   <div className="space-y-1">
                     <p className="text-sm font-medium">{formatDeviceInfo(device)}</p>
                     <p className="text-xs text-muted-foreground">
-                      Primeiro uso: {formatDate(device.first_seen_at)}
+                      Primeiro uso: {formatDate(device.created_at)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Último uso: {formatDate(device.last_seen_at)}
+                      Ãšltimo uso: {formatDate(device.last_seen_at)}
                     </p>
                   </div>
                   <Button

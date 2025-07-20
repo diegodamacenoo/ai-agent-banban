@@ -1,0 +1,399 @@
+{
+  "id": "banban-data-processing",
+  "name": "BanBan Data Processing",
+  "version": "2.0.0",
+  "description": "Sistema robusto de processamento de dados para cliente BanBan Fashion especializado em receber, validar e processar dados do ERP via webhooks",
+  "type": "custom",
+  "category": "data-processing",
+  "vendor": "Axon Development Team",
+  "license": "Proprietary",
+  "repository": "https://github.com/axon-system/banban-modules",
+  "documentation": "https://docs.axon-system.com/modules/banban/data-processing",
+  "support": "https://support.axon-system.com/banban/data-processing",
+  "tags": ["data-processing", "webhooks", "erp", "events", "validation", "batch-processing", "moda", "banban"],
+  "keywords": ["webhook", "event-processing", "data-validation", "batch", "erp-integration", "fashion", "inventory"],
+  "client_id": "banban",
+  "pricing_tier": "premium",
+  "billing_model": "per_event",
+  "status": "active",
+  "maturity": "stable",
+  "compatibility": {
+    "min_platform_version": "2.0.0",
+    "max_platform_version": "3.0.0",
+    "node_version": ">=18.0.0",
+    "database_version": ">=15.0.0"
+  },
+  "dependencies": {
+    "required": [
+      "@supabase/supabase-js@^2.39.0",
+      "zod@^3.22.0",
+      "date-fns@^2.30.0",
+      "lodash@^4.17.21",
+      "crypto@^1.0.1"
+    ],
+    "optional": [
+      "uuid@^9.0.0",
+      "compression@^1.7.4",
+      "bull@^4.10.0"
+    ],
+    "peer": [
+      "banban-insights@^2.0.0",
+      "banban-performance@^2.0.0",
+      "banban-inventory@^2.0.0"
+    ]
+  },
+  "permissions": {
+    "database": {
+      "read": [
+        "tenant_data_processing_events",
+        "tenant_data_processing_log",
+        "tenant_data_processing_config",
+        "tenant_data_processing_metrics",
+        "tenant_data_processing_failed_events",
+        "tenant_data_processing_audit"
+      ],
+      "write": [
+        "tenant_data_processing_events",
+        "tenant_data_processing_log",
+        "tenant_data_processing_config",
+        "tenant_data_processing_metrics",
+        "tenant_data_processing_failed_events",
+        "tenant_data_processing_audit"
+      ],
+      "admin": [
+        "tenant_data_processing_*"
+      ]
+    },
+    "api": {
+      "read": [
+        "banban.data-processing.read",
+        "banban.events.read",
+        "banban.webhooks.read",
+        "banban.metrics.read"
+      ],
+      "write": [
+        "banban.data-processing.write",
+        "banban.events.process",
+        "banban.webhooks.configure",
+        "banban.queue.manage"
+      ],
+      "admin": [
+        "banban.data-processing.admin",
+        "banban.system.admin",
+        "banban.events.reprocess",
+        "banban.queue.flush"
+      ]
+    }
+  },
+  "resources": {
+    "memory": {
+      "min": "256MB",
+      "recommended": "512MB",
+      "max": "2GB"
+    },
+    "cpu": {
+      "min": 0.25,
+      "recommended": 0.5,
+      "max": 2.0
+    },
+    "storage": {
+      "min": "100MB",
+      "recommended": "500MB",
+      "growth_rate": "50MB/month"
+    },
+    "database_connections": {
+      "min": 2,
+      "recommended": 5,
+      "max": 20
+    }
+  },
+  "configuration": {
+    "schema_file": "module_schema.json",
+    "default_config": {
+      "enabled": true,
+      "auto_processing": true,
+      "max_event_queue_size": 10000,
+      "processing_timeout": 30000,
+      "retry_attempts": 3,
+      "enable_webhooks": true,
+      "enable_batch_processing": true,
+      "batch_size": 50,
+      "enable_validation": true,
+      "enable_audit_logging": true,
+      "enable_metrics": true
+    },
+    "required_fields": [
+      "enabled",
+      "max_event_queue_size",
+      "processing_timeout",
+      "retry_attempts"
+    ]
+  },
+  "api": {
+    "base_path": "/api/modules/banban/data-processing",
+    "version": "v1",
+    "endpoints": [
+      {
+        "path": "/events",
+        "method": "POST",
+        "description": "Processa um evento individual",
+        "auth_required": true,
+        "rate_limit": "1000/hour"
+      },
+      {
+        "path": "/events/batch",
+        "method": "POST",
+        "description": "Processa múltiplos eventos em lote",
+        "auth_required": true,
+        "rate_limit": "100/hour"
+      },
+      {
+        "path": "/events/validate",
+        "method": "POST",
+        "description": "Valida um evento sem processá-lo",
+        "auth_required": true,
+        "rate_limit": "2000/hour"
+      },
+      {
+        "path": "/events/status/{event_id}",
+        "method": "GET",
+        "description": "Obtém status de processamento de um evento",
+        "auth_required": true,
+        "rate_limit": "5000/hour"
+      },
+      {
+        "path": "/events/reprocess/{event_id}",
+        "method": "POST",
+        "description": "Reprocessa um evento falhado",
+        "auth_required": true,
+        "rate_limit": "50/hour"
+      },
+      {
+        "path": "/queue",
+        "method": "GET",
+        "description": "Obtém status da fila de processamento",
+        "auth_required": true,
+        "rate_limit": "1000/hour"
+      },
+      {
+        "path": "/queue/flush",
+        "method": "POST",
+        "description": "Força processamento da fila",
+        "auth_required": true,
+        "rate_limit": "10/hour"
+      },
+      {
+        "path": "/metrics",
+        "method": "GET",
+        "description": "Obtém métricas de processamento",
+        "auth_required": true,
+        "rate_limit": "1000/hour"
+      },
+      {
+        "path": "/health",
+        "method": "GET",
+        "description": "Verifica saúde do módulo",
+        "auth_required": false,
+        "rate_limit": "10000/hour"
+      },
+      {
+        "path": "/webhooks/inventory",
+        "method": "POST",
+        "description": "Webhook para eventos de inventário",
+        "auth_required": true,
+        "rate_limit": "5000/hour"
+      },
+      {
+        "path": "/webhooks/sales",
+        "method": "POST",
+        "description": "Webhook para eventos de vendas",
+        "auth_required": true,
+        "rate_limit": "5000/hour"
+      },
+      {
+        "path": "/webhooks/purchase",
+        "method": "POST",
+        "description": "Webhook para eventos de compras",
+        "auth_required": true,
+        "rate_limit": "2000/hour"
+      },
+      {
+        "path": "/webhooks/transfer",
+        "method": "POST",
+        "description": "Webhook para eventos de transferências",
+        "auth_required": true,
+        "rate_limit": "1000/hour"
+      }
+    ]
+  },
+  "events": {
+    "emitted": [
+      "data-processing.event.processed",
+      "data-processing.event.failed",
+      "data-processing.batch.completed",
+      "data-processing.queue.full",
+      "data-processing.health.degraded"
+    ],
+    "consumed": [
+      "inventory.item.updated",
+      "sales.transaction.completed",
+      "purchase.order.received",
+      "transfer.movement.completed"
+    ]
+  },
+  "jobs": [
+    {
+      "name": "event-processor",
+      "description": "Processa eventos da fila",
+      "schedule": "*/30 * * * * *",
+      "enabled": true,
+      "timeout": 25000
+    },
+    {
+      "name": "failed-event-retry",
+      "description": "Reprocessa eventos falhados",
+      "schedule": "0 */5 * * * *",
+      "enabled": true,
+      "timeout": 120000
+    },
+    {
+      "name": "metrics-collector",
+      "description": "Coleta métricas de performance",
+      "schedule": "0 * * * * *",
+      "enabled": true,
+      "timeout": 10000
+    },
+    {
+      "name": "queue-cleanup",
+      "description": "Limpa eventos antigos da fila",
+      "schedule": "0 0 2 * * *",
+      "enabled": true,
+      "timeout": 300000
+    }
+  ],
+  "monitoring": {
+    "health_check": {
+      "endpoint": "/health",
+      "interval": 30,
+      "timeout": 5000,
+      "retries": 3
+    },
+    "metrics": [
+      {
+        "name": "events_processed_total",
+        "type": "counter",
+        "description": "Total de eventos processados",
+        "labels": ["event_type", "status"]
+      },
+      {
+        "name": "processing_duration_seconds",
+        "type": "histogram",
+        "description": "Duração do processamento de eventos",
+        "labels": ["event_type"]
+      },
+      {
+        "name": "queue_size",
+        "type": "gauge",
+        "description": "Tamanho atual da fila",
+        "labels": ["queue_type"]
+      },
+      {
+        "name": "failed_events_total",
+        "type": "counter",
+        "description": "Total de eventos falhados",
+        "labels": ["event_type", "error_type"]
+      }
+    ],
+    "alerts": [
+      {
+        "name": "queue_size_high",
+        "condition": "queue_size > 8000",
+        "severity": "warning",
+        "description": "Fila de eventos está ficando cheia"
+      },
+      {
+        "name": "queue_size_critical",
+        "condition": "queue_size > 9500",
+        "severity": "critical",
+        "description": "Fila de eventos está quase no limite"
+      },
+      {
+        "name": "processing_failure_rate_high",
+        "condition": "rate(failed_events_total[5m]) > 0.1",
+        "severity": "warning",
+        "description": "Taxa de falha de processamento está alta"
+      },
+      {
+        "name": "processing_latency_high",
+        "condition": "histogram_quantile(0.95, processing_duration_seconds) > 10",
+        "severity": "warning",
+        "description": "Latência de processamento está alta"
+      }
+    ]
+  },
+  "integrations": {
+    "erp_webhooks": {
+      "enabled": true,
+      "supported_events": [
+        "sale_completed",
+        "sale_cancelled",
+        "return_processed",
+        "inventory_adjustment",
+        "inventory_count",
+        "inventory_transfer",
+        "purchase_completed",
+        "purchase_cancelled",
+        "purchase_returned",
+        "transfer_initiated",
+        "transfer_completed",
+        "transfer_cancelled",
+        "product_created",
+        "product_updated",
+        "product_discontinued"
+      ]
+    },
+    "edge_functions": {
+      "enabled": true,
+      "functions": [
+        "webhook-inventory-flow",
+        "webhook-sales-flow",
+        "webhook-purchase-flow",
+        "webhook-transfer-flow"
+      ]
+    },
+    "modules": {
+      "banban-insights": {
+        "enabled": true,
+        "events": ["data-processing.event.processed"]
+      },
+      "banban-performance": {
+        "enabled": true,
+        "events": ["data-processing.metrics.updated"]
+      },
+      "banban-inventory": {
+        "enabled": true,
+        "events": ["data-processing.inventory.updated"]
+      }
+    }
+  },
+  "security": {
+    "webhook_signature_validation": true,
+    "event_encryption": false,
+    "audit_logging": true,
+    "rate_limiting": true,
+    "ip_whitelisting": false
+  },
+  "backup": {
+    "enabled": true,
+    "retention_days": 90,
+    "include_events": true,
+    "include_logs": true,
+    "include_metrics": false
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "health_check_grace_period": 30,
+    "max_unavailable": 1,
+    "max_surge": 1
+  }
+} 

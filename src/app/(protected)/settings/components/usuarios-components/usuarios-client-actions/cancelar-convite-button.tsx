@@ -1,59 +1,71 @@
 "use client";
 import * as React from "react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/ui/button";
 import { XCircleIcon } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DialogContent } from "@/components/ui/dialog";
-import { Dialog } from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { TooltipProvider } from "@/shared/ui/tooltip";
+import { DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { DialogContent } from "@/shared/ui/dialog";
+import { Dialog } from "@/shared/ui/dialog";
+import { useToast } from "@/shared/ui/toast";
+import { createSupabaseBrowserClient } from '@/core/supabase/client';
 
-// Botão para cancelar convite de usuário
+// BotÃ£o para cancelar convite de usuÃ¡rio
 interface CancelarConviteButtonProps {
   inviteId: string; // ID do convite
-  onSuccess?: () => void; // Callback após sucesso
+  onSuccess?: () => void; // Callback apÃ³s sucesso
 }
 
 export default function CancelarConviteButton({ inviteId, onSuccess }: CancelarConviteButtonProps) {
-  // Estados para loading e controle do diálogo
+  // Estados para loading e controle do diÃ¡logo
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const supabase = createSupabaseBrowserClient();
 
-  // Função para cancelar o convite
+  // Função para cancelar o convite usando Edge Function
   async function handleCancelar() {
     setLoading(true);
     
     try {
-      // Chama a API Route para cancelar convite
-      const result = await fetch('/api/user-management/invites/cancel', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      console.debug('🚀 CHAMANDO EDGE FUNCTION cancel-invite');
+      console.debug('Dados:', { invite_id: inviteId });
+
+      // Chamar a edge function para cancelar convite
+      const { data, error } = await supabase.functions.invoke('cancel-invite', {
+        body: {
+          invite_id: inviteId,
         },
-        credentials: 'include',
-        body: JSON.stringify({ id: inviteId }),
       });
 
-      const data = await result.json();
+      console.debug('📥 RESPOSTA DA EDGE FUNCTION:', { data, error });
 
-      if (result.ok && data.success) {
-        toast({
-          description: "O convite foi cancelado com sucesso.",
+      if (error) {
+        console.error('Erro da edge function:', error);
+        toast.show({
+          description: error.message || "Erro interno da função",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data?.success) {
+        toast.show({
+          description: data.message || "O convite foi cancelado com sucesso.",
           variant: "default"
         });
         setOpen(false);
         if (onSuccess) onSuccess();
       } else {
-        toast({
-          description: data.error || "Erro ao cancelar convite",
+        toast.show({
+          description: data?.error || "Erro desconhecido",
           variant: "destructive"
         });
       }
-    } catch (error) {
-      toast({
-        description: "Erro ao cancelar convite",
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+      toast.show({
+        description: "Erro inesperado ao cancelar convite",
         variant: "destructive"
       });
     } finally {
@@ -61,12 +73,12 @@ export default function CancelarConviteButton({ inviteId, onSuccess }: CancelarC
     }
   }
 
-  // Estado para abrir/fechar o diálogo de confirmação
+  // Estado para abrir/fechar o diÃ¡logo de confirmaÃ§Ã£o
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {/* Botão de cancelar com tooltip */}
+      {/* BotÃ£o de cancelar com tooltip */}
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -80,7 +92,7 @@ export default function CancelarConviteButton({ inviteId, onSuccess }: CancelarC
         </Tooltip>
       </TooltipProvider>
 
-      {/* Diálogo de confirmação */}
+      {/* DiÃ¡logo de confirmaÃ§Ã£o */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -90,9 +102,9 @@ export default function CancelarConviteButton({ inviteId, onSuccess }: CancelarC
             Tem certeza que deseja cancelar este convite?
           </DialogDescription>
           <DialogFooter>
-            {/* Botão voltar */}
+            {/* BotÃ£o voltar */}
             <Button variant="outline" onClick={() => setOpen(false)}>Voltar</Button>
-            {/* Botão cancelar convite */}
+            {/* BotÃ£o cancelar convite */}
             <Button variant="destructive" onClick={handleCancelar} disabled={loading}>
               {loading ? "Cancelando..." : "Cancelar"}
             </Button>

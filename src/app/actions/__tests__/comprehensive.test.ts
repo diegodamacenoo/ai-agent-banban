@@ -32,7 +32,7 @@ const mockSupabase = {
   },
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
   createSupabaseAdminClient: jest.fn(() => mockSupabase),
 }));
@@ -99,7 +99,7 @@ describe('Comprehensive Server Actions Tests', () => {
     it('should request password reset', async () => {
       const mockRequestReset = jest.fn().mockResolvedValue({
         success: true,
-        message: 'Email de recuperação enviado',
+        message: 'Email de recuperaÃ§Ã£o enviado',
       });
 
       const result = await mockRequestReset({
@@ -120,7 +120,7 @@ describe('Comprehensive Server Actions Tests', () => {
           {
             id: 'session-1',
             device: 'Chrome Desktop',
-            location: 'São Paulo, BR',
+            location: 'SÃ£o Paulo, BR',
             current: true,
             last_active: new Date().toISOString(),
           },
@@ -143,7 +143,7 @@ describe('Comprehensive Server Actions Tests', () => {
           id: 'invite-123',
           email: 'newuser@example.com',
           role: 'user',
-          status: 'pending',
+          status: 'PENDING',
         },
       });
 
@@ -153,7 +153,7 @@ describe('Comprehensive Server Actions Tests', () => {
       });
 
       expect(result.success).toBe(true);
-      expect(result.data.status).toBe('pending');
+      expect(result.data.status).toBe('PENDING');
     });
   });
 
@@ -185,7 +185,7 @@ describe('Comprehensive Server Actions Tests', () => {
             id: 'user-1',
             email: 'user1@example.com',
             role: 'admin',
-            status: 'active',
+            status: 'ACTIVE',
           },
         ],
       });

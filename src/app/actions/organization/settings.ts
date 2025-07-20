@@ -1,13 +1,11 @@
 'use server';
 
-import { createSupabaseClient } from '@/lib/supabase/server';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { captureRequestInfo } from '@/lib/utils/audit-logger';
-import { createAuditLog } from '@/lib/utils/audit-logger';
-import { AUDIT_ACTION_TYPES } from '@/lib/utils/audit-logger';
-import { AUDIT_RESOURCE_TYPES } from '@/lib/utils/audit-logger';
+import { createAuditLog } from '@/features/security/audit-logger';
+import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
+import { captureRequestInfo } from '@/features/security/audit-logger';
 
 // Schema para validação de dados de configuração da organização
 const OrganizationSettingsSchema = z.object({
@@ -29,15 +27,12 @@ export type OrganizationSettings = z.infer<typeof OrganizationSettingsSchema>;
  */
 export async function getOrganizationSettings(): Promise<{data?: any, error?: string}> {
   try {
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { error: 'Usuário não autenticado' };
     }
-    
-    const user = session.user;
     
     // Primeiro, obtenha o ID da organização do perfil do usuário
     const { data: profileData, error: profileError } = await supabase
@@ -81,19 +76,16 @@ export async function updateOrganizationSettings(formData: OrganizationSettings)
     if (!validation.success) {
       return { 
         success: false,
-        error: validation.error.errors.map(e => e.message).join(', ') 
+        error: validation.error.errors.map((e: any) => e.message).join(', ') 
       };
     }
 
-    const cookieStore = await cookies();
-    const supabase = createSupabaseClient(cookieStore);
+    const supabase = await createSupabaseServerClient();
     
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
       return { success: false, error: 'Usuário não autenticado.' };
     }
-
-    const user = session.user;
     
     // Primeiro, obtenha o ID da organização do perfil do usuário
     const { data: profileData, error: profileError } = await supabase
@@ -133,18 +125,20 @@ export async function updateOrganizationSettings(formData: OrganizationSettings)
       };
     }
 
-    // Registrar log de auditoria
+    // Registrar atualização no log de auditoria
     const { ipAddress, userAgent, organizationId } = await captureRequestInfo(user.id);
     await createAuditLog({
       actor_user_id: user.id,
-      action_type: AUDIT_ACTION_TYPES.ORGANIZATION_SETTINGS_UPDATED,
-      resource_type: AUDIT_RESOURCE_TYPES.ORGANIZATION,
+      action_type: AUDIT_ACTION_TYPES.SETTINGS_UPDATED,
+      resource_type: AUDIT_RESOURCE_TYPES.SETTINGS,
+      resource_id: profileData.organization_id,
+      organization_id: profileData.organization_id,
+      details: {
+        updated_fields: Object.keys(formData),
+        settings_type: 'organization',
+      },
       ip_address: ipAddress,
       user_agent: userAgent,
-      organization_id: organizationId,
-      details: {
-        changes: formData
-      }
     });
     
     revalidatePath('/settings');

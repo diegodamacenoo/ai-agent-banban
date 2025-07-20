@@ -1,5 +1,5 @@
 export type RoleEnum = 'organization_admin' | 'standard_user' | 'reader';
-export type UserStatusEnum = 'active' | 'inactive' | 'suspended';
+export type UserStatusEnum = 'ACTIVE' | 'INACTIVE' | 'PENDING' | 'DELETED';
 
 // Novo tipo para gerenciar Roles/Perfis de Acesso
 export interface Role {
@@ -11,7 +11,7 @@ export interface Role {
   updated_at?: Date;
 }
 
-// Tipo para o perfil de um usuário individual
+// Tipo para o perfil de um usuÃ¡rio individual
 export interface UserProfile {
   id: string;
   organization_id?: string;

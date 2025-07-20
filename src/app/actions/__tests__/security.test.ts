@@ -25,7 +25,7 @@ const mockSupabase = {
   })),
 };
 
-jest.mock('@/lib/supabase/server', () => ({
+jest.mock('@/core/supabase/server', () => ({
   createSupabaseServerClient: jest.fn(() => mockSupabase),
   createSupabaseAdminClient: jest.fn(() => mockSupabase),
 }));
@@ -98,7 +98,7 @@ describe('Security Server Actions', () => {
     it('should terminate session', async () => {
       const mockTerminateSession = jest.fn().mockResolvedValue({
         success: true,
-        message: 'Sessão encerrada com sucesso',
+        message: 'SessÃ£o encerrada com sucesso',
       });
 
       const result = await mockTerminateSession({
