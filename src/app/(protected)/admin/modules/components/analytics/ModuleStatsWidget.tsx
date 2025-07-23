@@ -130,7 +130,7 @@ export function ModuleStatsWidget({ stats, loading }: ModuleStatsWidgetProps) {
   // Não fazer return early - renderizar widgets estáticos mesmo sem dados dinâmicos
 
   return (
-    <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-4 inline-flex items-start">
       {/* Card de Overview - DINÂMICO com dados reais */}
       <Card size="sm" variant="rounded">
         <CardHeader>
@@ -187,7 +187,7 @@ export function ModuleStatsWidget({ stats, loading }: ModuleStatsWidgetProps) {
       </Card>
 
       {/* Card de Alertas - DINÂMICO (apenas se há módulos órfãos reais) */}
-      {derivedStats && derivedStats.orphanModules.length > 0 && (
+      {/* {derivedStats && derivedStats.orphanModules.length > 0 && (
         <Card className="border-orange-200 bg-orange-50" size="sm" variant="rounded">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2 text-orange-700">
@@ -213,7 +213,7 @@ export function ModuleStatsWidget({ stats, loading }: ModuleStatsWidgetProps) {
             </div>
           </CardContent>
         </Card>
-      )}
+      )} */}
 
       {/* Card de Scan de Módulos - ESTÁTICO (dados mock) */}
       <Card size="sm" variant="rounded">

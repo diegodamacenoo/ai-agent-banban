@@ -303,21 +303,15 @@ export function AdminSidebar({ className }: { className?: string }) {
   };
 
   return (
-    <Sidebar variant="inset" className="p-0 bg-[hsl(var(--sidebar-background))] border-r border-[hsl(var(--border))]">
-      <SidebarHeader className="p-4 h-[75px]">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-            <Sparkle className="h-4 w-4" />
-          </div>
-          <div>
-            <h2 className="font-medium text-[var(--sidebar-foreground)]">Axon</h2>
-            <p className="text-xs text-[var(--sidebar-foreground)]">Painel de Controle</p>
-          </div>
-        </div>
-      </SidebarHeader>
-
-      <SidebarContent className="p-2">
-        <nav className="space-y-1">
+    <div 
+      className={cn(
+        "h-full w-full flex flex-col bg-[hsl(var(--sidebar-background))]",
+        className
+      )}
+      style={{ height: '100%' }}
+    >
+      {/* Navigation - flex-1 para ocupar espaço disponível */}
+      <nav className="flex-1 p-2 pt-4 space-y-1 overflow-y-auto">
           {adminNavItems.map((item) => (
             <div key={item.title}>
               {item.href ? (
@@ -382,12 +376,12 @@ export function AdminSidebar({ className }: { className?: string }) {
               )}
             </div>
           ))}
-        </nav>
-      </SidebarContent>
+      </nav>
       
-      <SidebarFooter>
+      {/* Footer - sempre no final */}
+      <div className="p-2 border-t border-[hsl(var(--border))]">
         <AdminSidebarFooter />
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </div>
   );
 } 
