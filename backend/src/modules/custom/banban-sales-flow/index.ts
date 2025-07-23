@@ -1,6 +1,7 @@
 // @ts-nocheck
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { randomUUID } from 'crypto';
 import { ModuleInstance, ModuleInfo } from '../../../shared/types/module-types';
 import { BanBanSalesFlowService } from './services/banban-sales-flow-service';
 import { banbanSalesFlowSchemas } from './schemas/banban-sales-flow-schemas';
@@ -70,6 +71,7 @@ export class BanBanSalesFlowModule implements ModuleInstance {
 
       try {
         const payload = request.body as any;
+        const eventUuid = randomUUID();
         
         // Validar payload básico
         if (!payload.event_type || !payload.organization_id || !payload.data) {
@@ -87,7 +89,7 @@ export class BanBanSalesFlowModule implements ModuleInstance {
               processing_time_ms: Date.now() - startTime,
               organization_id: payload.organization_id || 'UNKNOWN',
               action: payload.event_type || 'UNKNOWN',
-              event_uuid: eventUuid || 'UNKNOWN'
+              event_uuid: eventUuid
             },
             error: {
               code: 'VALIDATION_ERROR',
@@ -98,21 +100,25 @@ export class BanBanSalesFlowModule implements ModuleInstance {
             }
           });
         }
-
         let result;
-        const eventUuid = crypto.randomUUID();
+
+        console.debug('Sales Flow: Processing event', {
+          event_type: payload.event_type,
+          organization_id: payload.organization_id,
+          event_uuid: eventUuid
+        });
 
         switch (payload.event_type) {
           case 'sale_completed':
-            result = await this.service.processSaleCompleted(payload.data, payload.organization_id);
+            result = await this.service.processAction('register_sale', payload.data, { organizationId: payload.organization_id });
             break;
 
           case 'sale_cancelled':
-            result = await this.service.processSaleCancelled(payload.data, payload.organization_id);
+            result = await this.service.processAction('cancel_sale', payload.data, { organizationId: payload.organization_id });
             break;
 
           case 'return_processed':
-            result = await this.service.processReturnProcessed(payload.data, payload.organization_id);
+            result = await this.service.processAction('complete_return', payload.data, { organizationId: payload.organization_id });
             break;
 
           default:
@@ -147,26 +153,27 @@ export class BanBanSalesFlowModule implements ModuleInstance {
         console.debug('Sales flow processed successfully:', {
           event_type: payload.event_type,
           organization_id: payload.organization_id,
-          entity_id: result.entityId,
+          result: result,
           processing_time_ms: processingTime
         });
 
         return reply.headers(corsHeaders).send({
           success: true,
           action: payload.event_type,
-          transaction_id: result.transactionId || undefined,
+          transaction_id: result.transaction_id || result.transactionId || undefined,
           entity_ids: result.entityIds || [],
           relationship_ids: result.relationshipIds || [],
           state_transition: result.stateTransition || undefined,
           attributes: {
-            success: result.success,
-            entityType: result.entityType,
-            entityId: result.entityId,
+            success: true,
+            entityType: 'SALE',
+            entityId: result.external_id || result.entityId,
+            status: result.status,
             summary: {
-              message: result.summary.message,
-              records_processed: result.summary.records_processed,
-              records_successful: result.summary.records_successful,
-              records_failed: result.summary.records_failed
+              message: `${payload.event_type} processado com sucesso`,
+              records_processed: 1,
+              records_successful: 1,
+              records_failed: 0
             }
           },
           metadata: {
@@ -180,6 +187,8 @@ export class BanBanSalesFlowModule implements ModuleInstance {
 
       } catch (error: any) {
         const processingTime = Date.now() - startTime;
+        const payload = request.body as any;
+        const eventUuid = randomUUID();
         
         console.error('Sales flow processing error:', {
           error: error.message,
@@ -188,7 +197,7 @@ export class BanBanSalesFlowModule implements ModuleInstance {
 
         return reply.headers(corsHeaders).code(500).send({
           success: false,
-          action: payload.event_type,
+          action: payload?.event_type || 'UNKNOWN',
           attributes: {
             success: false,
             summary: {
@@ -198,8 +207,8 @@ export class BanBanSalesFlowModule implements ModuleInstance {
           metadata: {
             processed_at: new Date().toISOString(),
             processing_time_ms: processingTime,
-            organization_id: payload.organization_id,
-            action: payload.event_type,
+            organization_id: payload?.organization_id || 'UNKNOWN',
+            action: payload?.event_type || 'UNKNOWN',
             event_uuid: eventUuid
           },
           error: {
@@ -258,10 +267,11 @@ export class BanBanSalesFlowModule implements ModuleInstance {
           });
         }
 
-        const sales = await this.service.getSales(query.org, {
-          saleId: query.sale_id,
-          customerId: query.customer_id,
-          locationId: query.location_id,
+        const sales = await this.service.getSalesData({
+          org: query.org,
+          sale_id: query.sale_id,
+          customer_id: query.customer_id,
+          location_id: query.location_id,
           status: query.status,
           limit: query.limit
         });

@@ -8,6 +8,7 @@ import {
   type ModuleInfo,
   type PlannedModule 
 } from '@/shared/types/module-system';
+import { conditionalDebugLog } from './modules/system-config-utils';
 
 export interface ScanStep {
   id: string;
@@ -85,9 +86,9 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     progress.currentStep = steps[0].name;
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug('🔍 Iniciando escaneamento de diretórios...');
+    await conditionalDebugLog('Iniciando escaneamento de diretórios...');
     const discoveredModules = await discoveryService.scanAvailableModules();
-    console.debug(`📦 [SCAN-DEBUG] Módulos retornados pelo scanner: ${discoveredModules.length}`);
+    await conditionalDebugLog('Módulos retornados pelo scanner', { count: discoveredModules.length });
     
     steps[0].status = 'completed';
     steps[0].details = { modulesFound: discoveredModules.length };
@@ -100,7 +101,7 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     progress.currentStep = steps[1].name;
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug('✅ Validando estruturas dos módulos...');
+    await conditionalDebugLog('Validando estruturas dos módulos...');
     // Validação real dos módulos descobertos
     let validModules = 0;
     let warnings = 0;
@@ -123,7 +124,7 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     progress.currentStep = steps[2].name;
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug('🔬 Analisando configurações dos módulos...');
+    await conditionalDebugLog('Analisando configurações dos módulos...');
     // Análise real dos módulos
     let analyzedModules = 0;
     for (const moduleInfo of discoveredModules) {
@@ -145,7 +146,7 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     progress.currentStep = steps[3].name;
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug('📊 Extraindo metadados dos módulos...');
+    await conditionalDebugLog('Extraindo metadados dos módulos...');
     // Extração de metadados
     let extractedMetadata = 0;
     for (const moduleInfo of discoveredModules) {
@@ -164,17 +165,17 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     progress.currentStep = steps[4].name;
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug('💾 Salvando resultados do escaneamento...');
-    console.debug(`📦 [SAVE-DEBUG] Iniciando salvamento de ${discoveredModules.length} módulos...`);
+    await conditionalDebugLog('Salvando resultados do escaneamento...');
+    await conditionalDebugLog('Iniciando salvamento de módulos', { count: discoveredModules.length });
     
     // Registrar módulos descobertos no core_modules
     let savedModules = 0;
     const supabase = await createSupabaseServerClient();
-    console.debug('🔌 [SAVE-DEBUG] Cliente Supabase criado com sucesso');
+    await conditionalDebugLog('Cliente Supabase criado com sucesso');
     
     for (const moduleInfo of discoveredModules) {
       try {
-        console.debug(`🔄 [SAVE-DEBUG] Processando módulo: ${moduleInfo.id} (${moduleInfo.name})`);
+        await conditionalDebugLog('Processando módulo', { id: moduleInfo.id, name: moduleInfo.name });
         
         // Verificar se o módulo já existe em core_modules
         const { data: existingModule } = await supabase
@@ -183,7 +184,7 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
           .eq('slug', moduleInfo.id)
           .single();
           
-        console.debug(`🔍 [SAVE-DEBUG] Módulo ${moduleInfo.id} existe? ${existingModule ? 'SIM' : 'NÃO'}`);
+        await conditionalDebugLog('Verificação de existência de módulo', { id: moduleInfo.id, exists: !!existingModule });
         
         if (!existingModule) {
           // Determinar categoria baseada no nome do módulo
@@ -212,11 +213,11 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
           if (insertError) {
             console.error('❌ Erro ao registrar módulo', moduleInfo.id, ':', insertError.message);
           } else {
-            console.debug('✅ Módulo', moduleInfo.id, 'registrado em core_modules');
+            await conditionalDebugLog('Módulo registrado em core_modules', { id: moduleInfo.id });
             savedModules++;
           }
         } else {
-          console.debug('ℹ️ Módulo', moduleInfo.id, 'já existe em core_modules');
+          await conditionalDebugLog('Módulo já existe em core_modules', { id: moduleInfo.id });
         }
       } catch (error) {
         console.error('❌ Erro ao processar módulo', moduleInfo.id, ':', error);
@@ -236,7 +237,7 @@ export async function performModuleScan(): Promise<ModuleApiResponse<ScanProgres
     // Salvar estado final
     scanProgressCache.set(sessionId, { ...progress });
 
-    console.debug(`✅ Escaneamento concluído! Encontrados ${discoveredModules.length} módulos`);
+    await conditionalDebugLog('Escaneamento concluído', { modulesFound: discoveredModules.length });
 
     return {
       success: true,

@@ -6,13 +6,14 @@ import { createSupabaseAdminClient } from '@/core/supabase/admin';
 import { createSupabaseBrowserClient } from '@/core/supabase/client';
 import type { Profile } from '@/shared/types/supabase';
 import type { Organization } from '@/core/contexts/OrganizationContext';
+import { conditionalDebugLog } from './modules/system-config-utils';
 
 /**
  * Verifica se o usuário atual tem permissões de master admin
  */
 async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?: string }> {
   try {
-    console.debug('[AUTH] Iniciando verificação de permissões...');
+    await conditionalDebugLog('[AUTH] Iniciando verificação de permissões...');
     const supabase = await createSupabaseServerClient();
     
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -23,11 +24,11 @@ async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?
     }
     
     if (!user) {
-      console.debug('[AUTH] Usuário não encontrado');
+      await conditionalDebugLog('[AUTH] Usuário não encontrado');
       return { authorized: false };
     }
 
-    console.debug('[AUTH] Usuário encontrado:', {
+    await conditionalDebugLog('[AUTH] Usuário encontrado', {
       id: user.id,
       email: user.email,
       app_metadata: user.app_metadata
@@ -35,15 +36,15 @@ async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?
 
     // Primeiro, verificar role no JWT token (método preferido)
     const userRoleFromJWT = user.app_metadata?.user_role;
-    console.debug('[AUTH] Role do JWT:', userRoleFromJWT);
+    await conditionalDebugLog('[AUTH] Role do JWT', { role: userRoleFromJWT });
     
     if (userRoleFromJWT === 'master_admin') {
-      console.debug('[AUTH] Usuário autorizado via JWT como master_admin');
+      await conditionalDebugLog('[AUTH] Usuário autorizado via JWT como master_admin');
       return { authorized: true, userId: user.id };
     }
 
     // Fallback: verificar role na tabela profiles
-    console.debug('[AUTH] JWT não tem master_admin, verificando tabela profiles...');
+    await conditionalDebugLog('[AUTH] JWT não tem master_admin, verificando tabela profiles...');
     
     // Tentar com cliente normal primeiro
     let { data: profile, error: profileError } = await supabase
@@ -54,7 +55,7 @@ async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?
 
     // Se falhar com cliente normal, usar admin
     if (profileError) {
-      console.debug('[AUTH] Erro com cliente normal, tentando com admin:', profileError.message);
+      await conditionalDebugLog('[AUTH] Erro com cliente normal, tentando com admin', { error: profileError.message });
       const adminSupabase = await createSupabaseAdminClient();
       
       const adminResult = await adminSupabase
@@ -72,14 +73,14 @@ async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?
       return { authorized: false };
     }
 
-    console.debug('[AUTH] Role da tabela profiles:', profile.role);
+    await conditionalDebugLog('[AUTH] Role da tabela profiles', { role: profile.role });
     
     if (profile.role !== 'master_admin') {
       console.warn(`[AUTH] Acesso negado para usuário ${user.id} com role: ${profile.role}`);
       return { authorized: false };
     }
 
-    console.debug('[AUTH] Usuário autorizado via tabela profiles como master_admin');
+    await conditionalDebugLog('[AUTH] Usuário autorizado via tabela profiles como master_admin');
     return { authorized: true, userId: user.id };
   } catch (error) {
     console.error('[AUTH] Erro ao verificar permissões:', error);
@@ -100,19 +101,19 @@ interface DashboardStats {
  */
 export async function getDashboardStats(): Promise<{ data?: DashboardStats; error?: string }> {
   try {
-    console.debug('[DASHBOARD] Iniciando carregamento de dados...');
+    await conditionalDebugLog('[DASHBOARD] Iniciando carregamento de dados...');
     
     const { authorized } = await verifyMasterAdminAccess();
     if (!authorized) {
-      console.debug('[DASHBOARD] Acesso negado - usuário não autorizado');
+      await conditionalDebugLog('[DASHBOARD] Acesso negado - usuário não autorizado');
       return { error: 'Acesso negado: Apenas master admins podem acessar esta função.' };
     }
 
-    console.debug('[DASHBOARD] Usuário autorizado, buscando dados...');
+    await conditionalDebugLog('[DASHBOARD] Usuário autorizado, buscando dados...');
     const supabase = await createSupabaseServerClient();
 
     // Tentar com cliente normal primeiro
-    console.debug('[DASHBOARD] Tentando com cliente normal...');
+    await conditionalDebugLog('[DASHBOARD] Tentando com cliente normal...');
     let organizationsResult = await supabase
       .from('organizations')
       .select('id, client_type, is_implementation_complete', { count: 'exact' })
@@ -131,7 +132,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
 
     // Se alguma consulta falhar com cliente normal, usar admin
     if (organizationsResult.error || usersResult.error || activityResult.error) {
-      console.debug('[DASHBOARD] Usando cliente admin devido a erros RLS:', {
+      await conditionalDebugLog('[DASHBOARD] Usando cliente admin devido a erros RLS', {
         orgError: organizationsResult.error?.message,
         userError: usersResult.error?.message,
         activityError: activityResult.error?.message
@@ -140,7 +141,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
       const adminSupabase = await createSupabaseAdminClient();
 
       if (organizationsResult.error) {
-        console.debug('[DASHBOARD] Buscando organizações com cliente admin...');
+        await conditionalDebugLog('[DASHBOARD] Buscando organizações com cliente admin...');
         organizationsResult = await adminSupabase
           .from('organizations')
           .select('id, client_type, is_implementation_complete', { count: 'exact' })
@@ -148,7 +149,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
       }
 
       if (usersResult.error) {
-        console.debug('[DASHBOARD] Buscando usuários com cliente admin...');
+        await conditionalDebugLog('[DASHBOARD] Buscando usuários com cliente admin...');
         usersResult = await adminSupabase
           .from('profiles')
           .select('id, status, role', { count: 'exact' })
@@ -156,7 +157,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
       }
 
       if (activityResult.error) {
-        console.debug('[DASHBOARD] Buscando atividades com cliente admin...');
+        await conditionalDebugLog('[DASHBOARD] Buscando atividades com cliente admin...');
         activityResult = await adminSupabase
           .from('audit_logs')
           .select('*')
@@ -181,7 +182,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
       return { error: 'Erro ao carregar atividades recentes.' };
     }
 
-    console.debug('[DASHBOARD] Dados carregados com sucesso:', {
+    await conditionalDebugLog('[DASHBOARD] Dados carregados com sucesso', {
       orgs: organizationsResult.count,
       users: usersResult.count,
       activities: activityResult.data?.length
@@ -207,7 +208,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
       recentActivity: activityResult.data || []
     };
 
-    console.debug('[DASHBOARD] Estatísticas processadas:', stats);
+    await conditionalDebugLog('[DASHBOARD] Estatísticas processadas', stats);
     return { data: stats };
   } catch (e: any) {
     console.error('[DASHBOARD] Erro inesperado em getDashboardStats:', e);
@@ -220,7 +221,7 @@ export async function getDashboardStats(): Promise<{ data?: DashboardStats; erro
  */
 export async function getQuickStats(): Promise<{ data?: any; error?: string }> {
   try {
-    console.debug('[AUTH] Iniciando verificação de permissões...');
+    await conditionalDebugLog('[AUTH] Iniciando verificação de permissões...');
     const supabase = await createSupabaseServerClient();
     
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -235,7 +236,7 @@ export async function getQuickStats(): Promise<{ data?: any; error?: string }> {
       .single();
 
     if (profileError) {
-      console.debug('[AUTH] Erro com cliente normal, tentando com admin:', profileError.message);
+      await conditionalDebugLog('[AUTH] Erro com cliente normal, tentando com admin', { error: profileError.message });
       const adminSupabase = await createSupabaseAdminClient();
       
       const adminResult = await adminSupabase
@@ -262,7 +263,7 @@ export async function getQuickStats(): Promise<{ data?: any; error?: string }> {
  */
 export async function debugUserInfo(): Promise<{ data?: any; error?: string }> {
   try {
-    console.debug('[DEBUG] Verificando informações do usuário...');
+    await conditionalDebugLog('[DEBUG] Verificando informações do usuário...');
     const supabase = await createSupabaseServerClient();
     
     // Verificar usuário autenticado
@@ -274,11 +275,11 @@ export async function debugUserInfo(): Promise<{ data?: any; error?: string }> {
     }
     
     if (!user) {
-      console.debug('[DEBUG] Usuário não autenticado');
+      await conditionalDebugLog('[DEBUG] Usuário não autenticado');
       return { error: 'Usuário não autenticado' };
     }
 
-    console.debug('[DEBUG] Dados do usuário Auth:', {
+    await conditionalDebugLog('[DEBUG] Dados do usuário Auth', {
       id: user.id,
       email: user.email,
       app_metadata: user.app_metadata,
@@ -308,7 +309,7 @@ export async function debugUserInfo(): Promise<{ data?: any; error?: string }> {
         return { error: 'Erro ao buscar perfil do usuário' };
       }
 
-      console.debug('[DEBUG] Perfil encontrado com cliente admin:', adminProfile);
+      await conditionalDebugLog('[DEBUG] Perfil encontrado com cliente admin', adminProfile);
       return {
         data: {
           auth_user: {
@@ -323,7 +324,7 @@ export async function debugUserInfo(): Promise<{ data?: any; error?: string }> {
       };
     }
 
-    console.debug('[DEBUG] Perfil encontrado:', profile);
+    await conditionalDebugLog('[DEBUG] Perfil encontrado', profile);
     return {
       data: {
         auth_user: {

@@ -8,7 +8,7 @@ import {
   webhookAuthMiddleware
 } from '@shared/webhook-base';
 import { RETURN_ACTIONS } from '../../../shared/enums';
-import { BanBanSalesFlowService } from '../../modules/custom/banban-sales-flow/services/banban-sales-flow-service';
+import { BanBanSalesFlowService } from '../../../integrations/banban/flows/sales/services/banban-sales-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {

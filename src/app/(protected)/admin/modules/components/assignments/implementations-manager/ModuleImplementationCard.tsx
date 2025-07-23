@@ -24,6 +24,8 @@ import {
 } from 'lucide-react';
 import { CreateImplementationDialog } from '../..';
 import { BaseModule, ModuleImplementation } from '@/app/(protected)/admin/modules/types';
+import { getAudienceLabel, getComplexityLabel } from '@/app/(protected)/admin/modules/constants/display-mappings';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 
 const iconComponents: { [key: string]: React.ComponentType<LucideProps> } = {
   Package,
@@ -74,7 +76,8 @@ export function ModuleImplementationCard({
   onServerError,
 }: ModuleImplementationCardProps) {
   return (
-    <Card key={module.id} variant="highlight" className="p-1 bg-[hsl(var(--highlight))]">
+    <TooltipProvider>
+      <Card key={module.id} variant="highlight" className="p-1 bg-[hsl(var(--highlight))]">
       {/* Module Header */}
       <div className="flex flex-row gap-3 px-4 py-2 items-center justify-between">
         <div className="w-fit flex items-center gap-3">
@@ -102,7 +105,14 @@ export function ModuleImplementationCard({
             {module.implementations.length} implementações
           </span>
           {module.implementations.some(impl => impl.is_default) && (
-            <BadgeCheck className="w-4 h-4 mx-1" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <BadgeCheck className="w-4 h-4 mx-1 cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Este módulo possui implementação padrão</p>
+              </TooltipContent>
+            </Tooltip>
           )}
 
           <CreateImplementationDialog
@@ -172,7 +182,14 @@ export function ModuleImplementationCard({
                           <div className="flex gap-2">
                             <span className="font-medium text-sm">{implementation.name}</span>
                             {implementation.is_default && (
-                              <BadgeCheck className="w-4 h-4" />
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <BadgeCheck className="w-4 h-4 cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Implementação Padrão</p>
+                                </TooltipContent>
+                              </Tooltip>
                             )}
                           </div>
                           <p className="text-sm text-muted-foreground font-mono">
@@ -184,14 +201,14 @@ export function ModuleImplementationCard({
                       {/* Audience */}
                       <div className="col-span-2 flex items-center">
                         <span className="text-sm text-muted-foreground">
-                          {implementation.audience}
+                          {getAudienceLabel(implementation.audience)}
                         </span>
                       </div>
 
                       {/* Complexity */}
                       <div className="col-span-2 flex items-center">
                         <span className="text-sm text-muted-foreground">
-                          {implementation.complexity}
+                          {getComplexityLabel(implementation.complexity)}
                         </span>
                       </div>
 
@@ -214,6 +231,7 @@ export function ModuleImplementationCard({
           )}
         </Card>
       </div>
-    </Card>
+      </Card>
+    </TooltipProvider>
   );
 }

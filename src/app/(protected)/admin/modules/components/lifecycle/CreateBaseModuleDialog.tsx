@@ -60,6 +60,10 @@ import { useToast } from '@/shared/ui/toast';
 import { createBaseModule } from '@/app/actions/admin/modules/base-modules';
 import { CreateBaseModuleSchema } from '@/app/actions/admin/modules/schemas';
 
+// Import dos componentes e hooks
+import { useSystemConfig } from '../../hooks/useSystemConfig';
+import { AutoConfigSwitch } from '../shared/AutoConfigSwitch';
+
 // Tipo inferido do schema
 type CreateBaseModuleForm = z.infer<typeof CreateBaseModuleSchema>;
 
@@ -104,6 +108,10 @@ export function CreateBaseModuleDialog({
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  
+  // Configurações do sistema
+  const { config, isVersioningEnabled } = useSystemConfig();
+  const [isVersionAuto, setIsVersionAuto] = useState(true);
 
   const form = useForm<CreateBaseModuleForm>({
     resolver: zodResolver(CreateBaseModuleSchema),
@@ -141,6 +149,12 @@ export function CreateBaseModuleDialog({
       // Gerar slug se não fornecido
       if (!data.slug || data.slug === '') {
         data.slug = generateSlug(data.name);
+      }
+
+      // Marcar se versão deve ser automática (para o auto-config-applier saber)
+      if (isVersionAuto && isVersioningEnabled) {
+        data.version = '1.0.0'; // Valor padrão, será sobrescrito pelo auto-config
+        (data as any).__useAutoVersion = true;
       }
 
       const hasOptimisticCallbacks = onOptimisticCreate && onServerSuccess && onServerError;
@@ -279,7 +293,7 @@ export function CreateBaseModuleDialog({
                     <FormLabel>Nome do Módulo *</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="ex: Performance Analytics"
+                        placeholder="Performance Analytics"
                         {...field}
                         onChange={(e) => {
                           field.onChange(e);
@@ -300,7 +314,7 @@ export function CreateBaseModuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex align-left gap-2 pt-1">
-                      Slug (URL) *
+                      Identificador *
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -308,10 +322,13 @@ export function CreateBaseModuleDialog({
                           </TooltipTrigger>
                           <TooltipContent side="left">
                             <p className="max-w-xs">
-                              O slug é o identificador único do módulo usado na URL.
-                              Não pode ser alterado após a criação para manter a consistência.
+                              Identificador único interno usado no código e banco de dados.
                               <br />
-                              Ex: /modules/<b>{field.value || 'meu-modulo'}</b>
+                              • Formato: apenas letras minúsculas, números e hífen
+                              <br />
+                              • Não pode ser alterado após criação
+                              <br />
+                              • Exemplo: "performance-analytics"
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -321,7 +338,7 @@ export function CreateBaseModuleDialog({
                       </span>
                     </FormLabel>
                     <FormControl>
-                      <Input placeholder="ex: performance-analytics" {...field} className="mt-3" />
+                      <Input placeholder="performance-analytics" {...field} className="mt-3" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -418,7 +435,7 @@ export function CreateBaseModuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex align-left gap-2 pt-1">
-                      Padrão de Rota *
+                      URL de Acesso *
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -426,10 +443,13 @@ export function CreateBaseModuleDialog({
                           </TooltipTrigger>
                           <TooltipContent side="right">
                             <p className="max-w-xs">
-                              Define os caminhos internos do módulo, como 'dashboard' ou 'settings'.
-                              Este padrão será combinado com o slug para formar a URL final.
+                              Como o módulo aparecerá na URL do navegador dos usuários.
                               <br />
-                              Ex: /modules/[slug]/<b>dashboard</b>
+                              • Pode incluir barras para hierarquia
+                              <br />
+                              • Pode ser alterado posteriormente
+                              <br />
+                              • Exemplo: "/performance" ou "/vendas/analytics"
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -437,9 +457,9 @@ export function CreateBaseModuleDialog({
                     </FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="dashboard"
-                        textLeft="[slug]/"
+                        placeholder="performance"
                         className='mt-3'
+                        textLeft="/tenant/"
                         {...field}
                       />
                     </FormControl>
@@ -448,7 +468,7 @@ export function CreateBaseModuleDialog({
                 )}
               />
 
-              {/* Versão */}
+              {/* Versão - Com opção automática */}
               <FormField
                 control={form.control}
                 name="version"
@@ -456,11 +476,21 @@ export function CreateBaseModuleDialog({
                   <FormItem>
                     <FormLabel>Versão</FormLabel>
                     <FormControl>
-                      <Input placeholder="1.0.0" {...field} />
+                      <AutoConfigSwitch
+                        field="version"
+                        isAutoEnabled={isVersioningEnabled}
+                        autoValue="1.0.0"
+                        onModeChange={setIsVersionAuto}
+                        initialIsAuto={isVersionAuto}
+                        description="Versão semântica inicial do módulo"
+                      >
+                        <Input 
+                          placeholder="ex: 1.0.0" 
+                          {...field} 
+                          disabled={isVersionAuto}
+                        />
+                      </AutoConfigSwitch>
                     </FormControl>
-                    <FormDescription>
-                      Versão semântica (ex: 1.0.0)
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

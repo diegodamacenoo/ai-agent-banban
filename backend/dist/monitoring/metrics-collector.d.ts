@@ -46,7 +46,7 @@ export declare class MetricsCollector {
         currentConnections: number;
         dataPoints: number;
         timeRange: string;
-        status: "warning" | "healthy" | "critical";
+        status: "warning" | "critical" | "healthy";
     } | null;
 }
 //# sourceMappingURL=metrics-collector.d.ts.map

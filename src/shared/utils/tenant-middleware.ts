@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Import para debug condicional síncrono (para middleware)
+import { conditionalDebugLogSync } from './conditional-debug-sync';
+
 // Configurações padrão por tipo de industria
 export const INDUSTRY_DEFAULTS = {
   fashion: {
@@ -99,19 +102,17 @@ export function shouldRedirectToTenant(
 ): { shouldRedirect: boolean; targetUrl?: string } {
   const currentSlug = extractTenantSlug(request.nextUrl.pathname);
   
-  console.debug('🔍 [TENANT] Checking redirect for:', request.nextUrl.pathname);
-  console.debug('🔍 [TENANT] Current slug:', currentSlug);
-  console.debug('🔍 [TENANT] Expected slug:', organizationSlug);
+  conditionalDebugLogSync('TENANT: Checking redirect', { pathname: request.nextUrl.pathname, currentSlug, expectedSlug: organizationSlug });
   
   // Se não há slug esperado, não redirecionar
   if (!organizationSlug) {
-    console.debug('🔍 [TENANT] No expected slug, not redirecting');
+    conditionalDebugLogSync('TENANT: No expected slug, not redirecting');
     return { shouldRedirect: false };
   }
   
   // Se já está no slug correto, não redirecionar
   if (currentSlug === organizationSlug) {
-    console.debug('🔍 [TENANT] Already on correct tenant:', currentSlug);
+    conditionalDebugLogSync('TENANT: Already on correct tenant', { currentSlug });
     return { shouldRedirect: false };
   }
 
@@ -124,7 +125,7 @@ export function shouldRedirectToTenant(
     request.nextUrl.pathname.startsWith('/access-denied');
 
   if (isSpecialRoute) {
-    console.debug('🔍 [TENANT] Special route detected:', request.nextUrl.pathname);
+    conditionalDebugLogSync('TENANT: Special route detected', { pathname: request.nextUrl.pathname });
     return { shouldRedirect: false };
   }
   
@@ -134,14 +135,14 @@ export function shouldRedirectToTenant(
   // Se está em outro tenant, substituir
   if (currentSlug) {
     url.pathname = url.pathname.replace(`/${currentSlug}`, `/${organizationSlug}`);
-    console.debug('🔍 [TENANT] Replacing tenant in URL:', url.pathname);
+    conditionalDebugLogSync('TENANT: Replacing tenant in URL', { pathname: url.pathname });
   } else {
     // Se não está em nenhum tenant, adicionar o slug
     url.pathname = `/${organizationSlug}${url.pathname === '/' ? '' : url.pathname}`;
-    console.debug('🔍 [TENANT] Adding tenant to URL:', url.pathname);
+    conditionalDebugLogSync('TENANT: Adding tenant to URL', { pathname: url.pathname });
   }
   
-  console.debug('🔍 [TENANT] Will redirect to:', url.toString());
+  conditionalDebugLogSync('TENANT: Will redirect to', { targetUrl: url.toString() });
   
   return { 
     shouldRedirect: true, 

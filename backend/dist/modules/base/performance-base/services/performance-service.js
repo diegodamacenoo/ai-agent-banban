@@ -43,7 +43,7 @@ class PerformanceService {
     async calculateCustomMetrics(params) {
         const { metrics, parameters, tenantId } = params;
         const results = {};
-        for (const metric of metrics) {
+        for (const metric of (metrics || [])) {
             switch (metric) {
                 case 'revenue_growth':
                     results[metric] = await this.calculateRevenueGrowth(parameters, tenantId);
@@ -68,6 +68,13 @@ class PerformanceService {
         const baseOrders = Math.floor(Math.random() * 500 + 200);
         const baseCustomers = Math.floor(Math.random() * 1000 + 500);
         return {
+            summary: {
+                total_events: baseOrders,
+                success_rate: Math.random() * 0.1 + 0.9,
+                avg_processing_time: Math.random() * 200 + 50
+            },
+            trends: [],
+            errors: [],
             revenue: {
                 total: Math.round(baseRevenue),
                 growth: Math.round((Math.random() - 0.5) * 20 * 100) / 100,
@@ -80,8 +87,8 @@ class PerformanceService {
             },
             customers: {
                 total: baseCustomers,
-                new: Math.floor(baseCustomers * (Math.random() * 0.2 + 0.05)),
-                retention: Math.round((Math.random() * 0.3 + 0.7) * 100) / 100
+                active: Math.floor(baseCustomers * (Math.random() * 0.2 + 0.8)),
+                growth: Math.round((Math.random() * 0.3 + 0.7) * 100) / 100
             },
             products: {
                 topSelling: [

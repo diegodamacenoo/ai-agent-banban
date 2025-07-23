@@ -208,15 +208,21 @@ declare function is_admin(): boolean;
 declare function has_permission(permission: string): boolean;
 ```
 
-### **Supabase Client Types**
+### **Supabase Client Types (UPDATED Jan 2025)**
 ```typescript
-// Generated types from: npx supabase gen types typescript
-import { Database } from './supabase';
+// Generated types from: npx supabase gen types typescript --linked
+import { Database } from '@/types/database.types';
 
 type Tables = Database['public']['Tables'];
 type BaseModuleRow = Tables['base_modules']['Row'];
 type ModuleImplementationRow = Tables['module_implementations']['Row'];
 type TenantAssignmentRow = Tables['tenant_module_assignments']['Row'];
+type OrganizationRow = Tables['organizations']['Row'];
+type ProfileRow = Tables['profiles']['Row'];
+
+// Database functions
+type GetUserVisibleModules = Database['public']['Functions']['get_user_visible_modules'];
+type GetVisibleModulesForTenant = Database['public']['Functions']['get_visible_modules_for_tenant'];
 ```
 
 ## Error Handling Types

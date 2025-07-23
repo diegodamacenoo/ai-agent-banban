@@ -21,12 +21,20 @@
 - **Server-side**: Always use `getUser()`, never client-side auth
 - **RLS**: Automatic filtering by `organization_id` 
 - **Rate Limiting**: Redis (prod) / In-memory (dev)
+- **Session Tracking**: Middleware automático registra atividade, dispositivo, geo
+- **Browser Client**: Use `createSupabaseBrowserClient()` em hooks/providers
 
 ### Server Actions & Data Flow
 - **Server Actions**: Always async, `'use server'`, internal auth validation
 - **Client Forms**: Use `useTransition()` with `startTransition()`
 - **Error Handling**: Retry pattern with exponential backoff
 - **Validation**: Zod schemas + `revalidatePath()` after mutations
+
+### Middleware Patterns
+- **Session Tracking**: `trackUserSession()` integrado no middleware principal
+- **Device Detection**: Parse automático de User-Agent para browser/OS/device
+- **Geo Location**: Headers Cloudflare/Vercel para localização
+- **Cleanup Automático**: Edge Functions para limpeza de sessões antigas
 
 ## UI Patterns
 

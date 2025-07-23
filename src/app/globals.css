@@ -139,6 +139,9 @@ li[data-sonner-toast] button[data-cancel]:hover,
     --warning-foreground: var(--color-alabaster-50);
     --text-warning: var(--color-yellow-500);
 
+    --info: var(--color-blue-500);
+    --info-hover: var(--color-blue-600);
+
     --text-link: var(--color-blue-700);
 
     --border: var(--color-alabaster-200);

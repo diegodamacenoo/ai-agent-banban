@@ -1,3 +1,4 @@
+import { FastifyInstance } from 'fastify';
 import { ApiKeyPermissionType } from '../shared/schemas/api-keys-schema';
 declare module 'fastify' {
     interface FastifyInstance {
@@ -26,6 +27,7 @@ declare module 'fastify' {
         permissions?: ApiKeyPermissionType[];
     }
 }
-declare const _default: any;
+declare function authPlugin(fastify: FastifyInstance): Promise<void>;
+declare const _default: typeof authPlugin;
 export default _default;
 //# sourceMappingURL=auth.d.ts.map

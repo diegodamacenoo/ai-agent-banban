@@ -6,6 +6,9 @@
 
 import path from 'path';
 
+// Import para debug condicional
+import { conditionalDebugLog } from '@/app/actions/admin/modules/system-config-utils';
+
 // Importação condicional para evitar erros no cliente
 let fs: any = null;
 if (typeof window === 'undefined') {
@@ -48,13 +51,13 @@ export class ModuleMetadataService {
         return this.cache.get(moduleId) || null;
       }
 
-      console.debug(`📋 [ModuleMetadata] Carregando metadados para: ${moduleId}`);
+      await conditionalDebugLog(`Carregando metadados para: ${moduleId}`);
 
       // Se não temos o caminho, tentar descobrir
       if (!modulePath) {
         const discoveredPath = await this.discoverModulePath(moduleId);
         if (!discoveredPath) {
-          console.debug(`⚠️ [ModuleMetadata] Caminho não encontrado para: ${moduleId}`);
+          await conditionalDebugLog(`Caminho não encontrado para: ${moduleId}`);
           return null;
         }
         modulePath = discoveredPath;
@@ -65,7 +68,7 @@ export class ModuleMetadataService {
       try {
         await fs.access(configPath);
       } catch {
-        console.debug(`⚠️ [ModuleMetadata] module.json não encontrado em: ${configPath}`);
+        await conditionalDebugLog(`module.json não encontrado em: ${configPath}`);
         return null;
       }
 
@@ -92,7 +95,7 @@ export class ModuleMetadataService {
       this.cache.set(moduleId, metadata);
       this.cacheExpiry.set(moduleId, Date.now() + this.CACHE_TTL);
 
-      console.debug(`✅ [ModuleMetadata] Metadados carregados para ${moduleId}: ${metadata.name}`);
+      await conditionalDebugLog(`Metadados carregados para ${moduleId}`, { name: metadata.name });
       return metadata;
 
     } catch (error) {
@@ -155,7 +158,7 @@ export class ModuleMetadataService {
         }
       }
 
-      console.debug(`✅ [ModuleMetadata] Escaneamento concluído: ${results.length} módulos encontrados`);
+      await conditionalDebugLog(`Escaneamento concluído: ${results.length} módulos encontrados`);
       return results;
 
     } catch (error) {
@@ -190,7 +193,7 @@ export class ModuleMetadataService {
             }
           } catch {
             // Diretório não tem module.json, ignorar
-            console.debug(`⚠️ [ModuleMetadata] ${entry.name} não é um módulo válido (sem module.json)`);
+            await conditionalDebugLog(`${entry.name} não é um módulo válido (sem module.json)`);
           }
         }
       }

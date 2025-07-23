@@ -214,7 +214,7 @@ class BanBanTransferFlowService {
         await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'ORIGINATES_FROM', transaction.id, originLocationEntity.id, {});
         await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'DESTINED_TO', transaction.id, destinationLocationEntity.id, {});
         for (const item of data.items) {
-            const productEntity = await this._getOrCreateBusinessEntity(enums_1.BANBAN_ORG_ID, 'PRODUCT', item.product_external_id, { name: item.product_name || `Produto ${item.product_external_id}` });
+            const productEntity = await this._getOrCreateBusinessEntity(enums_1.BANBAN_ORG_ID, 'PRODUCT', item.product_external_id || item.product_id, { name: item.product_name || `Produto ${item.product_external_id || item.product_id}` });
             await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'CONTAINS_ITEM', transaction.id, productEntity.id, { quantity: item.quantity, unit_cost: item.unit_cost });
         }
         await this._createBusinessEvent('TRANSACTION', transaction.id, 'transfer_request_created', { ...data, ...metadata });
@@ -243,7 +243,7 @@ class BanBanTransferFlowService {
         await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'ORIGINATES_FROM', transaction.id, originLocationEntity.id, {});
         await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'DESTINED_TO', transaction.id, destinationLocationEntity.id, {});
         for (const item of data.items) {
-            const productEntity = await this._getOrCreateBusinessEntity(enums_1.BANBAN_ORG_ID, 'PRODUCT', item.product_external_id, { name: item.product_name || `Produto ${item.product_external_id}` });
+            const productEntity = await this._getOrCreateBusinessEntity(enums_1.BANBAN_ORG_ID, 'PRODUCT', item.product_external_id || item.product_id, { name: item.product_name || `Produto ${item.product_external_id || item.product_id}` });
             await (0, index_1.createBusinessRelationship)(enums_1.BANBAN_ORG_ID, 'CONTAINS_ITEM', transaction.id, productEntity.id, { quantity: item.quantity, unit_cost: item.unit_cost });
         }
         await this._createBusinessEvent('TRANSACTION', transaction.id, 'transfer_request_registered', { ...data, ...metadata });
@@ -577,7 +577,7 @@ class BanBanTransferFlowService {
         for (const item of data.items_received) {
             if (item.qty_diff && item.qty_diff !== 0) {
                 hasDiscrepancy = true;
-                discrepancies.push({ sku: item.product_external_id, qty_expected: item.qty_expected, qty_received: item.qty_received, qty_diff: item.qty_diff });
+                discrepancies.push({ sku: item.product_external_id || item.product_id, qty_expected: item.qty_expected, qty_received: item.qty_received, qty_diff: item.qty_diff });
             }
         }
         const newStatus = hasDiscrepancy ? 'CONFERENCIA_LOJA_COM_DIVERGENCIA' : 'CONFERENCIA_LOJA_SEM_DIVERGENCIA';

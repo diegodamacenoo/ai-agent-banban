@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.purchaseFlowRoutes = purchaseFlowRoutes;
 const webhook_base_1 = require("../../shared/webhook-base");
-const banban_purchase_flow_service_1 = require("../../modules/custom/banban-purchase-flow/services/banban-purchase-flow-service");
+const banban_purchase_flow_service_1 = require("../../../integrations/banban/flows/purchase/services/banban-purchase-flow-service");
 const logger_1 = require("../../utils/logger");
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',

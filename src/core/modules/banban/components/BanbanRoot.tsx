@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { BanbanSidebar } from './BanbanSidebar';
 import InsightsDashboard from './InsightsDashboard';
 import PerformanceMetrics from './PerformanceMetrics';
 import DataProcessingStatus from './DataProcessingStatus';
@@ -11,7 +10,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { AlertTriangle, BarChart3, Lightbulb } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
-import { SidebarInset, SidebarProvider } from '@/shared/ui/sidebar-provider';
 
 const BanbanOverview: React.FC = () => {
   return (
@@ -218,16 +216,9 @@ const BanbanRoot: React.FC = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen">
-        <BanbanSidebar />
-        <SidebarInset>
-          <div className="p-6">
-            {renderContent()}
-          </div>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <div className="p-6">
+      {renderContent()}
+    </div>
   );
 };
 

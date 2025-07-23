@@ -5,6 +5,9 @@ const performance_service_1 = require("./services/performance-service");
 const performance_schemas_1 = require("./schemas/performance-schemas");
 class PerformanceBaseModule {
     constructor(config) {
+        this.name = 'performance-base';
+        this.version = '1.0.0';
+        this.description = 'Módulo base de performance para métricas e analytics';
         this.config = {
             enableCaching: true,
             cacheTimeout: 300,
@@ -101,6 +104,7 @@ class PerformanceBaseModule {
         const tenant = request.tenant;
         try {
             const metrics = await this.service.getBusinessMetrics({
+                organizationId: tenant?.organizationId || 'default',
                 period,
                 startDate,
                 endDate,
@@ -146,6 +150,8 @@ class PerformanceBaseModule {
         const tenant = request.tenant;
         try {
             const result = await this.service.calculateCustomMetrics({
+                organizationId: tenant?.organizationId || 'default',
+                metricType: 'custom',
                 metrics,
                 parameters,
                 tenantId: tenant?.id
@@ -198,6 +204,14 @@ class PerformanceBaseModule {
                 'kpi_tracking'
             ]
         };
+    }
+    getEndpoints() {
+        return [
+            '/api/performance/business-metrics',
+            '/api/performance/summary',
+            '/api/performance/calculate',
+            '/api/performance/health'
+        ];
     }
 }
 exports.PerformanceBaseModule = PerformanceBaseModule;

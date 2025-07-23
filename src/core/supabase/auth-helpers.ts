@@ -70,7 +70,9 @@ export async function getUserWithRetry(maxRetries = 3, delay = 500, supabase?: S
       if (error && (
         error.message.includes('Invalid JWT') ||
         error.message.includes('Auth session missing') ||
-        error.message.includes('No session')
+        error.message.includes('No session') ||
+        error.message.includes('refresh_token_already_used') ||
+        error.message.includes('refresh_token_not_found')
       )) {
         console.warn(`âš ï¸ Erro de autenticação específico, sem retry: ${error.message}`);
         return { user: null, error };

@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { BaseModule } from './schemas'; // Importar BaseModule do novo arquivo de schemas
+import { conditionalDebugLog } from './system-config-utils';
 
 /**
  * Função utilitária para verificar acesso administrativo
@@ -144,5 +145,5 @@ export async function notifyTenantModuleActivation(
   implementationName: string
 ): Promise<void> {
   // TODO: Implementar lógica de notificação (e-mail, webhook, etc.)
-  console.debug(`Notificação para organização ${organizationId}: Módulo "${moduleName}" (${implementationName}) ativado.`);
+  await conditionalDebugLog('Notificação de módulo ativado', { organizationId, moduleName, implementationName });
 }

@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/button';
 import { Alert, AlertDescription } from '@/shared/ui/alert';
 import { Badge } from '@/shared/ui/badge';
 import { Progress } from '@/shared/ui/progress';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Tabs, TabsContent } from '@/shared/ui/tabs';
 import { 
   RefreshCw, 
   CheckCircle, 
@@ -57,6 +57,7 @@ export default function ModuleIntegrationPage() {
   const [integrating, setIntegrating] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [lastUpdate, setLastUpdate] = useState<string>('');
+  const [activeTab, setActiveTab] = useState('modules');
 
   // Carregar status inicial
   useEffect(() => {
@@ -234,20 +235,20 @@ export default function ModuleIntegrationPage() {
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="modules" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="modules" className="flex items-center space-x-2">
-            <Package className="w-4 h-4" />
-            <span>Módulos</span>
-          </TabsTrigger>
-          <TabsTrigger value="actions" className="flex items-center space-x-2">
-            <Settings className="w-4 h-4" />
-            <span>Ações</span>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs 
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+        items={[
+          { id: 'modules', label: 'Módulos', icon: <Package className="w-4 h-4" /> },
+          { id: 'actions', label: 'Ações', icon: <Settings className="w-4 h-4" /> }
+        ]}
+      />
+
+      <div className="mt-6 space-y-4">
 
         {/* Tab: Módulos */}
-        <TabsContent value="modules" className="space-y-4">
+        <TabsContent value="modules" activeValue={activeTab} className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
@@ -318,7 +319,7 @@ export default function ModuleIntegrationPage() {
         </TabsContent>
 
         {/* Tab: Ações */}
-        <TabsContent value="actions" className="space-y-4">
+        <TabsContent value="actions" activeValue={activeTab} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
@@ -404,7 +405,7 @@ export default function ModuleIntegrationPage() {
             </Card>
           </div>
         </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 } 

@@ -318,8 +318,8 @@ export class BanBanTransferFlowService {
       const productEntity = await this._getOrCreateBusinessEntity(
         BANBAN_ORG_ID,
         'PRODUCT',
-        item.product_external_id,
-        { name: item.product_name || `Produto ${item.product_external_id}` }
+        item.product_external_id || item.product_id,
+        { name: item.product_name || `Produto ${item.product_external_id || item.product_id}` }
       );
 
       await createBusinessRelationship(
@@ -401,8 +401,8 @@ export class BanBanTransferFlowService {
       const productEntity = await this._getOrCreateBusinessEntity(
         BANBAN_ORG_ID,
         'PRODUCT',
-        item.product_external_id,
-        { name: item.product_name || `Produto ${item.product_external_id}` }
+        item.product_external_id || item.product_id,
+        { name: item.product_name || `Produto ${item.product_external_id || item.product_id}` }
       );
 
       await createBusinessRelationship(
@@ -861,7 +861,7 @@ export class BanBanTransferFlowService {
     for (const item of data.items_received) {
       if (item.qty_diff && item.qty_diff !== 0) {
         hasDiscrepancy = true;
-        discrepancies.push({ sku: item.product_external_id, qty_expected: item.qty_expected, qty_received: item.qty_received, qty_diff: item.qty_diff });
+        discrepancies.push({ sku: item.product_external_id || item.product_id, qty_expected: item.qty_expected, qty_received: item.qty_received, qty_diff: item.qty_diff });
       }
     }
 

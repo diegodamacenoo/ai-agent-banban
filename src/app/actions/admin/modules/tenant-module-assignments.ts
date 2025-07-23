@@ -10,6 +10,12 @@ import {
 } from './schemas';
 import { verifyAdminAccess, checkModuleDependenciesForTenant, notifyTenantModuleActivation } from './utils';
 import { trackServerCall } from './call-tracker';
+import { 
+  conditionalAuditLog, 
+  conditionalDebugLog, 
+  checkMaintenanceMode,
+  getConfigValue 
+} from './system-config-utils';
 
 // ================================================
 // SERVER ACTIONS - TENANT MODULE ASSIGNMENTS
@@ -51,10 +57,17 @@ export async function getTenantAssignments(
     let query = supabase
       .from('tenant_module_assignments')
       .select(`
+        id,
         tenant_id,
         base_module_id,
         implementation_id,
         is_active,
+        is_visible,
+        status,
+        permissions_override,
+        user_groups,
+        activation_date,
+        deactivation_date,
         custom_config,
         assigned_at,
         organization:organizations(id, company_trading_name, slug),
@@ -145,6 +158,12 @@ export async function getTenantAssignments(
  */
 export async function createTenantAssignment(input: CreateTenantAssignmentInput): Promise<ActionResult<TenantModuleAssignment>> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
     // Verificar autenticação e permissões
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
@@ -280,6 +299,10 @@ export async function createTenantAssignment(input: CreateTenantAssignmentInput)
       return { success: false, error: 'Erro interno ao criar assignment' };
     }
 
+    // Aplicar configurações automáticas do sistema
+    const { applySystemConfigurationsToNewEntity } = await import('./auto-config-applier');
+    await applySystemConfigurationsToNewEntity('assignment', `${data.tenant_id}|${data.base_module_id}`, newAssignment);
+
     // Enviar notificação se solicitado
     if (data.notify_tenant) {
       await notifyTenantModuleActivation(data.tenant_id, baseModule.name, implementation.name);
@@ -288,6 +311,10 @@ export async function createTenantAssignment(input: CreateTenantAssignmentInput)
     // Invalidar cache
     revalidatePath('/admin/assignments');
     revalidatePath(`/admin/organizations/${data.tenant_id}`);
+    
+    // Invalidar cache de módulos para o tenant específico
+    const { invalidateModuleCacheForOrg } = await import('../cache-invalidation');
+    await invalidateModuleCacheForOrg(data.tenant_id);
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -320,6 +347,12 @@ export async function createTenantAssignment(input: CreateTenantAssignmentInput)
  */
 export async function updateTenantAssignment(input: UpdateTenantAssignmentInput): Promise<ActionResult<TenantModuleAssignment>> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
     // Verificar autenticação e permissões
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
@@ -440,6 +473,13 @@ export async function updateTenantAssignment(input: UpdateTenantAssignmentInput)
     if (updateData.tenant_id && updateData.tenant_id !== existingAssignment.tenant_id) {
       revalidatePath(`/admin/organizations/${updateData.tenant_id}`);
     }
+    
+    // Invalidar cache de módulos para os tenants afetados
+    const { invalidateModuleCacheForOrg } = await import('../cache-invalidation');
+    await invalidateModuleCacheForOrg(existingAssignment.tenant_id);
+    if (updateData.tenant_id && updateData.tenant_id !== existingAssignment.tenant_id) {
+      await invalidateModuleCacheForOrg(updateData.tenant_id);
+    }
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -471,6 +511,12 @@ export async function updateTenantAssignment(input: UpdateTenantAssignmentInput)
  */
 export async function deleteTenantAssignment(assignmentId: string): Promise<ActionResult> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
     // Verificar autenticação e permissões
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
@@ -539,17 +585,23 @@ export async function createSimpleTenantModuleAssignment(
   prevState: { message: string },
   formData: FormData
 ): Promise<{ message: string }> {
-  console.log('============ FUNCTION CALLED ============');
+  await conditionalDebugLog('createTenantAssignment iniciado');
   try {
-    console.log('[SERVER] 🚀 Iniciando criação de assignment');
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { message: message || 'Sistema em manutenção' };
+    }
+
+    await conditionalDebugLog('Iniciando criação de assignment');
     
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     if (!isAuthenticated || !isAdmin) {
-      console.log('[SERVER] ❌ Acesso negado - não autenticado ou não é admin');
+      console.error('[SERVER] Acesso negado - não autenticado ou não é admin');
       return { message: 'Acesso negado.' };
     }
     
-    console.log('[SERVER] ✅ Usuário autenticado como admin:', user?.id);
+    await conditionalDebugLog('Usuário autenticado como admin', { userId: user?.id });
 
     const supabase = await createSupabaseServerClient();
 
@@ -558,15 +610,15 @@ export async function createSimpleTenantModuleAssignment(
     const implementationId = formData.get('implementationId') as string;
     const customConfigStr = formData.get('customConfig') as string;
     
-    console.log('[SERVER] 📋 Dados do formulário:', { tenantId, baseModuleId, implementationId, customConfigStr });
+    await conditionalDebugLog('Dados do formulário', { tenantId, baseModuleId, implementationId, customConfigStr });
 
     if (!tenantId || !baseModuleId || !implementationId) {
-      console.log('[SERVER] ❌ Campos obrigatórios ausentes');
+      console.error('[SERVER] Campos obrigatórios ausentes');
       return { message: 'Campos obrigatórios ausentes.' };
     }
 
     // 1. Verificar se o assignment já existe
-    console.log('[SERVER] 🔍 Verificando se assignment já existe para:', { tenantId, baseModuleId });
+    await conditionalDebugLog('Verificando se assignment já existe', { tenantId, baseModuleId });
     const { data: existing, error: checkError } = await supabase
       .from('tenant_module_assignments')
       .select('tenant_id, base_module_id')
@@ -574,7 +626,7 @@ export async function createSimpleTenantModuleAssignment(
       .eq('base_module_id', baseModuleId)
       .maybeSingle();
       
-    console.log('[SERVER] 🔍 Resultado da verificação:', { existing, checkError });
+    await conditionalDebugLog('Resultado da verificação', { existing, checkError });
 
     if (existing) {
       return { message: 'Este módulo já está atribuído a esta organização.' };
@@ -600,9 +652,13 @@ export async function createSimpleTenantModuleAssignment(
       assigned_by: user.id,
     };
     
-    console.log('[SERVER] 💾 Tentando inserir assignment:', assignmentData);
+    await conditionalDebugLog('Tentando inserir assignment', assignmentData);
     
-    const { error } = await supabase.from('tenant_module_assignments').insert(assignmentData);
+    const { data: newAssignment, error } = await supabase
+      .from('tenant_module_assignments')
+      .insert(assignmentData)
+      .select()
+      .single();
 
     if (error) {
       console.error('[SERVER] ❌ Erro ao criar assignment:', error);
@@ -614,6 +670,10 @@ export async function createSimpleTenantModuleAssignment(
       });
       return { message: `Erro do banco de dados: ${error.message}` };
     }
+
+    // Aplicar configurações automáticas do sistema
+    const { applySystemConfigurationsToNewEntity } = await import('./auto-config-applier');
+    await applySystemConfigurationsToNewEntity('assignment', `${tenantId}|${baseModuleId}`, newAssignment);
 
     // 4. Revalidar o path para atualizar a UI
     revalidatePath('/admin/modules');
@@ -634,16 +694,22 @@ export async function deleteSimpleTenantAssignment(
   baseModuleId: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    console.log('[SERVER] 🗑️ Tentando excluir assignment:', { tenantId, baseModuleId });
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, message: message || 'Sistema em manutenção' };
+    }
+
+    await conditionalDebugLog('Tentando excluir assignment', { tenantId, baseModuleId });
     
     const { isAuthenticated, isAdmin } = await verifyAdminAccess();
     if (!isAuthenticated || !isAdmin) {
-      console.log('[SERVER] ❌ Acesso negado - não autenticado ou não é admin');
+      console.error('[SERVER] Acesso negado - não autenticado ou não é admin');
       return { success: false, message: 'Acesso negado.' };
     }
 
     if (!tenantId || !baseModuleId) {
-      console.log('[SERVER] ❌ IDs faltando:', { tenantId, baseModuleId });
+      console.error('[SERVER] IDs faltando', { tenantId, baseModuleId });
       return { success: false, message: 'IDs da atribuição não fornecidos.' };
     }
 
@@ -665,7 +731,7 @@ export async function deleteSimpleTenantAssignment(
       return { success: false, message: `Erro do banco de dados: ${error.message}` };
     }
 
-    console.log('[SERVER] ✅ Assignment excluído com sucesso');
+    await conditionalDebugLog('Assignment excluído com sucesso');
     revalidatePath('/admin/modules');
 
     return { success: true, message: 'Atribuição excluída com sucesso!' };
@@ -685,6 +751,12 @@ export async function updateTenantModuleConfig(
   config: Record<string, any>
 ): Promise<{ success: boolean; message: string; error?: string }> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, message: message || 'Sistema em manutenção', error: 'Sistema em manutenção' };
+    }
+
     const { isAuthenticated, isAdmin } = await verifyAdminAccess();
     if (!isAuthenticated || !isAdmin) {
       return { success: false, message: 'Acesso negado.', error: 'Acesso negado.' };

@@ -25,7 +25,7 @@ export function createSupabaseBrowserClient(): SupabaseClient {
     supabaseAnonKey,
     {
       auth: {
-        autoRefreshToken: true,
+        autoRefreshToken: false, // Desabilitar para evitar conflitos com session manager
         persistSession: true,
         detectSessionInUrl: true,
       },

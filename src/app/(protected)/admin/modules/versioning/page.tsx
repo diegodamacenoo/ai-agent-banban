@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
+import { Tabs, TabsContent } from '@/shared/ui/tabs';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Textarea } from '@/shared/ui/textarea';
@@ -26,6 +26,8 @@ import {
 
 // Componente principal
 export default function ModuleVersioningPage() {
+  const [activeTab, setActiveTab] = useState('versions');
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -104,16 +106,22 @@ export default function ModuleVersioningPage() {
       </div>
 
       {/* Conteúdo Principal */}
-      <Tabs defaultValue="versions" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="versions">Versões</TabsTrigger>
-          <TabsTrigger value="deployments">Deployments</TabsTrigger>
-          <TabsTrigger value="create">Criar Versão</TabsTrigger>
-          <TabsTrigger value="deploy">Deploy</TabsTrigger>
-        </TabsList>
+      <Tabs 
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-6"
+        items={[
+          { id: 'versions', label: 'Versões' },
+          { id: 'deployments', label: 'Deployments' },
+          { id: 'create', label: 'Criar Versão' },
+          { id: 'deploy', label: 'Deploy' }
+        ]}
+      />
+
+      <div className="mt-6 space-y-6">
 
         {/* Tab: Versões */}
-        <TabsContent value="versions">
+        <TabsContent value="versions" activeValue={activeTab}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -133,7 +141,7 @@ export default function ModuleVersioningPage() {
         </TabsContent>
 
         {/* Tab: Deployments */}
-        <TabsContent value="deployments">
+        <TabsContent value="deployments" activeValue={activeTab}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -153,7 +161,7 @@ export default function ModuleVersioningPage() {
         </TabsContent>
 
         {/* Tab: Criar Versão */}
-        <TabsContent value="create">
+        <TabsContent value="create" activeValue={activeTab}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -171,7 +179,7 @@ export default function ModuleVersioningPage() {
         </TabsContent>
 
         {/* Tab: Deploy */}
-        <TabsContent value="deploy">
+        <TabsContent value="deploy" activeValue={activeTab}>
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -187,7 +195,7 @@ export default function ModuleVersioningPage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 }

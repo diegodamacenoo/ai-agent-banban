@@ -109,6 +109,46 @@ export async function createModule(input: CreateModuleInput) {
 }
 ```
 
+### **Cache Invalidation Pattern (Added Jan 2025)**
+```typescript
+export async function updateTenantModule(input: UpdateInput) {
+  try {
+    // Standard validation and update logic
+    const result = await performUpdate(input);
+    
+    // Standard path revalidation
+    revalidatePath('/admin/assignments');
+    revalidatePath(`/admin/organizations/${input.tenant_id}`);
+    
+    // NEW: Module-specific cache invalidation
+    const { invalidateModuleCacheForOrg } = await import('../cache-invalidation');
+    await invalidateModuleCacheForOrg(input.tenant_id);
+    
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Global cache invalidation for system-wide changes
+export async function updateBaseModule(input: BaseModuleInput) {
+  try {
+    const result = await performUpdate(input);
+    
+    // Standard revalidation
+    revalidatePath('/admin/modules');
+    
+    // NEW: Global cache invalidation (affects all tenants)
+    const { invalidateGlobalModuleCache } = await import('../cache-invalidation');
+    await invalidateGlobalModuleCache();
+    
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+```
+
 ### **Tenant Assignment Pattern**
 ```typescript
 export async function assignModuleToTenant(input: AssignmentInput) {
@@ -325,6 +365,12 @@ export async function permissionBasedAction(requiredPermission: string) {
   // Authorized operation...
 }
 ```
+
+## Performance & Cache Patterns
+
+- **Global Cache**: Use global cache for data that changes infrequently (see `cache-patterns.md`)
+- **Request Tracking**: Add `trackServerCall()` to all server actions for debugging  
+- **Consolidate revalidatePath**: Avoid redundant cache invalidations
 
 ## Anti-Patterns (AVOID)
 

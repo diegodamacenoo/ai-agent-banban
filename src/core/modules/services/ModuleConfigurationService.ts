@@ -38,72 +38,62 @@ export class ModuleConfigurationService {
     try {
       console.debug(`[ModuleConfigurationService] Carregando módulos para organização: ${organizationId}`);
 
-      const { data: assignments, error } = await supabase
-        .from('tenant_module_assignments')
-        .select(`
-          is_active,
-          custom_config,
-          assigned_at,
-          base_modules (
-            id,
-            slug,
-            name,
-            description,
-            category
-          ),
-          module_implementations (
-            id,
-            implementation_key,
-            name,
-            component_path,
-            target_audience,
-            complexity_tier
-          )
-        `)
-        .eq('tenant_id', organizationId)
-        .eq('is_active', true);
+      // Usar a nova função consolidada de visibilidade
+      const { data: modules, error } = await supabase
+        .rpc('get_user_visible_modules', {
+          p_tenant_id: organizationId
+        });
+
+      console.debug(`[ModuleConfigurationService] Query executada. Error:`, error);
+      console.debug(`[ModuleConfigurationService] Raw modules:`, modules?.length || 0);
 
       if (error) {
-        console.error('[ModuleConfigurationService] Erro ao consultar tenant_module_assignments:', error);
+        console.error('[ModuleConfigurationService] Erro ao consultar função de visibilidade:', error);
         throw error;
       }
 
-      if (!assignments || assignments.length === 0) {
+      if (!modules || modules.length === 0) {
         console.debug('[ModuleConfigurationService] Nenhum módulo encontrado para esta organização');
         return [];
       }
 
-      const configurations: ModuleConfiguration[] = assignments.map((assignment: any) => {
-        // Adapta a nova estrutura para o tipo ModuleConfiguration esperado
+      // Filtrar apenas módulos que podem ser visualizados
+      const visibleModules = modules.filter((module: any) => module.can_view && module.can_access);
+
+      const configurations: ModuleConfiguration[] = visibleModules.map((module: any) => {
+        // Adapta a nova estrutura da função consolidada para o tipo ModuleConfiguration esperado
         return {
-          slug: assignment.base_modules.slug,
-          name: assignment.base_modules.name,
-          description: assignment.base_modules.description,
-          category: assignment.base_modules.category,
-          version: '1.0.0', // O versionamento pode ser adicionado a base_modules se necessário
-          maturity_status: 'stable', // Pode ser adicionado a base_modules
-          pricing_tier: 'standard', // Pode ser adicionado a base_modules
+          slug: module.module_slug,
+          name: module.module_name,
+          description: '', // Adicionar descrição na função se necessário
+          category: module.module_category,
+          version: '1.0.0',
+          maturity_status: 'stable',
+          pricing_tier: 'standard',
           implementation: {
-            id: assignment.module_implementations.id,
-            module_id: assignment.base_modules.id,
-            ...assignment.module_implementations
+            id: module.assignment_id,
+            module_id: module.assignment_id,
+            implementation_key: module.implementation_key,
+            name: module.module_name,
+            component_path: module.component_path,
+            audience: 'generic', // Pode ser adicionado na função se necessário
+            component_type: 'file'
           },
-          // A navegação agora é mais simples e direta
           navigation: {
-            id: assignment.base_modules.slug,
-            nav_title: assignment.base_modules.name,
-            route_path: `/${assignment.base_modules.slug}`,
+            id: module.module_slug,
+            nav_title: module.module_name,
+            route_path: `/${module.module_slug}`,
             nav_type: 'main',
             is_external: false,
             nav_order: 0,
             parent_id: null
           },
           tenant: {
-            is_visible: assignment.is_active,
-            operational_status: assignment.is_active ? 'ENABLED' : 'DISABLED',
-            custom_config: assignment.custom_config,
-            installed_at: assignment.assigned_at,
-            last_accessed_at: null // Este campo não existe na nova tabela
+            is_visible: true, // Já filtrado pela função
+            operational_status: module.status.toUpperCase(),
+            custom_config: module.custom_config || {},
+            installed_at: new Date().toISOString(), // Placeholder
+            last_accessed_at: null
           },
         };
       });
@@ -128,66 +118,59 @@ export class ModuleConfigurationService {
     try {
       console.debug(`[ModuleConfigurationService] Buscando módulo "${moduleSlug}" para org: ${organizationId}`);
 
-      const { data: assignment, error } = await supabase
-        .from('tenant_module_assignments')
-        .select(`
-          is_active,
-          custom_config,
-          assigned_at,
-          base_modules!inner (
-            id,
-            slug,
-            name,
-            description,
-            category
-          ),
-          module_implementations (
-            id,
-            implementation_key,
-            name,
-            component_path,
-            target_audience,
-            complexity_tier
-          )
-        `)
-        .eq('tenant_id', organizationId)
-        .eq('base_modules.slug', moduleSlug)
-        .eq('is_active', true)
-        .single();
+      // Usar a função consolidada para buscar o módulo específico
+      const { data: modules, error } = await supabase
+        .rpc('get_user_visible_modules', {
+          p_tenant_id: organizationId
+        });
 
-      if (error || !assignment) {
-        console.debug(`[ModuleConfigurationService] Módulo "${moduleSlug}" não encontrado ou inativo para a organização.`);
+      if (error) {
+        console.error(`[ModuleConfigurationService] Erro ao buscar módulo "${moduleSlug}":`, error);
         return null;
       }
 
-      // Adapta a nova estrutura para o tipo ModuleConfiguration esperado
+      // Encontrar o módulo específico e verificar se pode ser acessado
+      const module = modules?.find((m: any) => 
+        m.module_slug === moduleSlug && m.can_view && m.can_access
+      );
+
+      if (!module) {
+        console.debug(`[ModuleConfigurationService] Módulo "${moduleSlug}" não encontrado ou sem acesso para a organização.`);
+        return null;
+      }
+
+      // Adapta a nova estrutura da função consolidada para o tipo ModuleConfiguration esperado
       const configuration: ModuleConfiguration = {
-        slug: assignment.base_modules.slug,
-        name: assignment.base_modules.name,
-        description: assignment.base_modules.description,
-        category: assignment.base_modules.category,
-        version: '1.0.0', // Placeholder
-        maturity_status: 'stable', // Placeholder
-        pricing_tier: 'standard', // Placeholder
+        slug: module.module_slug,
+        name: module.module_name,
+        description: '', // Placeholder - pode ser adicionado na função se necessário
+        category: module.module_category,
+        version: '1.0.0',
+        maturity_status: 'stable',
+        pricing_tier: 'standard',
         implementation: {
-          id: assignment.module_implementations.id,
-          module_id: assignment.base_modules.id,
-          ...assignment.module_implementations
+          id: module.assignment_id,
+          module_id: module.assignment_id,
+          implementation_key: module.implementation_key,
+          name: module.module_name,
+          component_path: module.component_path,
+          audience: 'generic',
+          component_type: 'file'
         },
         navigation: {
-          id: assignment.base_modules.slug,
-          nav_title: assignment.base_modules.name,
-          route_path: `/${assignment.base_modules.slug}`,
+          id: module.module_slug,
+          nav_title: module.module_name,
+          route_path: `/${module.module_slug}`,
           nav_type: 'main',
           is_external: false,
           nav_order: 0,
           parent_id: null
         },
         tenant: {
-          is_visible: assignment.is_active,
-          operational_status: assignment.is_active ? 'ENABLED' : 'DISABLED',
-          custom_config: assignment.custom_config,
-          installed_at: assignment.assigned_at,
+          is_visible: true,
+          operational_status: module.status.toUpperCase(),
+          custom_config: module.custom_config || {},
+          installed_at: new Date().toISOString(),
           last_accessed_at: null
         },
       };
@@ -211,8 +194,39 @@ export class ModuleConfigurationService {
         id: module.slug,
         title: module.navigation!.nav_title,
         href: module.navigation!.route_path || `/${module.slug}`,
-        // O ícone agora precisa vir de um mapeamento ou ser armazenado de outra forma
+        icon: this.getIconForModule(module.slug, module.category)
       }));
+  }
+
+  /**
+   * Mapeia ícones para módulos baseado no slug e categoria
+   */
+  private static getIconForModule(slug: string, category: string): string {
+    // Mapeamento específico por slug
+    const slugIconMap: Record<string, string> = {
+      'diego-henrique': 'User',
+      'alerts': 'Bell',
+      'performance': 'BarChart3',
+      'insights': 'TrendingUp',
+      'analytics': 'PieChart',
+      'inventory': 'Package',
+      'reports': 'FileText',
+      'dashboard': 'Home',
+      'home': 'Home'
+    };
+
+    // Mapeamento por categoria como fallback
+    const categoryIconMap: Record<string, string> = {
+      'analytics': 'BarChart3',
+      'monitoring': 'Activity',
+      'operations': 'Settings',
+      'insights': 'TrendingUp',
+      'reports': 'FileText',
+      'admin': 'Shield'
+    };
+
+    // Primeiro tenta pelo slug, depois pela categoria, senão usa ícone padrão
+    return slugIconMap[slug] || categoryIconMap[category] || 'Package';
   }
 
   // Método getDefaultModules() removido - não usar fallbacks de módulos padrão

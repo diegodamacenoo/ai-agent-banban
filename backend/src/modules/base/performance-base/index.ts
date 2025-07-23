@@ -16,6 +16,10 @@ export interface PerformanceBaseConfig extends ModuleConfig {
 }
 
 export class PerformanceBaseModule implements ModuleInstance {
+  name = 'performance-base';
+  version = '1.0.0';
+  description = 'Módulo base de performance para métricas e analytics';
+  
   private service: PerformanceService;
   private config: PerformanceBaseConfig;
 
@@ -135,6 +139,7 @@ export class PerformanceBaseModule implements ModuleInstance {
 
     try {
       const metrics = await this.service.getBusinessMetrics({
+        organizationId: tenant?.organizationId || 'default',
         period,
         startDate,
         endDate,
@@ -184,6 +189,8 @@ export class PerformanceBaseModule implements ModuleInstance {
 
     try {
       const result = await this.service.calculateCustomMetrics({
+        organizationId: tenant?.organizationId || 'default',
+        metricType: 'custom',
         metrics,
         parameters,
         tenantId: tenant?.id
@@ -238,5 +245,14 @@ export class PerformanceBaseModule implements ModuleInstance {
         'kpi_tracking'
       ]
     };
+  }
+
+  getEndpoints(): string[] {
+    return [
+      '/api/performance/business-metrics',
+      '/api/performance/summary',
+      '/api/performance/calculate',
+      '/api/performance/health'
+    ];
   }
 } 

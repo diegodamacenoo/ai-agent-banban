@@ -6,6 +6,9 @@ export interface PerformanceBaseConfig extends ModuleConfig {
     enableRealTimeMetrics?: boolean;
 }
 export declare class PerformanceBaseModule implements ModuleInstance {
+    name: string;
+    version: string;
+    description: string;
     private service;
     private config;
     constructor(config: PerformanceBaseConfig);
@@ -23,5 +26,6 @@ export declare class PerformanceBaseModule implements ModuleInstance {
         endpoints: string[];
         features: string[];
     };
+    getEndpoints(): string[];
 }
 //# sourceMappingURL=index.d.ts.map

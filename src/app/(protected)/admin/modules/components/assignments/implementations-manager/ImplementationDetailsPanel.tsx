@@ -1,6 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Tabs, TabsContent } from '@/shared/ui/tabs';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import {
@@ -13,9 +15,12 @@ import {
   BadgeCheck,
   Activity,
   MousePointerClick,
+  Archive,
 } from 'lucide-react';
 import { EditImplementationDialog, DeleteImplementationDialog } from '../..';
+import { ModuleBackupManager } from '../../backup/ModuleBackupManager';
 import { ModuleImplementation, BaseModule } from '@/app/(protected)/admin/modules/types';
+import { getAudienceLabel, getComplexityLabel } from '@/app/(protected)/admin/modules/constants/display-mappings';
 
 interface ImplementationDetailsPanelProps {
   implementation: ModuleImplementation | null;
@@ -38,6 +43,8 @@ export function ImplementationDetailsPanel({
   onServerSuccess,
   onServerError,
 }: ImplementationDetailsPanelProps) {
+  const [activeTab, setActiveTab] = useState('details');
+
   if (!implementation) {
     return (
       <Card size="sm" variant="accent">
@@ -51,104 +58,131 @@ export function ImplementationDetailsPanel({
     );
   }
 
+  const tabItems = [
+    { id: 'details', label: 'Detalhes', icon: <Settings className="w-4 h-4" /> },
+    { id: 'backups', label: 'Backups', icon: <Archive className="w-4 h-4" /> },
+  ];
+
   return (
     <Card size="sm" variant="outline" className="sticky top-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          Detalhes da Implementação
+          {implementation.name}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <label className="text-sm font-medium">Nome de Exibição</label>
-          <p className="text-sm text-muted-foreground">{implementation.name}</p>
-        </div>
+      <CardContent className="p-0">
+        <Tabs
+          items={tabItems}
+          value={activeTab}
+          onValueChange={setActiveTab}
+          variant="underline"
+          className="w-full"
+          defaultValue="details"
+        />
 
-        <div>
-          <label className="text-sm font-medium">Chave da Implementação</label>
-          <p className="text-sm text-muted-foreground font-mono">{implementation.implementation_key}</p>
-        </div>
-
-        <div>
-          <label className="text-sm font-medium">Caminho do Componente</label>
-          <p className="text-sm text-muted-foreground font-mono break-all">
-            {implementation.component_path}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
+        {/* Aba: Detalhes */}
+        <TabsContent value="details" activeValue={activeTab} className="p-6 space-y-4">
           <div>
-            <label className="text-sm font-medium">Público-Alvo</label>
-            <div className="flex items-center gap-2 mt-1">
-              <Users className="w-4 h-4" />
-              <Badge variant="secondary">
-                {implementation.audience}
-              </Badge>
-            </div>
+            <label className="text-sm font-medium">Chave da Implementação</label>
+            <p className="text-sm text-muted-foreground font-mono">{implementation.implementation_key}</p>
           </div>
 
           <div>
-            <label className="text-sm font-medium">Nível de Complexidade</label>
-            <div className="flex items-center gap-2 mt-1">
-              <Activity className="w-4 h-4" />
-              <Badge variant="secondary">
-                {implementation.complexity}
-              </Badge>
+            <label className="text-sm font-medium">Caminho do Componente</label>
+            <p className="text-sm text-muted-foreground font-mono break-all">
+              {implementation.component_path}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Público-Alvo</label>
+              <div className="flex items-center gap-2 mt-1">
+                <Users className="w-4 h-4" />
+                <Badge variant="secondary">
+                  {getAudienceLabel(implementation.audience)}
+                </Badge>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Disponibilidade</label>
+              <div className="flex items-center gap-2 mt-1">
+                <Activity className="w-4 h-4" />
+                <Badge variant="secondary">
+                  {getComplexityLabel(implementation.complexity)}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2">
-          {implementation.is_default && (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <BadgeCheck className="w-3 h-3" />
-              Implementação Padrão
+          <div className="flex items-center gap-2">
+            {implementation.is_default && (
+              <Badge variant="outline" className="flex items-center gap-1">
+                <BadgeCheck className="w-3 h-3" />
+                Implementação Padrão
+              </Badge>
+            )}
+            <Badge variant="secondary">
+              {implementation.is_active && (!baseModule || (baseModule.is_active && !baseModule.archived_at && !baseModule.deleted_at)) ? 'Ativo' : 'Inativo'}
             </Badge>
-          )}
-          <Badge variant="secondary">
-            {implementation.is_active && (!baseModule || (baseModule.is_active && !baseModule.archived_at && !baseModule.deleted_at)) ? 'Ativo' : 'Inativo'}
-          </Badge>
-        </div>
+          </div>
 
-        <div className="flex flex-col gap-2 pt-4">
-          <div className='grid grid-cols-3 gap-1'>
-            <EditImplementationDialog
+          <div className="flex flex-col gap-2 pt-4">
+            <div className='grid grid-cols-3 gap-1'>
+              <EditImplementationDialog
+                implementation={implementation}
+                onSuccess={() => {
+                  setSelectedImplementation(null);
+                  onDataChange();
+                }}
+                onOptimisticUpdate={onOptimisticUpdate}
+                onServerSuccess={onServerSuccess}
+                onServerError={onServerError}
+                trigger={
+                  <Button variant="secondary" className="w-full" size="sm" leftIcon={<Edit className="w-4 h-4" />}>
+                    Editar
+                  </Button>
+                }
+              />
+              <Button variant="secondary" size="sm" leftIcon={<Eye className="w-4 h-4" />}>
+                Testar
+              </Button>
+              <Button variant="secondary" size="sm" leftIcon={<Code className="w-4 h-4" />}>
+                Ver Código
+              </Button>
+            </div>
+
+            <DeleteImplementationDialog
               implementation={implementation}
-              onSuccess={() => {
+              onDelete={() => {
                 setSelectedImplementation(null);
                 onDataChange();
               }}
-              onOptimisticUpdate={onOptimisticUpdate}
+              onOptimisticDelete={onOptimisticDelete}
               onServerSuccess={onServerSuccess}
               onServerError={onServerError}
-              trigger={
-                <Button variant="secondary" className="w-full" size="sm" leftIcon={<Edit className="w-4 h-4" />}>
-                  Editar
-                </Button>
-              }
-            />
-            <Button variant="secondary" size="sm" leftIcon={<Eye className="w-4 h-4" />}>
-              Testar
-            </Button>
-            <Button variant="secondary" size="sm" leftIcon={<Code className="w-4 h-4" />}>
-              Ver Código
-            </Button>
+            >
+              <Button variant="destructive" size="sm" leftIcon={<Trash2 className="w-4 h-4" />}>
+                Remover
+              </Button>
+            </DeleteImplementationDialog>
           </div>
+        </TabsContent>
 
-          <DeleteImplementationDialog
-            implementation={implementation}
-            onDelete={() => {
-              setSelectedImplementation(null);
-              onDataChange();
+        {/* Aba: Backups */}
+        <TabsContent value="backups" activeValue={activeTab} className="p-6">
+          <ModuleBackupManager
+            implementationId={implementation.id}
+            implementationName={implementation.name}
+            onBackupCreated={() => {
+              // Pode adicionar feedback ou recarregar dados se necessário
             }}
-            onOptimisticDelete={onOptimisticDelete}
-            onServerSuccess={onServerSuccess}
-            onServerError={onServerError}
-          >
-            <Button variant="destructive" size="sm" leftIcon={<Trash2 className="w-4 h-4" />}>
-              Remover
-            </Button>
-          </DeleteImplementationDialog>
-        </div>
+            onBackupRestored={() => {
+              onDataChange(); // Recarregar dados após restauração
+            }}
+          />
+        </TabsContent>
       </CardContent>
     </Card>
   );

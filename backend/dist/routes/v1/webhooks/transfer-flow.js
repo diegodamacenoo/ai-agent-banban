@@ -4,7 +4,7 @@ exports.transferFlowRoutes = transferFlowRoutes;
 const crypto_1 = require("crypto");
 const webhook_base_1 = require("@shared/webhook-base");
 const enums_1 = require("../../../shared/enums");
-const banban_transfer_flow_service_1 = require("../../modules/custom/banban-transfer-flow/services/banban-transfer-flow-service");
+const banban_transfer_flow_service_1 = require("../../../integrations/banban/flows/transfer/services/banban-transfer-flow-service");
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

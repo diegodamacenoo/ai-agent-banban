@@ -88,8 +88,8 @@ interface ModuleImplementation {
   implementation_key: string;
   name: string;
   component_path: string;
-  target_audience: string;
-  complexity_tier: string;
+  audience: string;
+  component_type: string;
   is_default: boolean;
   is_active: boolean;
   archived_at: string | null;

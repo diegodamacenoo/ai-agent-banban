@@ -8,13 +8,13 @@ exports.start = start;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const fastify_1 = __importDefault(require("fastify"));
-const config_1 = require("config/config");
-const index_1 = require("plugins/index");
-const index_2 = require("routes/index");
-const logger_1 = require("utils/logger");
-const metrics_collector_1 = require("monitoring/metrics-collector");
-const module_resolver_1 = require("shared/module-loader/module-resolver");
-const tenant_manager_1 = require("shared/tenant-manager/tenant-manager");
+const config_1 = require("./config/config");
+const index_1 = require("./plugins/index");
+const index_2 = require("./routes/index");
+const logger_1 = require("./utils/logger");
+const metrics_collector_1 = require("./monitoring/metrics-collector");
+const module_resolver_1 = require("./shared/module-loader/module-resolver");
+const tenant_manager_1 = require("./shared/tenant-manager/tenant-manager");
 async function buildServer() {
     console.log('🔧 Building Fastify server...');
     const server = (0, fastify_1.default)({
@@ -139,13 +139,6 @@ async function buildServer() {
         });
     });
     console.log('✅ Dynamic module routes registered');
-    server.register(async function performanceModule(server) {
-        const performanceModule = await moduleResolver.resolveModulesForTenant('standard-client-id');
-        if (performanceModule.performance) {
-            await performanceModule.performance.register(server, '/api/performance');
-            console.log('✅ Performance base module registered at /api/performance');
-        }
-    });
     await (0, index_2.registerRoutes)(server);
     console.log('✅ Static routes registered');
     server.get('/health', {

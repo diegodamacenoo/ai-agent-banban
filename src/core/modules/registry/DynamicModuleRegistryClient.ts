@@ -27,7 +27,7 @@ export interface ModuleApiResponse {
 
 export class DynamicModuleRegistryClient {
   private cache = new Map<string, { data: ModuleApiResponse; timestamp: number }>();
-  private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+  private readonly CACHE_TTL = 30 * 1000; // 30 segundos para debug
 
   /**
    * Carregar configurações via API simplificada

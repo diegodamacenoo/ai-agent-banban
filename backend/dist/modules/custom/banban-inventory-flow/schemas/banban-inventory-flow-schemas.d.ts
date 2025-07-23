@@ -77,7 +77,7 @@ export declare const banbanInventoryFlowSchemas: {
             };
             action: {
                 type: string;
-                enum: unknown[];
+                enum: ("adjust_stock" | "count_inventory" | "damage_product" | "expire_product" | "reserve_stock" | "unreserve_stock" | "quarantine_product" | "release_quarantine")[];
                 description: string;
             };
             transaction_id: {

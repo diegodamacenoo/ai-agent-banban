@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.inventoryFlowRoutes = inventoryFlowRoutes;
 const webhook_base_1 = require("../../shared/webhook-base");
-const banban_inventory_flow_service_1 = require("../../modules/custom/banban-inventory-flow/services/banban-inventory-flow-service");
+const banban_inventory_flow_service_1 = require("../../../integrations/banban/flows/inventory/services/banban-inventory-flow-service");
 const BANBAN_ORG_ID = '2da2a9a7-89ec-48bf-a3bc-c46e58d5a9b4';
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',

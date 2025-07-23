@@ -1,9 +1,7 @@
 import { FastifyRequest, FastifyReply } from "fastify";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { EntityType, TransactionType, RelationshipType, BusinessState, BusinessAction } from "@shared/enums";
-declare const supabase: SupabaseClient<any, {
-    PostgrestVersion: "12";
-}, "public", any>;
+declare const supabase: SupabaseClient<any, "public", any>;
 interface TenantData {
     organization_id: string;
     business_data: Record<string, any>;

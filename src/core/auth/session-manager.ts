@@ -9,7 +9,7 @@ export const SESSION_TIMEOUT = {
   IDLE: 30,          // Timeout por inatividade
   ABSOLUTE: 480,     // Timeout absoluto (8 horas)
   WARNING: 5,        // Aviso antes do timeout (5 minutos)
-  REFRESH: 15        // Intervalo de refresh do token (15 minutos)
+  REFRESH: 25        // Intervalo de refresh do token (25 minutos) - reduzir conflitos
 };
 
 interface SessionState {
@@ -23,6 +23,10 @@ let sessionState: SessionState = {
   sessionStart: Date.now(),
   warningShown: false
 };
+
+// Mutex para evitar múltiplos refreshes simultâneos
+let refreshInProgress = false;
+let refreshPromise: Promise<void> | null = null;
 
 /**
  * Atualiza o timestamp da última atividade
@@ -111,29 +115,55 @@ export async function terminateSession(reason: 'idle' | 'absolute' | 'user'): Pr
 }
 
 /**
- * Atualiza o token de autenticação
+ * Atualiza o token de autenticação com mutex para evitar conflitos
  */
 export async function refreshSession(): Promise<void> {
-  try {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const { data, error } = await supabase.auth.refreshSession();
-    
-    if (error) {
-      logger.error('Erro ao atualizar sessão:', error);
-      throw error;
-    }
-
-    if (data.session) {
-      sessionState.lastActivity = Date.now();
-      logger.debug('Sessão atualizada com sucesso');
-    }
-  } catch (error) {
-    logger.error('Erro ao atualizar token:', error);
-    throw error;
+  // Se já existe um refresh em progresso, aguardar sua conclusão
+  if (refreshInProgress && refreshPromise) {
+    logger.debug('Refresh já em progresso, aguardando...');
+    return refreshPromise;
   }
+
+  // Marcar refresh como em progresso
+  refreshInProgress = true;
+  
+  refreshPromise = (async () => {
+    try {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      
+      logger.debug('Iniciando refresh da sessão...');
+      const { data, error } = await supabase.auth.refreshSession();
+      
+      if (error) {
+        // Ignorar erros de token já usado ou não encontrado
+        if (error.message.includes('refresh_token_already_used') || 
+            error.message.includes('refresh_token_not_found')) {
+          logger.debug('Token já foi atualizado por outro processo');
+          return;
+        }
+        
+        logger.error('Erro ao atualizar sessão:', error);
+        throw error;
+      }
+
+      if (data.session) {
+        sessionState.lastActivity = Date.now();
+        logger.debug('Sessão atualizada com sucesso');
+      }
+    } catch (error) {
+      logger.error('Erro ao atualizar token:', error);
+      throw error;
+    } finally {
+      // Liberar mutex
+      refreshInProgress = false;
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
 }
 
 /**

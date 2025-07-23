@@ -5,9 +5,9 @@ import {
   generateErrorResponse,
   generateSuccessResponse,
   webhookAuthMiddleware
-} from '../../shared/webhook-base';
-import { BanBanPurchaseFlowService } from '../../modules/custom/banban-purchase-flow/services/banban-purchase-flow-service';
-import { logger } from '../../utils/logger';
+} from '../../../shared/webhook-base';
+import { BanBanPurchaseFlowService } from '../../../integrations/banban/flows/purchase/services/banban-purchase-flow-service';
+import { logger } from '../../../utils/logger';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {

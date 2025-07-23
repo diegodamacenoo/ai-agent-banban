@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { createAuditLog, captureRequestInfo } from '@/features/security/audit-logger';
 import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { UpdateProfileSchema } from '@/core/schemas/profiles';
+import { conditionalDebugLog } from '../admin/modules/system-config-utils';
 
 export type ProfileData = {
   first_name: string;
@@ -81,7 +82,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
         error: validation.error.errors.map(e => e.message).join(', ') 
       };
     }
-    console.debug('DEBUG - Dados do perfil a serem atualizados:', formData);
+    await conditionalDebugLog('Dados do perfil a serem atualizados', formData);
     // Verificar se o usuário está autenticado
     const supabase = await createSupabaseServerClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -95,7 +96,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
       .select('first_name, last_name, job_title, phone, team, location, username, avatar_url')
       .eq('id', user.id)
       .single();
-    console.debug('DEBUG - Perfil atual:', currentProfile);
+    await conditionalDebugLog('Perfil atual', currentProfile);
     // Atualiza o perfil do usuário
     const { data, error } = await supabase
       .from('profiles')
@@ -113,7 +114,7 @@ export async function updateProfile(formData: z.infer<typeof UpdateProfileSchema
       .eq('id', user.id)
       .select('first_name, last_name, job_title, phone, avatar_url, team, organization_id, username, location, role')
       .single();
-    console.debug('DEBUG - Perfil atualizado:', data);
+    await conditionalDebugLog('Perfil atualizado', data);
     // Se houve um erro, retorna o erro
     if (error) {
       console.error('Erro ao atualizar perfil:', error);

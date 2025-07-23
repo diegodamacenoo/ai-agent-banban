@@ -9,6 +9,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { createSupabaseServerClient } from '@/core/supabase/server';
 import { ModuleDiscoveryService } from './module-discovery';
+import { conditionalDebugLog } from '@/app/actions/admin/modules/system-config-utils';
 import {
   ModuleHealthStatus,
   ModuleFileInfo,
@@ -48,7 +49,7 @@ export class ModuleFileMonitor {
     const startTime = Date.now();
 
     try {
-      console.debug('🔍 Iniciando escaneamento de health dos módulos...');
+      await conditionalDebugLog('Iniciando escaneamento de health dos módulos...');
 
       const results: HealthScanResults = {
         totalScanned: 0,
@@ -62,11 +63,11 @@ export class ModuleFileMonitor {
 
       // 1. Descobrir módulos no filesystem
       const discoveredModules = await this.discoveryService.scanAvailableModules();
-      console.debug(`📂 Descobertos ${discoveredModules.length} módulos no filesystem`);
+      await conditionalDebugLog(`Descobertos ${discoveredModules.length} módulos no filesystem`);
 
       // 2. Obter módulos registrados no banco
       const registeredModules = await this.getRegisteredModules();
-      console.debug(`💾 Encontrados ${registeredModules.length} módulos registrados`);
+      await conditionalDebugLog(`Encontrados ${registeredModules.length} módulos registrados`);
 
       results.totalScanned = Math.max(discoveredModules.length, registeredModules.length);
 
@@ -107,8 +108,8 @@ export class ModuleFileMonitor {
 
       results.duration = Date.now() - startTime;
       
-      console.debug(`✅ Escaneamento concluído em ${results.duration}ms`);
-      console.debug(`📊 Resultados: ${results.discovered.length} descobertos, ${results.updated.length} atualizados, ${results.missing.length} ausentes`);
+      await conditionalDebugLog(`Escaneamento concluído em ${results.duration}ms`);
+      await conditionalDebugLog('Resultados do escaneamento', { descobertos: results.discovered.length, atualizados: results.updated.length, ausentes: results.missing.length });
 
       return results;
 

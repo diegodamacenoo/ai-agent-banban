@@ -127,16 +127,17 @@ export interface ModuleImplementation {
 
 // Schemas para assignments de tenants
 export const CreateTenantAssignmentSchema = z.object({
-  organization_id: z.string().uuid('ID da organização deve ser um UUID válido'),
+  tenant_id: z.string().uuid('ID do tenant deve ser um UUID válido'),
   base_module_id: z.string().uuid('ID do módulo base deve ser um UUID válido'),
-  implementation_id: z.string().uuid('ID da implementação deve ser um UUID válido'),
-  configuration: z.record(z.any()).default({}),
-  permissions_override: z.array(z.string()).optional(),
-  user_groups: z.array(z.string()).optional(),
+  implementation_id: z.string().uuid('ID da implementação deve ser um UUID válido').optional(),
+  is_active: z.boolean().default(true),
+  is_visible: z.boolean().default(true),
+  status: z.enum(['active', 'inactive', 'archived', 'deleted']).default('active'),
+  permissions_override: z.array(z.any()).default([]),
+  user_groups: z.array(z.string()).default([]),
   activation_date: z.string().datetime().optional(),
   deactivation_date: z.string().datetime().optional(),
-  config_schema: z.record(z.any()).optional(),
-  status: z.enum(['active', 'inactive', 'scheduled']).default('active'),
+  custom_config: z.record(z.any()).default({}),
   notify_tenant: z.boolean().default(true),
 });
 
@@ -148,20 +149,21 @@ export type CreateTenantAssignmentInput = z.infer<typeof CreateTenantAssignmentS
 export type UpdateTenantAssignmentInput = z.infer<typeof UpdateTenantAssignmentSchema>;
 
 export interface TenantModuleAssignment {
-  organization_id: string;
+  id: string;
+  tenant_id: string;
   base_module_id: string;
-  implementation_id: string;
-  configuration: Record<string, any>;
-  permissions_override?: string[];
-  user_groups?: string[];
+  implementation_id?: string;
+  is_active: boolean;
+  is_visible: boolean;
+  status: 'active' | 'inactive' | 'archived' | 'deleted';
+  permissions_override: any[];
+  user_groups: string[];
   activation_date?: string;
   deactivation_date?: string;
-  config_schema?: Record<string, any>;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
+  custom_config: Record<string, any>;
+  assigned_at: string;
   // Relacionamentos
-  organization?: { id: string; name: string; slug: string };
+  organization?: { id: string; company_trading_name: string; slug: string };
   base_module?: BaseModule;
   implementation?: ModuleImplementation;
 }

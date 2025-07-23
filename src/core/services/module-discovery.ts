@@ -19,6 +19,9 @@ import {
   ModuleIntegrityReport
 } from '@/shared/types/module-system';
 
+// Import para debug condicional
+import { conditionalDebugLog } from '@/app/actions/admin/modules/system-config-utils';
+
 export class ModuleDiscoveryService {
   private modulesBasePath: string;
 
@@ -54,7 +57,8 @@ export class ModuleDiscoveryService {
   constructor() {
     // Caminho base para os módulos
     this.modulesBasePath = path.join(process.cwd(), 'src', 'core', 'modules');
-    console.debug('🏗️ [ModuleDiscovery] Caminho base dos módulos:', this.modulesBasePath);
+    // Note: constructor não pode ser async, então este log específico precisa ser diferente
+    // Será migrado quando usado em métodos async
   }
 
   /**
@@ -78,10 +82,8 @@ export class ModuleDiscoveryService {
       const standardModules = await this.scanStandardModules();
       modules.push(...standardModules);
 
-      console.debug(`✅ Escaneamento concluído! Encontrados ${modules.length} módulos`);
-      modules.forEach(module => {
-        console.debug(`  📦 [DISCOVERY-DEBUG] ${module.id}: ${module.name} (${module.type}) - ${module.status}`);
-      });
+      await conditionalDebugLog(`Escaneamento concluído! Encontrados ${modules.length} módulos`);
+      await conditionalDebugLog('Módulos descobertos', modules.map(m => ({ id: m.id, name: m.name, type: m.type, status: m.status })));
       return modules;
     } catch (error) {
       console.error('Erro ao escanear módulos:', error);
@@ -162,13 +164,13 @@ export class ModuleDiscoveryService {
           const isValidModuleDir = await this.isValidModule(modulePath, entry.name);
           
           if (isValidModuleDir) {
-            console.debug(`✅ [MODULE-DISCOVERY] ${clientName}/${entry.name} é um módulo válido`);
+            await conditionalDebugLog(`Módulo válido descoberto: ${clientName}/${entry.name}`);
             const moduleInfo = await this.loadCustomModule(clientName, entry.name);
             if (moduleInfo) {
               modules.push(moduleInfo);
             }
           } else {
-            console.debug(`⚠️ [MODULE-DISCOVERY] ${clientName}/${entry.name} é pasta de apoio, ignorando`);
+            await conditionalDebugLog(`Pasta de apoio ignorada: ${clientName}/${entry.name}`);
           }
         }
       }
@@ -340,7 +342,7 @@ export class ModuleDiscoveryService {
         try {
           await fs.access(filePath);
           hasPrimaryFile = true;
-          console.debug(`✅ [ModuleDiscovery] Arquivo primário encontrado: ${file} em ${clientName}/${moduleName}`);
+          await conditionalDebugLog(`Arquivo primário encontrado: ${file}`, { clientName, moduleName });
           break;
         } catch {
           // Continuar procurando outros arquivos primários
@@ -390,7 +392,7 @@ export class ModuleDiscoveryService {
         features = moduleConfig.features || [];
         description = moduleConfig.description || description;
         version = moduleConfig.version || version;
-        console.debug(`✅ [ModuleDiscovery] Carregado module.json para ${clientName}/${moduleName}`);
+        await conditionalDebugLog(`Carregado module.json`, { clientName, moduleName });
       } catch {
         try {
           // Fallback para module.config.json
@@ -403,9 +405,9 @@ export class ModuleDiscoveryService {
           features = config.features || [];
           description = config.description || description;
           version = config.version || version;
-          console.debug(`✅ [ModuleDiscovery] Carregado module.config.json para ${clientName}/${moduleName}`);
+          await conditionalDebugLog(`Carregado module.config.json`, { clientName, moduleName });
         } catch {
-          console.debug(`⚠️ [ModuleDiscovery] Nenhum arquivo de configuração encontrado para ${clientName}/${moduleName}`);
+          await conditionalDebugLog(`Nenhum arquivo de configuração encontrado`, { clientName, moduleName });
           // Configuração opcional - não é erro crítico
         }
       }
@@ -442,7 +444,7 @@ export class ModuleDiscoveryService {
         if (moduleJsonExists) {
           moduleStatus = 'IMPLEMENTED';
           completionPercentage = 85; // Módulo configurado mas sem implementação de código
-          console.debug(`✅ [ModuleDiscovery] Módulo ${clientName}/${moduleName} válido via module.json (sem index.ts)`);
+          await conditionalDebugLog(`Módulo válido via module.json (sem index.ts)`, { clientName, moduleName });
         } else {
           moduleStatus = 'INCOMPLETE';
           completionPercentage = 50;
@@ -594,34 +596,33 @@ export class ModuleDiscoveryService {
    */
   async detectOrphanModules(): Promise<OrphanModule[]> {
     try {
-      console.debug('🔍 [ModuleDiscovery] Iniciando detecção dinâmica de módulos órfãos v2.0.0...');
-      console.debug('📁 [ModuleDiscovery] Caminho base:', this.modulesBasePath);
+      await conditionalDebugLog('Iniciando detecção de módulos órfãos v2.0.0', { basePath: this.modulesBasePath });
       
       const orphans: OrphanModule[] = [];
       
       // No ambiente do browser, não podemos acessar o sistema de arquivos
       if (typeof window !== 'undefined') {
-        console.debug('⚠️ [ModuleDiscovery] Execução no browser - retornando lista vazia');
+        await conditionalDebugLog('Execução no browser - retornando lista vazia');
         return orphans;
       }
 
       try {
-        console.debug('🔄 [ModuleDiscovery] Importando cliente Supabase...');
+        await conditionalDebugLog('Importando cliente Supabase...');
         const { createSupabaseServerClient } = await import('@/core/supabase/server');
         const supabase = await createSupabaseServerClient();
         
-        console.debug('📊 [ModuleDiscovery] Consultando módulos registrados no banco...');
+        await conditionalDebugLog('Consultando módulos registrados no banco...');
         // V2.0.0: Buscar da nova estrutura de tabelas
         const { data: registeredModules, error } = await supabase
-          .from('core_modules')
+          .from('base_modules')
           .select(`
             id,
             slug,
             name,
-            maturity_status,
+            category,
             tenant_module_assignments (
-              organization_id,
-              operational_status
+              tenant_id,
+              is_active
             )
           `)
           .order('created_at', { ascending: false });
@@ -631,17 +632,16 @@ export class ModuleDiscoveryService {
           return orphans;
         }
 
-        console.debug('📋 [ModuleDiscovery] Registros encontrados:', registeredModules?.length || 0);
-        console.debug('📋 [ModuleDiscovery] Dados:', registeredModules);
+        await conditionalDebugLog('Registros de módulos encontrados', { count: registeredModules?.length || 0, modules: registeredModules });
 
         if (!registeredModules || registeredModules.length === 0) {
-          console.debug('✅ [ModuleDiscovery] Nenhum módulo registrado encontrado - banco limpo');
+          await conditionalDebugLog('Nenhum módulo registrado encontrado - banco limpo');
           return orphans;
         }
 
         // V2.0.0: Verificar cada módulo registrado
         for (const moduleRecord of registeredModules) {
-          console.debug(`🔍 [ModuleDiscovery] Analisando módulo: ${moduleRecord.slug}`);
+          await conditionalDebugLog(`Analisando módulo: ${moduleRecord.slug}`);
           
           // V2.0.0: Validação do formato do slug
           if (!this.isValidModuleIdFormat(moduleRecord.slug)) {
@@ -756,10 +756,7 @@ export class ModuleDiscoveryService {
         return orphans;
       }
 
-      console.debug(`✅ [ModuleDiscovery] Detecção v2.0.0 concluída - ${orphans.length} órfãos encontrados:`);
-      orphans.forEach(orphan => {
-        console.debug(`  - ${orphan.name} (${orphan.severity}): ${orphan.reason}`);
-      });
+      await conditionalDebugLog(`Detecção v2.0.0 concluída - ${orphans.length} órfãos encontrados`, orphans.map(o => ({ name: o.name, severity: o.severity, reason: o.reason })));
       
       return orphans;
       

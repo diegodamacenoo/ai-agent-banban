@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/shared/ui/tooltip";
 import { SessionTimeoutWarning } from "@/shared/ui/session-timeout-warning";
 import { initSessionManager } from "@/core/auth/session-manager";
 import { ModuleRegistryProvider } from '@/core/modules/registry/ModuleRegistryProvider';
+import { MaintenanceCheck } from '@/shared/components/MaintenanceCheck';
 
 // Inicializar gerenciador de sessão no lado do cliente
 if (typeof window !== 'undefined') {
@@ -37,6 +38,7 @@ export default function ProtectedLayoutClient({
     <ModuleRegistryProvider>
       <TooltipProvider>
             <div className="flex-1 overflow-auto">
+              <MaintenanceCheck variant="user" />
               {children}
             </div>
             <SessionTimeoutWarning />

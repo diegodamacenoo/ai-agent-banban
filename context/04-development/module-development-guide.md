@@ -18,48 +18,50 @@ Este guia fornece instruções detalhadas para desenvolver módulos de alta qual
 
 ---
 
-## 🏗️ Tipos de Módulos
+## 🏗️ Sistema de Módulos - Arquitetura 3 Camadas
 
-### 1. Módulos Standard (Gratuitos)
-- **Localização**: `src/core/modules/standard/`
-- **Público**: Todos os clientes (banban, default, standard)
-- **Pricing**: Gratuito
-- **Aprovação**: Não requerida
-- **Exemplos**: analytics, performance, alerts, inventory
+### 📋 Base Modules (Catálogo)
+- **Localização DB**: `base_modules` table
+- **Função**: Definições conceituais reutilizáveis
+- **Exemplos**: performance, analytics, banban-insights
+- **Características**: Slug único, metadados, schema de configuração
 
-```typescript
-// Standard module config
-{
-  "category": "analytics",
-  "pricing_tier": "free",
-  "author": "Axon Team", 
-  "vendor": "Axon Systems",
-  "supported_client_types": ["banban", "default", "standard"]
-}
+```sql
+-- Módulo base no catálogo
+INSERT INTO base_modules (slug, name, category, supports_multi_tenant) 
+VALUES ('performance', 'Performance Analytics', 'analytics', true);
 ```
 
-### 2. Módulos Custom (Premium)
-- **Localização**: `src/core/modules/{client_slug}/`
-- **Público**: Cliente específico
-- **Pricing**: Premium com usage-based billing
-- **Aprovação**: Requerida
-- **Exemplos**: banban/insights, banban/fashion-analytics
+### 🔧 Module Implementations (Implementações)
+- **Localização DB**: `module_implementations` table  
+- **Localização Código**: `src/core/modules/{client}/` ou `backend/src/modules/custom/`
+- **Função**: Implementações específicas de módulos base
+- **Características**: `component_path`, audience targeting, dependencies
 
-```typescript
-// Custom module config
-{
-  "category": "custom",
-  "pricing_tier": "premium",
-  "author": "BanBan Team",
-  "vendor": "BanBan Fashion",
-  "supported_client_types": ["banban"],
-  "usage_based_pricing": {
-    "enabled": true,
-    "per_call": 0.001,
-    "per_token": 0.0001,
-    "per_gb": 0.10
-  }
-}
+```sql
+-- Implementação específica para Banban
+INSERT INTO module_implementations (
+  base_module_id, implementation_key, component_path, audience
+) VALUES (
+  'base-module-id', 'banban-custom', 
+  '/widgets/banban-performance-widget.tsx', 'banban'
+);
+```
+
+### 🎯 Tenant Module Assignments (Atribuições)
+- **Localização DB**: `tenant_module_assignments` table
+- **Função**: Associa módulos a organizações específicas
+- **Características**: `is_active`, `is_visible`, `custom_config`, `permissions_override`
+
+```sql
+-- Atribuição para organização
+INSERT INTO tenant_module_assignments (
+  tenant_id, base_module_id, implementation_id, 
+  is_active, is_visible, custom_config
+) VALUES (
+  'org-id', 'base-module-id', 'impl-id',
+  true, true, '{"fashionMetrics": true}'
+);
 ```
 
 ---
@@ -69,17 +71,58 @@ Este guia fornece instruções detalhadas para desenvolver módulos de alta qual
 ### 1. Preparação do Ambiente
 
 ```bash
-# Clonar templates
+# Clonar templates do sistema atual
 cd context/04-development/templates/
 
-# Para módulo standard
-cp -r standard-module/ ../../../src/core/modules/standard/meu-modulo/
+# Para módulo base/genérico
+cp -r standard-module/ ../../../src/core/modules/template/meu-modulo/
 
-# Para módulo custom
+# Para módulo cliente-específico (Banban)
 cp -r custom-module/ ../../../src/core/modules/banban/meu-modulo/
 
+# Backend modular (se necessário)
+cp -r backend-module/ ../../../backend/src/modules/custom/meu-modulo/
+
 # Navegar para o módulo
-cd ../../../src/core/modules/standard/meu-modulo/ # ou custom path
+cd ../../../src/core/modules/banban/meu-modulo/
+```
+
+### 🚀 ModuleDiscoveryService - SISTEMA ATUAL
+
+```typescript
+// ✅ IMPLEMENTADO: Descoberta automática de módulos
+class ModuleDiscoveryService {
+  // Scan de módulos disponíveis em /src/core/modules/
+  async scanAvailableModules(): Promise<DiscoveredModule[]>
+  
+  // Validação inteligente (vs pastas de apoio)
+  async validateModuleIntegrity(moduleSlug: string): Promise<ValidationResult>
+  
+  // Detecção de módulos órfãos v2.0.0
+  async detectOrphanedModules(): Promise<OrphanedModule[]>
+  
+  // Health monitoring e relatórios de integridade
+  async generateHealthReport(): Promise<ModuleHealthReport>
+  
+  // Debug condicional controlável via UI
+  async enableDebugMode(moduleSlug: string, enabled: boolean): Promise<void>
+}
+```
+
+### 🔍 ModuleFileMonitor - LIFECYCLE AVANÇADO
+
+```typescript
+// ✅ IMPLEMENTADO: Monitoramento de arquivos e mudanças
+class ModuleFileMonitor {
+  // Monitora mudanças em arquivos de módulos
+  watchModuleFiles(moduleSlug: string): void
+  
+  // Auditoria completa via module_file_audit table
+  async recordFileChange(filePath: string, changeType: string): Promise<void>
+  
+  // Invalidação automática de cache
+  async invalidateModuleCache(moduleSlug: string): Promise<void>
+}
 ```
 
 ### 2. Configuração Inicial
@@ -95,7 +138,7 @@ npm install -D @types/node typescript jest @typescript-eslint/eslint-plugin
 touch tsconfig.json
 ```
 
-### 3. Estrutura de Arquivos
+### 3. Estrutura de Arquivos - PADRÃO ATUAL
 
 ```
 meu-modulo/
@@ -111,10 +154,10 @@ meu-modulo/
 │   ├── validators.ts         # Validações Zod
 │   └── cache.ts              # Gerenciamento de cache
 ├── handlers/
-│   ├── index.ts              # Handlers de API
-│   ├── api-handlers.ts       # Endpoints REST
+│   ├── index.ts              # Server Actions (não API handlers)
+│   ├── server-actions.ts     # Server Actions do Next.js
 │   └── webhook-handlers.ts   # Webhooks (se aplicável)
-├── components/                 # Componentes React (se aplicável)
+├── components/                 # Componentes React (OBRIGATÓRIO)
 │   ├── index.ts             
 │   ├── MeuModuloWidget.tsx   # Widget dashboard
 │   ├── MeuModuloConfig.tsx   # Painel configuração
@@ -134,6 +177,21 @@ meu-modulo/
 │   ├── SETUP.md
 │   └── EXAMPLES.md
 └── .env.example               # Variáveis de ambiente
+```
+
+### 📁 Estrutura Backend Modular (Fastify) - SE NECESSÁRIO
+
+```
+backend/src/modules/custom/meu-modulo/
+├── index.ts                   # Export principal
+├── schemas/
+│   └── meu-modulo-schemas.ts  # Schemas Fastify
+├── services/
+│   └── meu-modulo-service.ts  # Lógica de negócio
+├── types/
+│   └── meu-modulo-types.ts    # Tipos específicos
+└── tests/
+    └── meu-modulo.test.ts     # Testes do backend
 ```
 
 ---
@@ -167,21 +225,29 @@ meu-modulo/
   "usage_based_pricing": {
     "enabled": false
   },
-  "api_endpoints": [
+  "server_actions": [
     {
-      "path": "/api/modules/advanced-analytics/health",
+      "name": "getAdvancedAnalyticsData",
+      "description": "Get module data via Server Action",
+      "file": "handlers/server-actions.ts",
+      "authenticated": true,
+      "permissions": ["advanced-analytics.read"]
+    },
+    {
+      "name": "updateAdvancedAnalyticsConfig",
+      "description": "Update module configuration",
+      "file": "handlers/server-actions.ts",
+      "authenticated": true,
+      "permissions": ["advanced-analytics.write"]
+    }
+  ],
+  "backend_endpoints": [
+    {
+      "path": "/health",
       "method": "GET",
       "description": "Health check endpoint",
       "authenticated": false,
       "handler": "healthCheck"
-    },
-    {
-      "path": "/api/modules/advanced-analytics/data",
-      "method": "GET",
-      "description": "Get module data",
-      "authenticated": true,
-      "handler": "getData",
-      "permissions": ["advanced-analytics.read"]
     }
   ],
   "database_tables": [
@@ -220,12 +286,25 @@ meu-modulo/
     "dashboard_widget": {
       "component_path": "components/AdvancedAnalyticsWidget",
       "default_size": "medium",
-      "resizable": true
+      "resizable": true,
+      "discovered_by_module_scanner": true
     },
     "config_panel": {
       "component_path": "components/AdvancedAnalyticsConfig",
       "sections": ["general", "advanced", "permissions"]
+    },
+    "main_page": {
+      "component_path": "components/AdvancedAnalyticsPage",
+      "route": "/modules/advanced-analytics",
+      "requires_navigation_entry": true
     }
+  },
+  "module_lifecycle": {
+    "health_monitoring": true,
+    "file_watching": true,
+    "audit_logging": true,
+    "cache_invalidation": true,
+    "debug_mode": false
   },
   "navigation": {
     "primary": {
@@ -699,19 +778,17 @@ export function AdvancedAnalyticsWidget({
       setLoading(true);
       setError(null);
 
-      // Carregar dados do módulo
-      const dataResponse = await fetch(`/api/modules/advanced-analytics/data?organizationId=${organizationId}`);
-      const dataResult = await dataResponse.json();
-
+      // ✅ USAR SERVER ACTIONS (não fetch API)
+      const { getAdvancedAnalyticsData, getAdvancedAnalyticsMetrics } = await import('../handlers/server-actions');
+      
+      const dataResult = await getAdvancedAnalyticsData(organizationId);
       if (!dataResult.success) {
         throw new Error(dataResult.error || 'Erro ao carregar dados');
       }
-
       setData(dataResult.data || []);
 
-      // Carregar métricas
-      const metricsResponse = await fetch(`/api/modules/advanced-analytics/metrics?organizationId=${organizationId}`);
-      const metricsResult = await metricsResponse.json();
+      // Carregar métricas via Server Action
+      const metricsResult = await getAdvancedAnalyticsMetrics(organizationId);
 
       if (metricsResult.success) {
         setMetrics(metricsResult.data);
@@ -1116,10 +1193,58 @@ const healthDetails = {
 
 ---
 
-## 📚 Recursos Adicionais
+## ## 🔄 Sistema de Lifecycle - ESTADO ATUAL
 
-- [Templates de Módulos](./templates/)
-- [Arquitetura do Sistema](../02-architecture/)
+### ✅ ModuleDiscoveryService Implementado
+
+```typescript
+// Principais funcionalidades disponíveis
+const discovery = new ModuleDiscoveryService();
+
+// 1. Descoberta automática
+const modules = await discovery.scanAvailableModules();
+console.log('Módulos encontrados:', modules.length);
+
+// 2. Validação de integridade
+const validation = await discovery.validateModuleIntegrity('meu-modulo');
+if (!validation.isValid) {
+  console.error('Problemas encontrados:', validation.issues);
+}
+
+// 3. Detecção de órfãos
+const orphans = await discovery.detectOrphanedModules();
+if (orphans.length > 0) {
+  console.warn('Módulos órfãos detectados:', orphans);
+}
+
+// 4. Relatório de saúde
+const health = await discovery.generateHealthReport();
+console.log('Score de saúde:', health.healthScore);
+```
+
+### 🔍 Sistema de Auditoria Ativo
+
+```sql
+-- ✅ Tabela de auditoria implementada
+module_file_audit {
+  id UUID PRIMARY KEY,
+  module_slug VARCHAR(255),
+  file_path VARCHAR(500),
+  change_type VARCHAR(50), -- created, modified, deleted, moved
+  old_content_hash VARCHAR(64),
+  new_content_hash VARCHAR(64),
+  changed_by UUID,
+  changed_at TIMESTAMPTZ DEFAULT NOW()
+}
+```
+
+### 📚 Recursos Adicionais
+
+- [Templates de Módulos](./templates/) - Templates atualizados para nova arquitetura
+- [Arquitetura do Sistema](../02-architecture/) - Documentação da arquitetura 3-camadas
+- [Schema Reference](../06-database/schema-reference.md) - Schema completo atualizado
+- [Module Lifecycle](../05-operations/module-lifecycle-system.md) - Sistema de lifecycle completo
+- [Server Actions Guide](../08-server-actions/) - Padrões de Server Actions
 - [Documentação do Supabase](https://supabase.com/docs)
 - [Guia de TypeScript](https://www.typescriptlang.org/docs/)
 - [Documentação do Zod](https://zod.dev/)

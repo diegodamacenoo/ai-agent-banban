@@ -94,6 +94,57 @@ export function useImplementationsManager({
     }
   }, [processedModules, isInitialExpansionSet]);
 
+  // Calcular total de implementações visíveis com os filtros atuais (incluindo busca)
+  const totalVisibleImplementations = useMemo(() => {
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    
+    const filteredBaseModules = baseModules.filter(module => {
+      // Se módulo está deletado, só incluir se includeDeletedModules for true
+      if (module.deleted_at && !includeDeletedModules) {
+        return false;
+      }
+      
+      // Se módulo está arquivado, só incluir se includeArchivedModules for true
+      if (module.archived_at && !includeArchivedModules) {
+        return false;
+      }
+      
+      return true;
+    });
+
+    const modulesWithImplementations = filteredBaseModules.map(module => ({
+      ...module,
+      implementations: getImplementationsForModule(module.id)
+    }));
+
+    // Se não há busca, contar todas as implementações dos módulos visíveis
+    if (searchTerm === '') {
+      return modulesWithImplementations.reduce((total, module) => {
+        return total + module.implementations.length;
+      }, 0);
+    }
+
+    // Com busca, aplicar a mesma lógica do processedModules para contar
+    const filteredModules = modulesWithImplementations.filter(module => {
+      const matchesModuleFilter = selectedModule === 'all' || module.id === selectedModule;
+      if (!matchesModuleFilter) return false;
+
+      const moduleMatches = module.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+                            module.slug.toLowerCase().includes(lowerCaseSearchTerm);
+
+      const implementationMatches = module.implementations.some(impl =>
+        impl.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+        impl.implementation_key.toLowerCase().includes(lowerCaseSearchTerm)
+      );
+
+      return moduleMatches || implementationMatches;
+    });
+
+    return filteredModules.reduce((total, module) => {
+      return total + module.implementations.length;
+    }, 0);
+  }, [baseModules, getImplementationsForModule, includeArchivedModules, includeDeletedModules, searchTerm, selectedModule]);
+
   return {
     searchTerm,
     setSearchTerm,
@@ -106,5 +157,6 @@ export function useImplementationsManager({
     isAllExpanded,
     toggleAll,
     processedModules,
+    totalVisibleImplementations,
   };
 }

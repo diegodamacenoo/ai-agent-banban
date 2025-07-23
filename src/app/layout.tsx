@@ -5,6 +5,7 @@ import { UserProvider } from "@/app/contexts/UserContext";
 import { PageErrorBoundary } from "@/shared/ui/error-boundary";
 import { ThemeProvider } from "@/shared/ui/theme-provider";
 import { OrganizationProvider } from "@/core/contexts/OrganizationContext";
+import { SessionTrackingProvider } from "@/core/providers/session-tracking-provider";
 import InitDebug from "./init-debug";
 import { Geist } from "next/font/google";
 
@@ -56,11 +57,13 @@ export default function RootLayout({
           <ToastProvider>
             <UserProvider>
               <OrganizationProvider>
-                <PageErrorBoundary>
-                  {children}
-                </PageErrorBoundary>
-                <Toaster position="bottom-right" />
-                <InitDebug />
+                <SessionTrackingProvider>
+                  <PageErrorBoundary>
+                    {children}
+                  </PageErrorBoundary>
+                  <Toaster position="bottom-right" />
+                  <InitDebug />
+                </SessionTrackingProvider>
               </OrganizationProvider>
             </UserProvider>
           </ToastProvider>

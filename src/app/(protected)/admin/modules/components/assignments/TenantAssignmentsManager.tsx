@@ -52,7 +52,7 @@ interface ModuleImplementation {
   base_module_id: string;
   implementation_key: string;
   name: string;
-  target_audience: string;
+  audience: string;
   is_active: boolean;
 }
 

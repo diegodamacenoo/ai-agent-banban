@@ -3,11 +3,13 @@
  */
 
 import { logger } from '../../utils/logger';
-import { BanBanPurchaseFlowModule } from '../../modules/custom/banban-purchase-flow';
-import { BanBanInventoryFlowModule } from '../../modules/custom/banban-inventory-flow';
-import { BanBanSalesFlowModule } from '../../modules/custom/banban-sales-flow';
-import { BanBanTransferFlowModule } from '../../modules/custom/banban-transfer-flow';
-import { BanBanPerformanceModule } from '../../modules/custom/banban-performance';
+import { BanBanPurchaseFlowModule } from '../../integrations/banban/flows/purchase';
+import { BanBanInventoryFlowModule } from '../../integrations/banban/flows/inventory';
+import { BanBanSalesFlowModule } from '../../integrations/banban/flows/sales';
+import { BanBanTransferFlowModule } from '../../integrations/banban/flows/transfer';
+import { BanBanReturnsFlowModule } from '../../integrations/banban/flows/returns';
+import { BanBanETLFlowModule } from '../../integrations/banban/flows/etl';
+import { BanBanPerformanceModule } from '../../integrations/banban/performance';
 import { ModuleInfo, TenantModule } from '../types/module-types';
 
 
@@ -35,15 +37,14 @@ export class ModuleResolver {
       const modules: Record<string, TenantModule> = {};
 
       if (tenantId === 'banban-org-id') {
-        // Módulos customizados do BanBan
+        // Módulos customizados do BanBan - Integration Hub Pattern
         modules.performance = new BanBanPerformanceModule();
         modules.purchaseFlow = new BanBanPurchaseFlowModule();
         modules.inventoryFlow = new BanBanInventoryFlowModule();
         modules.salesFlow = new BanBanSalesFlowModule();
         modules.transferFlow = new BanBanTransferFlowModule();
-        // TODO: Adicionar outros módulos conforme implementados
-        // modules.insights = new BanBanInsightsModule();
-        // modules.alerts = new BanBanAlertsModule();
+        modules.returnsFlow = new BanBanReturnsFlowModule();
+        modules.etlFlow = new BanBanETLFlowModule();
       } else {
         // Nenhum tenant padrão - cada cliente deve ter módulos específicos
         logger.warn(`No modules configured for tenant: ${tenantId}`);

@@ -39,6 +39,10 @@ import { CreateModuleImplementationSchema, CreateModuleImplementationInput } fro
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip'
 import { Info } from 'lucide-react'
 
+// Import dos componentes e hooks
+import { useSystemConfig } from '../../hooks/useSystemConfig'
+import { AutoConfigSwitch } from '../shared/AutoConfigSwitch'
+
 interface BaseModule {
   id: string
   name: string
@@ -66,6 +70,11 @@ export function CreateImplementationDialog({
   const { toast } = useToast();
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
+  // Configurações do sistema
+  const { config, isVersioningEnabled, defaultLifecycle } = useSystemConfig();
+  const [isVersionAuto, setIsVersionAuto] = useState(true);
+  const [isStatusAuto, setIsStatusAuto] = useState(true);
 
   const form = useForm<CreateModuleImplementationInput>({
     resolver: zodResolver(CreateModuleImplementationSchema),
@@ -97,6 +106,17 @@ export function CreateImplementationDialog({
       ...values,
       template_type: values.template_type === '' ? null : values.template_type,
     };
+
+    // Marcar se configurações devem ser automáticas
+    if (isVersionAuto && isVersioningEnabled) {
+      processedValues.version = '1.0.0';
+      (processedValues as any).__useAutoVersion = true;
+    }
+    
+    if (isStatusAuto && defaultLifecycle) {
+      processedValues.status = defaultLifecycle;
+      (processedValues as any).__useAutoStatus = true;
+    }
 
     try {
         // Se temos callbacks otimísticos, fazer update otimístico primeiro
@@ -261,7 +281,20 @@ export function CreateImplementationDialog({
                     <FormItem>
                       <FormLabel>Versão</FormLabel>
                       <FormControl>
-                        <Input placeholder="1.0.0" {...field} />
+                        <AutoConfigSwitch
+                          field="version"
+                          isAutoEnabled={isVersioningEnabled}
+                          autoValue="1.0.0"
+                          onModeChange={setIsVersionAuto}
+                          initialIsAuto={isVersionAuto}
+                          description="Versão semântica da implementação"
+                        >
+                          <Input 
+                            placeholder="ex: 1.0.0" 
+                            {...field} 
+                            disabled={isVersionAuto}
+                          />
+                        </AutoConfigSwitch>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -327,7 +360,7 @@ export function CreateImplementationDialog({
                 name="complexity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nível de Complexidade</FormLabel>
+                    <FormLabel>Disponibilidade</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -335,10 +368,10 @@ export function CreateImplementationDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="basic">Básico</SelectItem>
-                        <SelectItem value="standard">Padrão</SelectItem>
-                        <SelectItem value="advanced">Avançado</SelectItem>
-                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                        <SelectItem value="basic">Plano Básico</SelectItem>
+                        <SelectItem value="standard">Plano Padrão</SelectItem>
+                        <SelectItem value="advanced">Plano Avançado</SelectItem>
+                        <SelectItem value="enterprise">Plano Enterprise</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -377,17 +410,30 @@ export function CreateImplementationDialog({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <AutoConfigSwitch
+                          field="status"
+                          isAutoEnabled={!!defaultLifecycle}
+                          autoValue={defaultLifecycle || 'active'}
+                          onModeChange={setIsStatusAuto}
+                          initialIsAuto={isStatusAuto}
+                          description="Status inicial da implementação"
+                        >
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                            disabled={isStatusAuto}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="active">Ativo</SelectItem>
+                              <SelectItem value="inactive">Inativo</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </AutoConfigSwitch>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

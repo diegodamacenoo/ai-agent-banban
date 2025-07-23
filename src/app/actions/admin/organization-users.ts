@@ -7,6 +7,7 @@ import { createAuditLog } from '@/features/security/audit-logger';
 import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { captureRequestInfo } from '@/core/auth/request-info';
 import { z } from 'zod';
+import { conditionalDebugLog } from './modules/system-config-utils';
 
 /**
  * Verifica se o usuário atual tem permissões de master admin
@@ -322,7 +323,7 @@ export async function getOrganizationInvites(organizationId: string): Promise<{ 
  */
 export async function deactivateUserFromOrganization(userId: string, organizationId: string): Promise<{ success?: boolean; error?: string }> {
   try {
-    console.debug('[removeUserFromOrganization] Iniciando remoção do usuário:', { userId, organizationId });
+    await conditionalDebugLog('removeUserFromOrganization: Iniciando remoção do usuário', { userId, organizationId });
     
     const supabase = await createSupabaseServerClient();
     
@@ -347,7 +348,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
       return { error: 'Erro ao verificar permissões.' };
     }
 
-    console.debug('[removeUserFromOrganization] Perfil do usuário atual:', currentUserProfile);
+    await conditionalDebugLog('removeUserFromOrganization: Perfil do usuário atual', currentUserProfile);
 
     // Verificar se o usuário tem permissão para remover
     if (!currentUserProfile || (currentUserProfile.role !== 'master_admin' && currentUserProfile.organization_id !== organizationId)) {
@@ -364,7 +365,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
       .select('id, role, organization_id, deleted_at')
       .eq('id', userId);
 
-    console.debug('[removeUserFromOrganization] Dados do usuário (sem filtros):', { allUserData, allUserError });
+    await conditionalDebugLog('removeUserFromOrganization: Dados do usuário (sem filtros)', { allUserData, allUserError });
 
     // Agora buscar com os filtros corretos
     const { data: userToRemove, error: userError } = await adminSupabase
@@ -375,7 +376,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
       .is('deleted_at', null)
       .single();
 
-    console.debug('[removeUserFromOrganization] Resultado da busca do usuário:', { userToRemove, userError });
+    await conditionalDebugLog('removeUserFromOrganization: Resultado da busca do usuário', { userToRemove, userError });
 
     if (userError || !userToRemove) {
       console.error('[removeUserFromOrganization] Erro ao buscar usuário a ser removido:', userError);
@@ -389,7 +390,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
     }
 
     // SOFT DELETE: Desativar usuário da organização (mantém no auth para possível reativação)
-    console.debug('[deactivateUserFromOrganization] Iniciando desativação do usuário...');
+    await conditionalDebugLog('deactivateUserFromOrganization: Iniciando desativação do usuário...');
     
     try {
       // 1. Fazer soft delete na tabela profiles
@@ -408,7 +409,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
         return { error: 'Erro ao desativar usuário da organização.' };
       }
 
-      console.debug('[deactivateUserFromOrganization] Usuário desativado com sucesso');
+      await conditionalDebugLog('deactivateUserFromOrganization: Usuário desativado com sucesso');
 
       // 2. Registrar no log de auditoria
       const { ipAddress, userAgent } = await captureRequestInfo(user.id);
@@ -429,7 +430,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
         user_agent: userAgent
       });
 
-      console.debug('[deactivateUserFromOrganization] Desativação realizada com sucesso');
+      await conditionalDebugLog('deactivateUserFromOrganization: Desativação realizada com sucesso');
       return { success: true };
       
     } catch (deactivateError) {
@@ -447,7 +448,7 @@ export async function deactivateUserFromOrganization(userId: string, organizatio
  */
 export async function reactivateUser(userId: string, organizationId: string): Promise<{ success?: boolean; error?: string }> {
   try {
-    console.debug('[reactivateUser] Iniciando reativação do usuário:', { userId, organizationId });
+    await conditionalDebugLog('reactivateUser: Iniciando reativação do usuário', { userId, organizationId });
     
     const supabase = await createSupabaseServerClient();
     
@@ -522,7 +523,7 @@ export async function reactivateUser(userId: string, organizationId: string): Pr
       user_agent: userAgent
     });
 
-    console.debug('[reactivateUser] Usuário reativado com sucesso');
+    await conditionalDebugLog('reactivateUser: Usuário reativado com sucesso');
     return { success: true };
     
   } catch (e: any) {
@@ -537,7 +538,7 @@ export async function reactivateUser(userId: string, organizationId: string): Pr
  */
 export async function permanentlyDeleteUser(userId: string, organizationId: string): Promise<{ success?: boolean; error?: string }> {
   try {
-    console.debug('[permanentlyDeleteUser] Iniciando exclusão permanente do usuário:', { userId, organizationId });
+    await conditionalDebugLog('permanentlyDeleteUser: Iniciando exclusão permanente do usuário', { userId, organizationId });
     
     const supabase = await createSupabaseServerClient();
     

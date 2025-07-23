@@ -107,10 +107,10 @@ function useDynamicNavigation(
         }]),
         ...generatedNavigation.map(item => ({
           ...item,
-          href: item.href ? `/${organizationSlug}${item.href}` : undefined,
+          href: item.href ? `/${organizationSlug}${item.href.startsWith('/') ? item.href : `/${item.href}`}` : undefined,
           items: item.items?.map(subItem => ({
             ...subItem,
-            href: `/${organizationSlug}${subItem.href}`
+            href: `/${organizationSlug}${subItem.href.startsWith('/') ? subItem.href : `/${subItem.href}`}`
           }))
         }))
       ];
@@ -124,6 +124,7 @@ function useDynamicNavigation(
       });
 
       console.debug(`✅ DynamicSidebar: ${apiResponse.total} módulos e ${navigationWithHome.length} itens de navegação carregados`);
+      console.debug('📋 Navegação final:', navigationWithHome);
 
     } catch (error) {
       console.error('❌ DynamicSidebar: Erro ao carregar navegação:', error);
@@ -214,7 +215,7 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
     const newExpanded: string[] = [];
     
     navigation.forEach(item => {
-      if (item.items?.some(subItem => pathname.startsWith(subItem.href))) {
+      if (item.items?.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'))) {
         newExpanded.push(item.id);
       }
     });
@@ -233,16 +234,39 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
     );
   };
 
-  const isActive = (href: string, exact = false) => {
-    if (!href) return false;
-    if (exact) {
-      return pathname === href;
-    }
-    return pathname.startsWith(href);
+  // Verificar se um subitem está ativo
+  const isSubItemActive = (href: string) => {
+    return pathname === href || pathname.startsWith(href + '/');
   };
 
-  const isSubItemActive = (href: string) => {
-    return pathname === href;
+  // Verificar se algum subitem de um item pai está ativo
+  const hasActiveSubItem = (item: NavigationItem) => {
+    if (!item.items) return false;
+    return item.items.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'));
+  };
+
+  // Lógica principal de ativação para itens principais
+  const isActive = (item: NavigationItem) => {
+    if (!item.href) {
+      // Item sem href (só com subitens) - ativo se algum subitem estiver ativo
+      return hasActiveSubItem(item);
+    }
+    
+    // Item com href - verificar se é exato ou por prefixo
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    
+    // Se tem subitens, só ativar se não houver subitem ativo
+    // Isso evita pai+filho ativos simultaneamente para o mesmo nível
+    if (item.items && item.items.length > 0) {
+      const hasActiveSub = hasActiveSubItem(item);
+      if (hasActiveSub) {
+        return false; // Não ativar o pai se um filho está ativo
+      }
+    }
+    
+    return pathname.startsWith(item.href);
   };
 
   // Renderizar estado de loading
@@ -346,7 +370,7 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
                       variant="ghost"
                       className={cn(
                         "w-full justify-start gap-3 h-10 font-medium text-md",
-                        isActive(item.href, item.exact)
+                        isActive(item)
                           ? "bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
                           : "text-zinc-700 hover:bg-zinc-100"
                       )}
@@ -360,7 +384,12 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
                   <div>
                     <Button
                       variant="ghost"
-                      className="w-full justify-between gap-3 h-10 text-md font-medium text-zinc-700 hover:bg-zinc-100"
+                      className={cn(
+                        "w-full justify-between gap-3 h-10 text-md font-medium hover:bg-zinc-100",
+                        hasActiveSubItem(item)
+                          ? "bg-zinc-100 text-zinc-800 font-semibold"
+                          : "text-zinc-700"
+                      )}
                       onClick={() => toggleExpanded(item.id)}
                     >
                       <div className="flex items-center gap-3">

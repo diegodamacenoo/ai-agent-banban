@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/core/supabase/server';
 // import { BANBAN_MODULES } from '@/core/modules/banban'; // TODO: Migrar para novo sistema dinâmico
 const BANBAN_MODULES = {}; // Stub temporário para evitar build error
 import { MODULE_ID_MAPPING } from '@/shared/utils/module-mapping';
+import { conditionalDebugLog } from '@/app/actions/admin/modules/system-config-utils';
 
 interface BanbanModuleInfo {
   id: string;
@@ -48,9 +49,9 @@ export class ModuleIntegrationService {
 
     for (const moduleInfo of moduleInfos) {
       try {
-        console.debug(`🔄 Integrando módulo: ${moduleInfo.id}`);
+        await conditionalDebugLog(`Integrando módulo: ${moduleInfo.id}`);
 
-        // 1. Registrar módulo no core_modules se não existir
+        // 1. Registrar módulo no base_modules se não existir
         const registered = await this.registerModuleInCore(moduleInfo);
         
         // 2. Criar versão inicial no sistema de versionamento
@@ -62,7 +63,7 @@ export class ModuleIntegrationService {
           versioned,
         });
 
-        console.debug(`✅ Módulo ${moduleInfo.id} integrado com sucesso`);
+        await conditionalDebugLog(`Módulo ${moduleInfo.id} integrado com sucesso`);
       } catch (error) {
         console.error(`❌ Erro ao integrar módulo ${moduleInfo.id}:`, error);
         results.push({
@@ -152,7 +153,7 @@ export class ModuleIntegrationService {
   }
 
   /**
-   * Registra um módulo na tabela core_modules
+   * Registra um módulo na tabela base_modules
    */
   private async registerModuleInCore(moduleInfo: BanbanModuleInfo): Promise<boolean> {
     try {
@@ -160,39 +161,32 @@ export class ModuleIntegrationService {
 
       // Verificar se o módulo já existe
       const { data: existingModule } = await supabase
-        .from('core_modules')
+        .from('base_modules')
         .select('id')
         .eq('slug', moduleInfo.id)
         .single();
 
       if (existingModule) {
-        console.debug(`📋 Módulo ${moduleInfo.id} já registrado no core_modules`);
+        await conditionalDebugLog(`Módulo ${moduleInfo.id} já registrado no base_modules`);
         return true;
       }
 
       // Registrar novo módulo
       const { error } = await supabase
-        .from('core_modules')
+        .from('base_modules')
         .insert({
           slug: moduleInfo.id,
           name: moduleInfo.name,
           description: moduleInfo.description,
-          maturity: moduleInfo.maturity,
-          status: moduleInfo.status,
-          features: moduleInfo.features,
-          endpoints: moduleInfo.endpoints,
-          metadata: {
-            integration_date: new Date().toISOString(),
-            integration_version: '1.0.0',
-            source: 'banban-integration',
-          },
+          category: 'analytics',
+          is_active: true
         });
 
       if (error) {
         throw error;
       }
 
-      console.debug(`✅ Módulo ${moduleInfo.id} registrado no core_modules`);
+      await conditionalDebugLog(`Módulo ${moduleInfo.id} registrado no base_modules`);
       return true;
     } catch (error) {
       console.error(`❌ Erro ao registrar módulo ${moduleInfo.id}:`, error);
@@ -209,25 +203,25 @@ export class ModuleIntegrationService {
       const existingVersions = await this.versioningService.getModuleVersions(moduleInfo.id);
       
       if (existingVersions.length > 0) {
-        console.debug(`📋 Módulo ${moduleInfo.id} já possui versões no sistema`);
+        await conditionalDebugLog(`Módulo ${moduleInfo.id} já possui versões no sistema`);
         return true;
       }
 
-            // Primeiro, obter o ID do módulo registrado no core_modules
+            // Primeiro, obter o ID do módulo registrado no base_modules
       const supabase = await createSupabaseServerClient();
-      const { data: coreModule } = await supabase
-        .from('core_modules')
+      const { data: baseModule } = await supabase
+        .from('base_modules')
         .select('id')
         .eq('slug', moduleInfo.id)
         .single();
 
-      if (!coreModule) {
-        throw new Error(`Módulo ${moduleInfo.id} não encontrado no core_modules`);
+      if (!baseModule) {
+        throw new Error(`Módulo ${moduleInfo.id} não encontrado no base_modules`);
       }
 
       // Criar versão inicial
       await this.versioningService.createVersion({
-        module_id: coreModule.id,
+        module_id: baseModule.id,
         version: moduleInfo.version,
         changelog: `Versão inicial do módulo ${moduleInfo.name} integrada ao sistema de versionamento.`,
         breaking_changes: false,
@@ -240,15 +234,15 @@ export class ModuleIntegrationService {
 
       // Marcar como released se for GA
       if (moduleInfo.maturity === 'GA') {
-        const versions = await this.versioningService.getModuleVersions(coreModule.id);
+        const versions = await this.versioningService.getModuleVersions(baseModule.id);
         const latestVersion = versions[0];
         
         if (latestVersion) {
-          await this.versioningService.releaseVersion(coreModule.id, moduleInfo.version);
+          await this.versioningService.releaseVersion(baseModule.id, moduleInfo.version);
         }
       }
 
-      console.debug(`✅ Versão inicial criada para ${moduleInfo.id}`);
+      await conditionalDebugLog(`Versão inicial criada para ${moduleInfo.id}`);
       return true;
     } catch (error) {
       console.error(`❌ Erro ao criar versão inicial para ${moduleInfo.id}:`, error);
@@ -278,10 +272,8 @@ WHERE NOT EXISTS (
 );
 
 -- Update module metadata
-UPDATE core_modules 
+UPDATE base_modules 
 SET 
-  features = '${JSON.stringify(moduleInfo.features)}',
-  endpoints = '${JSON.stringify(moduleInfo.endpoints)}',
   updated_at = NOW()
 WHERE slug = '${moduleInfo.id}';
 
@@ -343,13 +335,13 @@ VALUES (
       try {
         // Verificar se está registrado
         const supabase = await createSupabaseServerClient();
-        const { data: coreModule } = await supabase
-          .from('core_modules')
-          .select('id, status')
+        const { data: baseModule } = await supabase
+          .from('base_modules')
+          .select('id, is_active')
           .eq('slug', moduleInfo.id)
           .single();
 
-        const registered = !!coreModule;
+        const registered = !!baseModule;
 
         // Verificar se tem versões
         const versions = await this.versioningService.getModuleVersions(moduleInfo.id);

@@ -1,6 +1,6 @@
 
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { BanBanTransferFlowService } from '../../modules/custom/banban-transfer-flow/services/banban-transfer-flow-service';
+import { BanBanTransferFlowService } from '../../integrations/banban/flows/transfer/services/banban-transfer-flow-service';
 import { generateErrorResponse } from '../../shared/webhook-base';
 
 export async function transferRoutes(server: FastifyInstance) {

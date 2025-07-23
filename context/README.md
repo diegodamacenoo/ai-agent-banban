@@ -37,12 +37,16 @@ Esta pasta contém documentação **super concisa** para maximizar o entendiment
 
 ### **🛡️ 09-security/** *(Novo)*
 - `rls-security-guide.md` - Segurança e políticas RLS
+- `session-tracking-guide.md` - Sistema de tracking de sessões automático
 
 ### **🧪 10-testing/** *(Novo)*
 - `testing-strategy.md` - Estratégias de teste
 
 ### **⚡ 11-backend/** *(Novo)*
 - `fastify-patterns.md` - Arquitetura do backend Fastify
+
+### **📊 12-logging-debug/** *(Novo)*
+- `conditional-debug-system.md` - Sistema de debug controlável via interface
 
 ## 🎯 Como Usar
 
@@ -72,6 +76,10 @@ Esta pasta contém documentação **super concisa** para maximizar o entendiment
 
 ### **Para Segurança:**
 - `09-security/rls-security-guide.md` - Políticas de segurança
+- `09-security/session-tracking-guide.md` - Sistema de tracking de sessões
+
+### **Para Logging:**
+- `12-logging-debug/conditional-debug-system.md` - Sistema de debug controlável
 
 ## ⚡ Eficiência de Tokens
 

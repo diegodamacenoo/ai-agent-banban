@@ -68,7 +68,7 @@ export class PerformanceService {
     const { metrics, parameters, tenantId } = params;
     const results: Record<string, any> = {};
 
-    for (const metric of metrics) {
+    for (const metric of (metrics || [])) {
       switch (metric) {
         case 'revenue_growth':
           results[metric] = await this.calculateRevenueGrowth(parameters, tenantId);
@@ -97,6 +97,13 @@ export class PerformanceService {
     const baseCustomers = Math.floor(Math.random() * 1000 + 500);
 
     return {
+      summary: {
+        total_events: baseOrders,
+        success_rate: Math.random() * 0.1 + 0.9, // 90-100%
+        avg_processing_time: Math.random() * 200 + 50 // 50-250ms
+      },
+      trends: [],
+      errors: [],
       revenue: {
         total: Math.round(baseRevenue),
         growth: Math.round((Math.random() - 0.5) * 20 * 100) / 100, // -10% a +10%
@@ -109,8 +116,8 @@ export class PerformanceService {
       },
       customers: {
         total: baseCustomers,
-        new: Math.floor(baseCustomers * (Math.random() * 0.2 + 0.05)), // 5-25% novos
-        retention: Math.round((Math.random() * 0.3 + 0.7) * 100) / 100 // 70-100%
+        active: Math.floor(baseCustomers * (Math.random() * 0.2 + 0.8)), // 80-100% ativos
+        growth: Math.round((Math.random() * 0.3 + 0.7) * 100) / 100 // 70-100%
       },
       products: {
         topSelling: [

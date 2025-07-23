@@ -83,8 +83,6 @@ import {
 import {
   Tabs,
   TabsContent,
-  // TabsList, // TODO: Fix tabs implementation
-  // TabsTrigger, // TODO: Fix tabs implementation
 } from '@/shared/ui/tabs';
 import { Label } from '@/shared/ui/label';
 import { Switch } from '@/shared/ui/switch';
@@ -733,15 +731,20 @@ Equipe {{organization_name}}
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="rules">Regras</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-          <TabsTrigger value="history">Histórico</TabsTrigger>
-        </TabsList>
+      <Tabs 
+        value={activeTab} 
+        onValueChange={setActiveTab} 
+        defaultValue="rules"
+        className="w-full"
+        items={[
+          { id: 'rules', label: 'Regras', icon: <Bell className="w-4 h-4" /> },
+          { id: 'templates', label: 'Templates', icon: <Mail className="w-4 h-4" /> },
+          { id: 'history', label: 'Histórico', icon: <Clock className="w-4 h-4" /> }
+        ]}
+      />
 
         {/* Tab: Regras */}
-        <TabsContent value="rules">
+        <TabsContent value="rules" activeValue={activeTab}>
           <Card size="sm">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -900,7 +903,7 @@ Equipe {{organization_name}}
         </TabsContent>
 
         {/* Tab: Templates */}
-        <TabsContent value="templates">
+        <TabsContent value="templates" activeValue={activeTab}>
           <Card size="sm">
             <CardHeader>
               <CardTitle>Templates de Notificação</CardTitle>
@@ -989,7 +992,7 @@ Equipe {{organization_name}}
         </TabsContent>
 
         {/* Tab: Histórico */}
-        <TabsContent value="history">
+        <TabsContent value="history" activeValue={activeTab}>
           <Card size="sm">
             <CardHeader>
               <CardTitle>Histórico de Notificações</CardTitle>
@@ -1057,7 +1060,6 @@ Equipe {{organization_name}}
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
     </div>
   );
 };

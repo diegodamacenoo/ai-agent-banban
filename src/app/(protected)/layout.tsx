@@ -1,6 +1,5 @@
 import { getCachedUserProps } from "@/core/auth/getUserData"
 import MFACheck from "@/app/auth/components/mfa-check"
-import { OrganizationProvider } from '@/core/contexts/OrganizationContext'
 import ProtectedLayoutClient from "./ProtectedLayoutClient"
 
 export default async function DashboardLayout({
@@ -12,11 +11,9 @@ export default async function DashboardLayout({
 
   return (
     <MFACheck>
-      <OrganizationProvider>
-        <ProtectedLayoutClient userData={userData}>
-          {children}
-        </ProtectedLayoutClient>
-      </OrganizationProvider>
+      <ProtectedLayoutClient userData={userData}>
+        {children}
+      </ProtectedLayoutClient>
     </MFACheck>
   )
 }

@@ -10,6 +10,17 @@ import {
 } from './schemas';
 import { verifyAdminAccess } from './utils';
 import { trackServerCall } from './call-tracker';
+import { 
+  conditionalAuditLog, 
+  conditionalDebugLog, 
+  checkMaintenanceMode,
+  getConfigValue 
+} from './system-config-utils';
+
+// Helper para consolidar revalidações e evitar calls redundantes
+function revalidateImplementationsPaths() {
+  revalidatePath('/admin/modules', 'layout');
+}
 
 // ================================================
 // SERVER ACTIONS - MODULE IMPLEMENTATIONS
@@ -47,7 +58,7 @@ export async function getModuleImplementations(
     }
 
     const supabase = await createSupabaseServerClient();
-    const { page = 1, limit = 10 } = filters;
+    const { page = 1, limit = 50 } = filters;
 
     // Versão defensiva que funciona mesmo se a tabela não existir
     try {
@@ -132,58 +143,10 @@ export async function getModuleImplementations(
       };
 
     } catch (tableError) {
-      console.warn('Tabela module_implementations não encontrada ou erro de acesso:', tableError);
-      // Retornar dados mock para demonstrar funcionalidade
-      const mockImplementations = [
-        {
-          id: 'impl-1',
-          base_module_id: 'base-1',
-          implementation_key: 'standard',
-          name: 'Implementação Standard',
-          description: 'Implementação padrão do sistema',
-          version: '1.0.0',
-          component_type: 'react',
-          template_type: 'dashboard',
-          template_config: { layout: 'grid' },
-          audience: 'generic',
-          complexity: 'standard',
-          priority: 'medium',
-          status: 'active',
-          is_default: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          archived_at: null,
-          deleted_at: null,
-        },
-        {
-          id: 'impl-2',
-          base_module_id: 'base-2',
-          implementation_key: 'banban',
-          name: 'Implementação Banban',
-          description: 'Implementação customizada para Banban',
-          version: '1.0.0',
-          component_type: 'react',
-          template_type: 'dashboard',
-          template_config: { layout: 'flex' },
-          audience: 'client-specific',
-          complexity: 'advanced',
-          priority: 'high',
-          status: 'active',
-          is_default: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          archived_at: null,
-          deleted_at: null,
-        }
-      ];
-
-      return {
-        success: true,
-        data: {
-          implementations: mockImplementations,
-          total: mockImplementations.length,
-          pages: 1
-        }
+      console.error('Erro ao acessar tabela module_implementations:', tableError);
+      return { 
+        success: false, 
+        error: 'Erro ao acessar tabela de implementações. Verifique se a migração foi executada corretamente.' 
       };
     }
 
@@ -204,7 +167,7 @@ async function generateComponentFromTemplate(
   try {
     // TODO: Implementar engine de geração de template
     // Por enquanto, apenas log do que seria gerado
-    console.debug('Gerando componente:', {
+    await conditionalDebugLog('Gerando componente', {
       implementationId,
       templateType,
       templateConfig,
@@ -227,6 +190,12 @@ async function generateComponentFromTemplate(
  */
 export async function createModuleImplementation(input: CreateModuleImplementationInput): Promise<ActionResult<ModuleImplementation>> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
     // Verificar autenticação e permissões
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
@@ -237,6 +206,19 @@ export async function createModuleImplementation(input: CreateModuleImplementati
     if (!isAdmin) {
       return { success: false, error: 'Acesso negado. Apenas administradores podem criar implementações' };
     }
+
+    // Verificar se criação de novos módulos requer aprovação
+    const requireApproval = await getConfigValue('requireApprovalForNewModules');
+    if (requireApproval) {
+      // Para implementações, verificar se é uma extensão de módulo existente
+      await conditionalDebugLog('Verificando necessidade de aprovação para nova implementação', { 
+        userId: user?.id, 
+        requireApproval 
+      });
+    }
+
+    // Debug log se habilitado
+    await conditionalDebugLog('createModuleImplementation iniciado', { input, userId: user?.id });
 
     // Validar entrada
     const { CreateModuleImplementationSchema } = await import('./schemas');
@@ -272,6 +254,26 @@ export async function createModuleImplementation(input: CreateModuleImplementati
 
     if (existingImpl) {
       return { success: false, error: 'Já existe uma implementação com esta chave para este módulo base' };
+    }
+
+    // Verificar limite máximo de implementações por módulo
+    const maxImplementations = await getConfigValue('maxImplementationsPerModule');
+    const { count: currentCount } = await supabase
+      .from('module_implementations')
+      .select('id', { count: 'exact' })
+      .eq('base_module_id', data.base_module_id)
+      .is('deleted_at', null);
+
+    if (currentCount && currentCount >= maxImplementations) {
+      await conditionalDebugLog('Limite de implementações atingido', { 
+        baseModuleId: data.base_module_id, 
+        currentCount, 
+        maxImplementations 
+      });
+      return { 
+        success: false, 
+        error: `Limite de ${maxImplementations} implementações por módulo atingido. Configure um limite maior nas configurações do sistema.` 
+      };
     }
 
     // Se está marcando como padrão, desmarcar outras implementações padrão do mesmo módulo
@@ -317,20 +319,25 @@ export async function createModuleImplementation(input: CreateModuleImplementati
       await generateComponentFromTemplate(newImpl.id, newImpl.template_type, newImpl.template_config);
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
-    revalidatePath('/admin/implementations');
+    // Aplicar configurações automáticas do sistema
+    const { applySystemConfigurationsToNewEntity } = await import('./auto-config-applier');
+    await applySystemConfigurationsToNewEntity('implementation', newImpl.id, newImpl);
 
-    // Log de auditoria
-    await supabase.from('audit_logs').insert({
-      user_id: user!.id,
-      action: 'create_module_implementation',
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
+
+    // Log de auditoria condicional
+    await conditionalAuditLog({
+      actor_user_id: user!.id,
+      action_type: 'CREATE_MODULE_IMPLEMENTATION',
       resource_type: 'module_implementation',
       resource_id: newImpl.id,
       details: {
         implementation_name: data.name,
         implementation_key: data.implementation_key,
         base_module_id: data.base_module_id,
+        current_implementations_count: currentCount,
+        max_allowed: maxImplementations,
       },
     });
 
@@ -426,9 +433,8 @@ export async function updateModuleImplementation(input: UpdateModuleImplementati
       return { success: false, error: 'Erro interno ao atualizar implementação' };
     }
 
-    // Invalidar cache de forma mais específica para melhor performance com estado otimístico
-    revalidatePath('/admin/modules', 'page');
-    revalidatePath('/admin/implementations', 'page');
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -524,9 +530,8 @@ export async function deleteModuleImplementation(implementationId: string): Prom
       }
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
-    revalidatePath('/admin/implementations');
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -592,9 +597,8 @@ export async function archiveModuleImplementation(implementationId: string): Pro
       return { success: false, error: 'Erro interno ao arquivar implementação' };
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
-    revalidatePath('/admin/implementations');
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -662,9 +666,8 @@ export async function restoreModuleImplementation(implementationId: string): Pro
       return { success: false, error: 'Erro interno ao restaurar implementação' };
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
-    revalidatePath('/admin/implementations');
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -745,9 +748,8 @@ export async function purgeModuleImplementation(implementationId: string): Promi
       return { success: false, error: 'Erro interno ao excluir implementação permanentemente' };
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
-    revalidatePath('/admin/implementations');
+    // Invalidar cache (consolidado)
+    revalidateImplementationsPaths();
 
     // Log de auditoria
     await supabase.from('audit_logs').insert({
@@ -829,7 +831,7 @@ export async function deleteImplementation(implementationId: string): Promise<Ac
       return { success: false, error: `Falha ao ${actionDescription} a implementação.` };
     }
 
-    revalidatePath('/admin/modules');
+    revalidateImplementationsPaths();
 
     await supabase.from('audit_logs').insert({
       user_id: user!.id,

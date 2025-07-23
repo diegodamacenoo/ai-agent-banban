@@ -37,7 +37,13 @@ export default async function UniversalPage({ params, searchParams }: UniversalP
   const { slug, path = [] } = await params;
 
   // Adicionado para ignorar rotas internas do Next.js e rotas especiais
-  if (slug.startsWith('_') || slug.startsWith('.well-known')) {
+  if (slug.startsWith('_')) {
+    return notFound();
+  }
+
+  // Filtrar requisições .well-known do Chrome DevTools silenciosamente
+  if (slug.startsWith('.well-known') || path.some(segment => segment?.startsWith('.well-known'))) {
+    console.debug(`🤖 Ignorando requisição .well-known: /${slug}${path.length ? '/' + path.join('/') : ''}`);
     return notFound();
   }
 

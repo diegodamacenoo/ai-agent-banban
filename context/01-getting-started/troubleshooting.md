@@ -97,6 +97,13 @@ WHERE schemaname = 'public';
 - Verificar módulos habilitados na organização
 - Verificar configuração client_type
 
+#### **UI "piscando" ou re-renders excessivos**
+- Verificar Context providers com múltiplos estados
+- Implementar deep comparison em setState para evitar updates desnecessários
+- Usar React.memo para componentes que re-renderizam sem mudanças
+- Verificar dependências instáveis em useEffect (usar useCallback/useMemo)
+- Consolidar estados relacionados em objeto único
+
 ## FAQ
 
 ### **Q: Como adicionar um novo módulo?**

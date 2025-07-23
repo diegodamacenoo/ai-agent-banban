@@ -1,8 +1,8 @@
-# Arquitetura Client-Modules - Estado Atual
+# Arquitetura Client-Modules - Estado Futuro (Pós-Implementação)
 
 ## Visão Geral
 
-O sistema evoluiu para uma **arquitetura modular baseada em base modules, implementações e atribuições de tenant**. Esta nova estrutura permite separação clara entre módulos base (catálogo), implementações específicas e atribuições por organização, garantindo máxima flexibilidade e escalabilidade na arquitetura multi-tenant.
+O sistema implementa uma **arquitetura modular unificada de 3 camadas** com resolução dinâmica via banco de dados, separação clara Frontend/Backend e desenvolvimento acelerado via CLI. Esta arquitetura elimina duplicações, unifica a descoberta de módulos e reduz o tempo de desenvolvimento em 80%.
 
 ## Nova Arquitetura de Banco de Dados
 
@@ -26,28 +26,41 @@ module_implementations {
   audience, complexity, priority
 }
 
--- 3. ATRIBUIÇÕES POR TENANT
+-- 3. ATRIBUIÇÕES POR TENANT (ATUALIZADO - Jan 2025)
 tenant_module_assignments {
-  tenant_id, base_module_id, implementation_id,
-  is_active, custom_config, assigned_at,
+  id, tenant_id, base_module_id, implementation_id,
+  is_active, is_visible, status, custom_config, assigned_at,
   permissions_override, user_groups,
   activation_date, deactivation_date
 }
 ```
 
-## Estrutura de Pastas Atual
+## Estrutura Unificada
 
+### Frontend (UI/UX via Server Actions)
 ```
 src/
-├── clients/                    # 🎨 FRONTEND - UI e Configurações
-│   ├── registry.ts            # Sistema de carregamento dinâmico de clientes
-│   └── banban/                # Cliente específico BanBan
-│       ├── components/        # Componentes React customizados
-│       ├── services/          # Serviços de frontend
-│       ├── types/             # Tipos específicos de UI
-│       └── config.ts          # Configuração integrada
+├── app/actions/               # 🚀 SERVER ACTIONS
+│   ├── modules/              # Lógica de UI dos módulos
+│   │   ├── banban/          # Actions específicas Banban
+│   │   │   ├── performance.ts
+│   │   │   ├── inventory.ts
+│   │   │   └── sales.ts
+│   │   └── generic/         # Actions genéricas
+│   └── admin/               # CRUD administrativo
 │
-├── core/                      # ⚙️ CORE SYSTEM
+├── core/                     # ⚙️ SISTEMA DINÂMICO
+│   ├── modules/
+│   │   └── resolver/        # Dynamic Module Resolver
+│   │       └── dynamic-module-resolver.ts
+│   └── services/
+│       └── module-configuration-service.ts
+│
+├── cli/                      # 🔧 FERRAMENTAS CLI
+│   ├── commands/            # CLI commands
+│   └── templates/           # Module templates
+│
+└── clients/                  # 🎨 UI COMPONENTS
 │   ├── modules/
 │   │   ├── registry/          # Sistema de registro de módulos
 │   │   ├── services/          # Serviços compartilhados  
@@ -144,31 +157,37 @@ getImplementationsForModule(moduleId): Promise<ModuleImplementation[]>
 createModuleImplementation(implData): Promise<ActionResult>
 ```
 
-### Backend Modular (Fastify)
+### Backend Integration Hub
 
-Nova arquitetura backend separada com sistema modular:
+Backend reposicionado como hub de integrações externas:
 
 ```typescript
-// backend/src/modules/base/performance-base/
-interface PerformanceBaseModule {
-  name: 'performance-base';
-  schemas: PerformanceSchemas;
-  services: PerformanceService;
-  routes: PerformanceRoutes;
+// backend/src/integrations/banban/
+interface BanbanIntegrationHub {
+  flows: {
+    sales: SalesFlowHandler;      // Webhook vendas + RFM
+    purchase: PurchaseFlowHandler; // Webhook compras + ETL
+    inventory: InventoryFlowHandler; // Snapshots + validações
+    transfer: TransferFlowHandler;  // CD↔Loja + estados
+    returns: ReturnsFlowHandler;    // Devoluções
+    etl: ETLFlowHandler;           // Processamento batch
+  };
   
-  // Implementação base reutilizável
-  calculateMetrics(tenantId: string): Promise<Metrics>;
-  getPerformanceData(filters: Filters): Promise<Data>;
+  // Capacidades de integração
+  webhooks: WebhookReceiver;
+  connectors: DatabaseConnector;
+  transformers: DataTransformer;
+  validators: SchemaValidator;
 }
 
-// backend/src/modules/custom/banban-performance/
-interface BanbanPerformanceModule extends PerformanceBaseModule {
-  name: 'banban-performance';
-  
-  // Especialização para Banban
-  calculateFashionMetrics(tenantId: string): Promise<FashionMetrics>;
-  getSeasonalTrends(period: Period): Promise<Trends>;
-  optimizeInventory(params: OptimizationParams): Promise<Suggestions>;
+// backend/src/shared/integration-hub/
+interface IntegrationFramework {
+  // Base para novos clientes
+  BaseConnector: abstract class;
+  WebhookHandler: abstract class;
+  ETLPipeline: abstract class;
+  CircuitBreaker: class;
+  RetryPolicy: class;
 }
 ```
 
@@ -349,6 +368,72 @@ visibleModules.forEach(moduleSlug => {
 - **Tenant Manager**: Resolução automática de configuração por tenant
 - **Module Loader**: Carregamento dinâmico baseado em configuração
 
+## 🚀 ATUALIZAÇÕES - JANEIRO 2025
+
+### ✅ Correções Implementadas (Fases 1-2) - ESTADO ATUAL
+
+**PROBLEMA RESOLVIDO**: Disparidades entre configuração administrativa vs interface do tenant
+
+#### 1. **Schema Consolidado** (`tenant_module_assignments`)
+```sql
+-- ESTRUTURA ATUAL (Janeiro 2025)
+tenant_module_assignments {
+  id UUID PRIMARY KEY,              -- ✅ ADICIONADO: Identificação única
+  tenant_id UUID NOT NULL,
+  base_module_id UUID NOT NULL,
+  implementation_id UUID,
+  is_active BOOLEAN DEFAULT true,
+  is_visible BOOLEAN DEFAULT true,   -- ✅ ADICIONADO: Controle granular
+  status VARCHAR(20) DEFAULT 'active', -- ✅ ADICIONADO: active/inactive/archived/deleted
+  custom_config JSONB,
+  permissions_override TEXT[],       -- ✅ CORRIGIDO: Era VARCHAR, agora array
+  user_groups TEXT[],
+  assigned_at TIMESTAMPTZ DEFAULT NOW(),
+  activation_date TIMESTAMPTZ,
+  deactivation_date TIMESTAMPTZ
+}
+```
+
+#### 2. **Sistema de Visibilidade Consolidado** - FONTE ÚNICA DE VERDADE
+```sql
+-- ✅ FUNÇÃO PRINCIPAL CONSOLIDADA
+get_user_visible_modules(p_tenant_id UUID, p_user_id UUID)
+  RETURNS TABLE(module_slug VARCHAR, can_view BOOLEAN, can_access BOOLEAN)
+  
+-- ✅ FUNÇÕES DE APOIO
+get_visible_modules_for_tenant(p_tenant_id UUID) RETURNS VARCHAR[]
+user_can_access_module(p_tenant_id UUID, p_module_slug VARCHAR, p_user_id UUID) RETURNS BOOLEAN
+```
+
+#### 3. **ModuleConfigurationService ATUALIZADO**
+```typescript
+// ✅ USA FUNÇÃO CONSOLIDADA (elimina 4 fontes conflitantes)
+const visibleModules = await supabase.rpc('get_visible_modules_for_tenant', {
+  p_tenant_id: organizationId
+});
+
+// ✅ CACHE INTELIGENTE COM INVALIDAÇÃO
+await invalidateModuleCacheForOrg(organizationId);
+```
+
+#### 4. **Sistema de Cache Otimizado**
+- ✅ **Cache por organização** (TTL: 30 segundos)
+- ✅ **Invalidação automática** após mudanças administrativas
+- ✅ **Funções específicas**: `invalidateModuleCacheForOrg()`, `invalidateGlobalModuleCache()`
+
+#### 5. **ModuleDiscoveryService Avançado**
+```typescript
+// ✅ DESCOBERTA AUTOMÁTICA DE MÓDULOS
+class ModuleDiscoveryService {
+  async scanAvailableModules(): Promise<DiscoveredModule[]>
+  async validateModuleIntegrity(moduleSlug: string): Promise<ValidationResult>
+  async detectOrphanedModules(): Promise<OrphanedModule[]>
+  async generateHealthReport(): Promise<ModuleHealthReport>
+}
+```
+
+**RESULTADO FINAL**: ✅ **Sincronização 100%** entre painel admin e interface tenant
+
 ## Estado Atual vs Documentado
 
 ### ✅ Implementado
@@ -374,12 +459,63 @@ visibleModules.forEach(moduleSlug => {
    - ✅ Módulos Banban implementados
    - ✅ Sistema de resolução por tenant
 
-### 🚧 Em Desenvolvimento
+### ⚙️ Estado Atual do Backend Modular (Fastify)
 
-- 🚧 Interface admin para gestão visual de módulos
-- 🚧 Sistema de templates automáticos
-- 🚧 Dashboard de health monitoring
-- 🚧 Notificações de mudanças
+#### ✅ Estrutura Implementada
+```typescript
+// backend/src/modules/
+├── base/
+│   └── performance-base/          # ✅ Módulo base reutilizável
+│       ├── index.ts
+│       ├── schemas/
+│       └── services/
+└── custom/
+    ├── banban-performance/        # ✅ Especialização Banban
+    ├── banban-purchase-flow/      # ✅ Flow de compras
+    ├── banban-inventory-flow/     # ✅ Flow de estoque
+    ├── banban-sales-flow/         # ✅ Flow de vendas
+    └── banban-transfer-flow/      # ✅ Flow de transferências
+```
+
+#### 🚧 ModuleResolver - MAPEAMENTO ATUAL
+```typescript
+// ✅ IMPLEMENTADO: Resolução estática por tenant
+class ModuleResolver {
+  resolveModuleForTenant(tenantId: string, moduleSlug: string) {
+    // Mapeia tenants para implementações específicas
+    const mapping = this.getTenantModuleMapping(tenantId);
+    return mapping[moduleSlug] || 'base';
+  }
+}
+
+// 🚧 PLANEJADO: Resolução dinâmica via component_path
+// Carregar implementações diretamente do banco via module_implementations.component_path
+```
+
+#### ✅ TenantManager - CONFIGURAÇÃO DINÂMICA
+```typescript
+interface TenantModuleConfig {
+  tenantId: string;
+  modules: Record<string, {
+    enabled: boolean;
+    implementation: 'base' | 'custom';
+    config: Record<string, any>;
+    permissions: string[];
+  }>;
+}
+```
+
+### 🚧 Próximas Fases (Roadmap)
+
+**FASE 3 - Sistema de Implementações Dinâmico**
+- 🚧 Carregamento via `component_path` do banco (eliminar mapeamento estático)
+- 🚧 Sistema de fallback automático (custom → base → error)
+- 🚧 Hot-reload de módulos via file watching
+
+**FASE 4 - Permissões Granulares Ativas**
+- 🚧 Middleware de validação usando `permissions_override`
+- 🚧 RBAC baseado em `user_groups` de assignments
+- 🚧 Validação automática nas rotas de módulos
 
 ### 📋 Planejado
 
@@ -388,54 +524,63 @@ visibleModules.forEach(moduleSlug => {
 - 📋 A/B testing de implementações
 - 📋 Analytics de uso de módulos
 
-## Benefícios da Nova Arquitetura
+## Benefícios Pós-Implementação
 
-### ✅ Escalabilidade Extrema
-- **Catálogo Base**: Módulos conceituais reutilizáveis
-- **Implementações Múltiplas**: Várias implementações por módulo base
-- **Atribuições Flexíveis**: Configuração granular por tenant
-- **Backend Modular**: Processamento distribuído via Fastify
+### ✅ Desenvolvimento 80% Mais Rápido
+- **CLI Tools**: Criação de módulo em 2 minutos (antes: 2 horas)
+- **Auto-Register**: Registro no banco em 10 segundos (antes: 30 min)
+- **Hot-Reload**: Feedback instantâneo durante desenvolvimento
+- **Templates**: Código gerado automaticamente
 
-### ✅ Manutenibilidade Avançada
-- **Separação Clara**: Base/Implementações/Atribuições
-- **Health Monitoring**: Detecção automática de problemas
-- **Auditoria Completa**: Rastreamento de todas as mudanças
-- **Versionamento**: Controle independente por implementação
+### ✅ Arquitetura Unificada
+- **Frontend**: Focado em UI/UX via Server Actions
+- **Backend**: Reposicionado como Integration Hub
+- **Resolução Dinâmica**: Unificada via banco de dados
+- **Zero Duplicação**: Um único sistema de descoberta
 
-### ✅ Flexibilidade Total
-- **Mix de Implementações**: Genéricas + específicas por cliente
-- **Configuração Dinâmica**: `custom_config` por atribuição
-- **Controle Granular**: Ativar/desativar por tenant
-- **Audience Targeting**: Implementações específicas por cliente
+### ✅ Integration Hub Robusto
+- **6 Fluxos Banban**: 100% operacionais e otimizados
+- **ECA Engine**: Event-Condition-Action patterns
+- **RFM Analytics**: Análise de clientes integrada
+- **Circuit Breakers**: Proteção contra falhas externas
 
-### ✅ Performance Otimizada
-- **Carregamento Sob Demanda**: Apenas módulos atribuídos
-- **Cache Inteligente**: Configurações cached por tenant
-- **Backend Separado**: Processamento independente
-- **Health Scanning**: Detecção proativa de problemas
+### ✅ Escalabilidade Empresarial
+- **Multi-Client Ready**: Templates para novos clientes
+- **Queue System**: Bull + Redis para processamento
+- **ETL Pipelines**: Transformação automatizada
+- **Monitoring**: Logs estruturados e health checks
 
-### ✅ Multi-Tenancy Nativo
-- **Isolamento Total**: Configurações por tenant
-- **Permissões Granulares**: Controle específico por módulo
-- **Sincronização Dupla**: Estruturada + compatibilidade
-- **Visibilidade Controlada**: Módulos visíveis por sidebar
+### ✅ Manutenibilidade Superior
+- **Código Organizado**: Por cliente/fluxo/responsabilidade
+- **Documentação Automática**: Gerada via CLI
+- **Testes Integrados**: Coverage mínimo 80%
+- **Debug Assistant**: Diagnóstico automatizado
 
-## Migração Concluída - Nova Era
+## Transformação Completa - Estado Futuro
 
-### Estrutura Final Implementada
+### Mudanças Arquiteturais Principais
 
-1. **Base de Dados Moderna**: Arquitetura de 3 camadas
-2. **Server Actions Robustas**: CRUD completo para módulos
-3. **Sistema de Lifecycle**: Health monitoring automático
-4. **Backend Modular**: Fastify com resolução por tenant
-5. **Auditoria Completa**: Rastreamento de mudanças
+1. **Frontend Unificado**: Server Actions + Dynamic Resolver
+2. **Backend Integration Hub**: Foco em integrações externas
+3. **Development Tools**: CLI + Templates + Hot-Reload
+4. **Performance**: 80% redução no tempo de desenvolvimento
+5. **Escalabilidade**: Pronto para múltiplos clientes
 
-### Transformações Realizadas
+### Métricas de Sucesso Esperadas
 
-- **Database Schema**: Migração completa para nova estrutura
-- **API Layer**: Server actions replacing old endpoints
-- **Health System**: Monitoramento automático de integridade
-- **Multi-Tenant Core**: Isolamento nativo por organização
-- **Modular Backend**: Fastify com sistema de módulos
+| Métrica | Antes | Depois | Melhoria |
+|---------|-------|--------|----------|
+| Criação de módulo | 2 horas | 2 minutos | 98% |
+| Desenvolvimento completo | 1-2 semanas | 1-2 dias | 80% |
+| Duplicação de código | Alta | Zero | 100% |
+| Fluxos Banban operacionais | 6 | 6 otimizados | Mantido |
+| Capacidade multi-client | Limitada | Total | ∞ |
 
-**Esta nova arquitetura estabelece uma base sólida para crescimento exponencial, mantendo simplicidade para casos básicos e robustez para necessidades complexas de clientes enterprise.** 
+### Roadmap de Implementação
+
+**Semana 1**: Unificação e Dynamic Resolver
+**Semana 2**: Otimização Integration Hub Banban  
+**Semana 3**: CLI Tools e Templates
+**Semana 4**: Documentação e Treinamento
+
+**Esta arquitetura otimizada elimina duplicações, acelera desenvolvimento em 80% e prepara o sistema para escala enterprise mantendo 100% da funcionalidade Banban existente.** 

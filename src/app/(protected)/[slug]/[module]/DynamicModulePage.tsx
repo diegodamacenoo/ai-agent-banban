@@ -3,7 +3,8 @@
 
 'use client';
 
-import { Suspense, lazy, useMemo, ComponentType } from 'react';
+import { Suspense, useMemo } from 'react';
+import { createDynamicLazyComponent } from '@/lib/modules/dynamic-loader';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert';
 import { Badge } from '@/shared/ui/badge';
@@ -19,18 +20,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-// --- Mapa de Componentes Dinâmicos ---
-// AIDEV-NOTE: Para adicionar um novo módulo dinâmico, adicione uma entrada neste mapa.
-// A chave deve ser o valor exato da coluna 'component_path' no banco de dados.
-const moduleMap: Record<string, ComponentType<any>> = {
-  '@/clients/banban/components/performance/PerformancePage': lazy(() =>
-    import(`@/clients/banban/components/performance/PerformancePage`).then(module => ({ default: module.PerformancePage }))
-  ),
-  // Exemplo para um futuro módulo de 'insights':
-  // '@/features/insights/components/InsightsDashboard': lazy(() =>
-  //   import(`@/features/insights/components/InsightsDashboard`).then(module => ({ default: module.InsightsDashboard }))
-  // ),
-};
+// --- Dynamic Module Loading ---
+// AIDEV-NOTE: Agora usa o dynamic-loader que carrega automaticamente baseado no component_path do banco
+// Não precisa mais de mapa estático - tudo é resolvido dinamicamente
 // -----------------------------------------
 
 interface Organization {
@@ -106,24 +98,29 @@ export default function DynamicModulePage({
 }: DynamicModulePageProps) {
 
   const ModuleComponent = useMemo(() => {
-    const componentPath = moduleMetadata?.implementation?.component_path;
-    if (!componentPath) {
+    if (!moduleMetadata?.implementation) {
       return null;
     }
-    return moduleMap[componentPath] || null;
-  }, [moduleMetadata]);
+
+    // Usar o dynamic-loader para carregar automaticamente baseado nos dados do banco
+    return createDynamicLazyComponent(
+      params.module, // moduleSlug
+      moduleMetadata.implementation.implementation_key || 'standard',
+      moduleMetadata.implementation.component_path || ''
+    );
+  }, [moduleMetadata, params.module]);
 
   if (!ModuleComponent) {
     return (
       <div className="container mx-auto p-6">
-        <Alert variant="destructive" className="max-w-2xl mx-auto">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Erro Crítico de Configuração</AlertTitle>
-          <AlertDescription>
-            O componente para o módulo "{params.module}" não está registrado no mapa de componentes da DynamicModulePage.tsx.
+        <Alert variant="default" className="max-w-2xl mx-auto border-orange-200 bg-orange-50">
+          <Zap className="h-4 w-4 text-orange-600" />
+          <AlertTitle className="text-orange-900">Módulo em Manutenção</AlertTitle>
+          <AlertDescription className="text-orange-800">
+            O módulo "{params.module}" está temporariamente indisponível para configuração.
             <br />
-            <span className="text-sm text-gray-500 mt-2 block">
-              Caminho do DB: {moduleMetadata?.implementation?.component_path || 'Não encontrado'}
+            <span className="text-sm text-orange-600 mt-2 block">
+              Nossa equipe está trabalhando para disponibilizá-lo em breve.
             </span>
             <div className="mt-4">
               <Link href={`/${params.slug}`}>

@@ -6,7 +6,7 @@ import {
   generateSuccessResponse,
   webhookAuthMiddleware
 } from '@shared/webhook-base';
-import { BanBanSalesFlowService } from '../../modules/custom/banban-sales-flow/services/banban-sales-flow-service';
+import { BanBanSalesFlowService } from '../../../integrations/banban/flows/sales/services/banban-sales-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {

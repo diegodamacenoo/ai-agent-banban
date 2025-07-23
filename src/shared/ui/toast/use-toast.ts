@@ -4,7 +4,7 @@ type ToastOptions = Omit<Toast, 'id' | 'variant'>;
 type ToastVariantOptions = Omit<Toast, 'id'>;
 
 export function useToast() {
-  const { addToast, removeToast, clearToasts } = useToastContext();
+  const { addToast, updateToast, removeToast, clearToasts } = useToastContext();
 
   const toast = {
     // Método genérico
@@ -26,7 +26,12 @@ export function useToast() {
     default: (title: string, options?: Partial<ToastOptions>) =>
       addToast({ title, ...options, variant: 'default' }),
 
+    // Toast de loading (persistente)
+    loading: (title: string, options?: Partial<ToastOptions>) =>
+      addToast({ title, ...options, variant: 'info', persistent: true }),
+
     // Utilitários
+    update: updateToast,
     dismiss: removeToast,
     clear: clearToasts,
   };

@@ -5,8 +5,8 @@ import {
   generateErrorResponse,
   generateSuccessResponse,
   webhookAuthMiddleware
-} from '../../shared/webhook-base';
-import { BanBanInventoryFlowService } from '../../modules/custom/banban-inventory-flow/services/banban-inventory-flow-service';
+} from '../../../shared/webhook-base';
+import { BanBanInventoryFlowService } from '../../../integrations/banban/flows/inventory/services/banban-inventory-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const BANBAN_ORG_ID = '2da2a9a7-89ec-48bf-a3bc-c46e58d5a9b4';

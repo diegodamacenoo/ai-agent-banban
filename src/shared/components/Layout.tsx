@@ -59,6 +59,7 @@ function ErrorState({ error, onRetry }: { error: string; onRetry?: () => void })
 interface BreadcrumbItemDef {
   title: string;
   href?: string;
+  icon?: React.ComponentType<{ className?: string, strokeWidth?: number }>;
 }
 
 const Breadcrumbs = ({ items = [] }: { items?: BreadcrumbItemDef[] }) => {
@@ -72,11 +73,16 @@ const Breadcrumbs = ({ items = [] }: { items?: BreadcrumbItemDef[] }) => {
           <React.Fragment key={index}>
             <BreadcrumbItem>
               {item.href ? (
-                <BreadcrumbLink href={item.href} className="text-xl font-medium text-zinc-900">
+                <BreadcrumbLink href={item.href} className="text-xl font-medium text-[hsl(var(--foreground))]">
                   {item.title}
                 </BreadcrumbLink>
+              ) : index === 0 ? (
+                <div className="flex items-center gap-2">
+                  {item.icon ? <item.icon className="h-5 w-5 text-[hsl(var(--foreground))]" strokeWidth={2.3} /> : null}
+                  <span className="text-lg font-medium text-[hsl(var(--foreground))]">{item.title}</span>
+                </div>
               ) : (
-                <Chip variant="secondary" size="lg" className="text-lg font-medium">{item.title}</Chip>
+                <span className="text-lg font-medium text-[hsl(var(--foreground))]/60">{item.title}</span>
               )}
             </BreadcrumbItem>
             {index < items.length - 1 && <BreadcrumbSeparator />}
@@ -96,7 +102,7 @@ const Header = ({ children, className = '' }: { children: ReactNode; className?:
   
   if (loading) {
     return (
-      <header className={`flex items-center justify-between h-[75px] px-6 border-b border-[hsl(var(--border))] ${className}`}>
+      <header className={`flex items-center justify-between h-[40px] border-b border-[hsl(var(--border))] ${className}`}>
         <div className="h-6 bg-zinc-200 rounded animate-pulse w-48"></div>
         <div className="flex gap-3">
           <div className="h-10 bg-zinc-200 rounded animate-pulse w-24"></div>
@@ -107,7 +113,7 @@ const Header = ({ children, className = '' }: { children: ReactNode; className?:
   }
 
   return (
-    <header className={`flex items-center justify-between h-[75px] px-6 border-b border-[hsl(var(--border))] ${className}`}>
+    <header className={`flex items-center justify-between h-[60px] px-4 border-b border-[hsl(var(--border))] ${className}`}>
       {children}
     </header>
   );

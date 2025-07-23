@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import { createSupabaseServerClient } from '@/core/supabase/server';
-import { DynamicModuleRegistry } from '@/core/modules/registry/DynamicModuleRegistry';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { ModuleConfigurationService } from '@/core/modules/services/ModuleConfigurationService';
 import DynamicModulePage from './DynamicModulePage';
 
 interface Organization {
@@ -22,9 +22,15 @@ interface ModulePageProps {
 export default async function ModulePage({ params }: ModulePageProps) {
   const { slug, module } = await params;
 
+  // Filtrar rotas API que não são organizações
+  if (slug === 'api' || slug.startsWith('_')) {
+    console.debug(`🚫 ModulePage: Ignorando rota sistema: ${slug}/${module}`);
+    notFound();
+  }
+
   console.debug(`🎯 ModulePage: Acessando módulo "${module}" para organização "${slug}"`);
 
-  // Buscar organização no servidor
+  // Buscar organização no servidor (usar cliente autenticado)
   const supabase = await createSupabaseServerClient();
   const { data: organization, error: orgError } = await supabase
     .from('organizations')
@@ -43,12 +49,10 @@ export default async function ModulePage({ params }: ModulePageProps) {
     client_type: organization.client_type
   });
 
-  // Verificar se o módulo existe para este cliente usando o registry dinâmico
-  const registry = DynamicModuleRegistry.getInstance(supabase);
-  
+  // Verificar se o módulo existe para este cliente usando o ModuleConfigurationService
   try {
     // Tentar carregar as configurações do módulo
-    const moduleConfigs = await registry.loadModuleConfiguration(organization.id);
+    const moduleConfigs = await ModuleConfigurationService.loadModuleConfigurations(supabase, organization.id);
     const moduleConfig = moduleConfigs.find(m => m.slug === module);
     
     if (!moduleConfig) {
@@ -63,6 +67,36 @@ export default async function ModulePage({ params }: ModulePageProps) {
     notFound();
   }
 
+  // TESTE DIRETO: Verificar se existe a atribuição sem JOIN primeiro
+  const { data: directCheck, error: directError } = await supabase
+    .from('tenant_module_assignments')
+    .select('*')
+    .eq('tenant_id', organization.id);
+  
+  console.debug(`🧪 TESTE DIRETO - Todas as atribuições:`, {
+    count: directCheck?.length || 0,
+    assignments: directCheck?.map(a => ({ 
+      base_module_id: a.base_module_id, 
+      is_active: a.is_active 
+    })),
+    error: directError?.message
+  });
+
+  // TESTE ESPECÍFICO: Buscar módulo diego-henrique por ID
+  if (module === 'diego-henrique') {
+    const { data: specificCheck, error: specificError } = await supabase
+      .from('tenant_module_assignments')
+      .select('*')
+      .eq('tenant_id', organization.id)
+      .eq('base_module_id', '49d247a4-8478-4641-9514-f52c468c1e00');
+    
+    console.debug(`🎯 TESTE ESPECÍFICO - diego-henrique por ID:`, {
+      found: !!specificCheck?.length,
+      data: specificCheck,
+      error: specificError?.message
+    });
+  }
+
   // Verificar se a organização tem acesso ao módulo
   // Usar JOIN com base_modules para buscar por slug em vez de UUID
   let { data: moduleAccessData, error: accessError } = await supabase
@@ -71,7 +105,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
       base_module_id,
       is_active,
       custom_config,
-      base_module:base_modules!inner (
+      base_modules!inner (
         id,
         slug,
         name,
@@ -79,7 +113,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
       )
     `)
     .eq('tenant_id', organization.id)
-    .eq('base_module.slug', module)
+    .eq('base_modules.slug', module)
     .single();
 
   // Log detalhado para debug
@@ -88,7 +122,12 @@ export default async function ModulePage({ params }: ModulePageProps) {
     organization_slug: slug,
     module_slug: module,
     moduleAccess: moduleAccessData,
-    accessError: accessError?.message
+    accessError: accessError?.message,
+    queryDetails: {
+      tenant_id: organization.id,
+      target_module_slug: module,
+      query_executed: 'tenant_module_assignments + base_modules JOIN'
+    }
   });
 
   // Buscar todos os módulos disponíveis para esta organização para debug
@@ -98,7 +137,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
       base_module_id,
       is_active,
       custom_config,
-      base_module:base_modules (
+      base_modules (
         id,
         slug,
         name
@@ -108,7 +147,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   console.debug(`📋 Todos os módulos da organização "${slug}":`, 
     allModules?.map(m => {
-      const baseModule = Array.isArray(m.base_module) ? m.base_module[0] : m.base_module;
+      const baseModule = Array.isArray(m.base_modules) ? m.base_modules[0] : m.base_modules;
       return `${baseModule?.slug || m.base_module_id} (active: ${m.is_active})`;
     })
   );
@@ -117,7 +156,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
     console.error(`❌ Acesso negado ao módulo "${module}" para organização "${slug}"`, {
       error: accessError?.message,
       availableModules: allModules?.map(m => {
-        const baseModule = Array.isArray(m.base_module) ? m.base_module[0] : m.base_module;
+        const baseModule = Array.isArray(m.base_modules) ? m.base_modules[0] : m.base_modules;
         return `${baseModule?.slug || m.base_module_id} (active: ${m.is_active})`;
       })
     });
@@ -137,7 +176,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           base_module_id,
           is_active,
           custom_config,
-          base_module:base_modules!inner (
+          base_modules!inner (
             id,
             slug,
             name,
@@ -145,7 +184,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           )
         `)
         .eq('tenant_id', organization.id)
-        .eq('base_module.slug', altModule)
+        .eq('base_modules.slug', altModule)
         .eq('is_active', true)
         .single();
       
@@ -168,10 +207,10 @@ export default async function ModulePage({ params }: ModulePageProps) {
 
   console.debug(`✅ Acesso autorizado ao módulo "${module}" para "${slug}"`);
 
-  // Obter metadados do módulo do registry dinâmico
+  // Obter metadados do módulo usando o ModuleConfigurationService
   let moduleMetadata = null;
   try {
-    const moduleConfigs = await registry.loadModuleConfiguration(organization.id);
+    const moduleConfigs = await ModuleConfigurationService.loadModuleConfigurations(supabase, organization.id);
     moduleMetadata = moduleConfigs.find(m => m.slug === module);
   } catch (error) {
     console.warn(`⚠️ Erro ao carregar metadados do módulo "${module}":`, error);

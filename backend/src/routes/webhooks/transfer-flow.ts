@@ -7,7 +7,7 @@ import {
   generateSuccessResponse
 } from '@shared/webhook-base';
 import { TRANSFER_ACTIONS, TransferAction } from '../../shared/enums';
-import { BanBanTransferFlowService } from '../../modules/custom/banban-transfer-flow/services/banban-transfer-flow-service';
+import { BanBanTransferFlowService } from '../../integrations/banban/flows/transfer/services/banban-transfer-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {

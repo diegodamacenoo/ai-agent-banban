@@ -15,6 +15,7 @@ const cardVariants = cva(
         accent: "bg-[hsl(var(--secondary))]",
         highlight: "bg-[hsl(var(--highlight))]",
         clickable: "border border-[hsl(var(--border))] bg-transparent hover:bg-hu-accent hover:border-hu-accent cursor-pointer",
+        rounded: "rounded-lg",
       },
       size: {
         xs: "p-2",

@@ -329,6 +329,133 @@ export async function sensitiveAction(input: any) {
 }
 ```
 
+## Service Role Key Security
+
+### **❌ NEVER Use Service Role Key in Application Logic**
+
+The service role key bypasses RLS policies and should only be used for admin operations or migrations.
+
+```typescript
+// ❌ BAD - Bypasses security
+import { createSupabaseAdminClient } from '@/core/supabase/server';
+
+export async function getUserData() {
+  const supabase = await createSupabaseAdminClient(); // Uses service role
+  // This bypasses RLS - security risk!
+}
+
+// ✅ GOOD - Uses authenticated client
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+export async function getUserData() {
+  const supabase = await createSupabaseServerClient(); // Uses user context
+  
+  // Verify authentication first
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    throw new Error('Not authenticated');
+  }
+  
+  // RLS policies automatically filter data
+  const { data } = await supabase
+    .from('user_data')
+    .select('*');
+    
+  return data;
+}
+```
+
+### **Secure API Routes Pattern**
+
+```typescript
+import { NextRequest, NextResponse } from 'next/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+
+export async function GET(request: NextRequest) {
+  const supabase = await createSupabaseServerClient();
+  
+  // Always verify authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  
+  // Verify organization access
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('organization_id')
+    .eq('id', user.id)
+    .single();
+    
+  if (!profile) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  
+  // RLS policies ensure data isolation
+  const { data } = await supabase
+    .from('protected_data')
+    .select('*');
+    
+  return NextResponse.json({ data });
+}
+```
+
+### **Server Actions Security Pattern**
+
+```typescript
+'use server';
+
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { verifyAdminAccess } from '@/app/actions/admin/modules/utils';
+
+export async function secureServerAction(input: FormData) {
+  // Check maintenance mode
+  const { inMaintenance, message } = await checkMaintenanceMode();
+  if (inMaintenance) {
+    return { success: false, error: message };
+  }
+  
+  // Verify authentication and permissions
+  const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
+  if (!isAuthenticated) {
+    return { success: false, error: 'Not authenticated' };
+  }
+  
+  // Use authenticated client (not admin client)
+  const supabase = await createSupabaseServerClient();
+  
+  // RLS policies protect data access
+  const { data, error } = await supabase
+    .from('protected_table')
+    .insert(sanitizedData);
+    
+  return { success: !error, data };
+}
+```
+
+### **When Service Role is Acceptable**
+
+Only use `createSupabaseAdminClient()` for:
+
+1. **Database Migrations**: Setting up initial data
+2. **System Health Checks**: Monitoring without user context  
+3. **Background Jobs**: Cron tasks, cleanup operations
+4. **Admin-Only Operations**: When explicitly verified admin access
+
+```typescript
+// ✅ Acceptable use case
+export async function systemHealthCheck() {
+  const supabase = await createSupabaseAdminClient();
+  
+  // Only for system monitoring - no user data
+  const { data } = await supabase
+    .from('system_status')
+    .select('status');
+    
+  return data;
+}
+```
+
 ## Common Vulnerabilities Prevention
 
 ### **CSRF Protection**

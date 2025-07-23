@@ -12,6 +12,7 @@ import { apiVersioningMiddleware, addVersionHeaders, extractApiVersion } from '@
 import { applySecurityHeaders, validateSecurityHeaders } from '@/features/security/security-headers';
 import { createSupabaseServerClient } from '@/core/supabase/server';
 import { moduleRoutingMiddleware } from './module-routing';
+import { trackUserSession } from './session-tracking';
 
 // Criar logger para o middleware
 const logger = createLogger(DEBUG_MODULES.AUTH);
@@ -94,6 +95,9 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Atualizar sessão primeiro para garantir que cookies estão corretos
+  const sessionResponse = await updateSession(request);
+  
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -126,6 +130,9 @@ export async function middleware(request: NextRequest) {
   if (!profile.is_setup_complete && profile.role !== 'master_admin' && !request.nextUrl.pathname.startsWith('/setup-account')) {
     return applySecurityHeaders(request, NextResponse.redirect(new URL('/setup-account', request.url)));
   }
+
+  // Registrar atividade da sessão
+  await trackUserSession(request, user.id, profile.organization_id);
 
   // Verificar permissões para rotas protegidas
   for (const route of protectedRoutes) {
@@ -189,7 +196,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  return applySecurityHeaders(request, NextResponse.next());
+  return applySecurityHeaders(request, sessionResponse);
 }
 
 export const config = {

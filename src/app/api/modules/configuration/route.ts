@@ -1,10 +1,10 @@
 /**
- * API para configurações de módulos - usado pelo DynamicModuleRegistryClient
+ * API para configurações de módulos - FUNCIONANDO
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ModuleConfigurationService } from '@/core/modules/services/ModuleConfigurationService';
-import { createSupabaseServerClient } from '@/core/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,13 +18,42 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    console.debug(`[API] Carregando configurações para organização: ${organizationId}`);
-
-    // Criar cliente Supabase e passar para o serviço
+    // Cliente Supabase autenticado (sem service role key)
     const supabase = await createSupabaseServerClient();
     
-    // Refatorado: A lógica de determinar client_type foi removida.
-    // O serviço agora lida com a busca de módulos de forma agnóstica.
+    // Verificar autenticação
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      );
+    }
+    
+    // Verificar se usuário tem acesso à organização
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('organization_id')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError || !profile) {
+      return NextResponse.json(
+        { error: 'Perfil de usuário não encontrado' },
+        { status: 403 }
+      );
+    }
+    
+    // Verificar se organizationId corresponde à organização do usuário
+    if (profile.organization_id !== organizationId) {
+      return NextResponse.json(
+        { error: 'Acesso negado à organização solicitada' },
+        { status: 403 }
+      );
+    }
+    
+    // Usar o ModuleConfigurationService (agora que sabemos que a query funciona)
     const configurations = await ModuleConfigurationService.loadModuleConfigurations(supabase, organizationId);
     
     // Gerar navegação usando o método do serviço
@@ -36,15 +65,12 @@ export async function GET(request: NextRequest) {
       total: configurations.length,
       organizationId
     };
-
-    console.debug(`[API] Retornando ${configurations.length} módulos`);
     
     return NextResponse.json(response);
 
   } catch (error) {
     console.error('[API] Erro ao carregar configurações de módulos:', error);
     
-    // Retorna resposta de erro sem módulos fallback
     return NextResponse.json({
       modules: [],
       navigation: [],
@@ -52,4 +78,4 @@ export async function GET(request: NextRequest) {
       error: 'Erro ao carregar módulos - verifique as configurações no banco de dados'
     }, { status: 500 });
   }
-} 
+}

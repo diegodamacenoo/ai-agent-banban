@@ -70,20 +70,6 @@ export function useOptimisticImplementations({initialImplementations,
     setOptimisticOperations(prev => new Map(prev.set(operationId, operation)));
     setPendingOperations(prev => new Set(prev.add(operationId)));
 
-    // Auto-cleanup após 10 segundos (caso server action não confirme)
-    setTimeout(() => {
-      setOptimisticOperations(prev => {
-        const newMap = new Map(prev);
-        newMap.delete(operationId);
-        return newMap;
-      });
-      setPendingOperations(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(operationId);
-        return newSet;
-      });
-    }, 10000);
-
     return operationId;
   }, []);
 

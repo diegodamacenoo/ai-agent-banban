@@ -257,18 +257,18 @@ export function EditImplementationDialog({implementation,
                 name="complexity"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Complexidade</FormLabel>
+                    <FormLabel>Disponibilidade</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a complexidade" />
+                          <SelectValue placeholder="Selecione o plano" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="basic">Básica</SelectItem>
-                        <SelectItem value="standard">Padrão</SelectItem>
-                        <SelectItem value="advanced">Avançada</SelectItem>
-                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                        <SelectItem value="basic">Plano Básico</SelectItem>
+                        <SelectItem value="standard">Plano Padrão</SelectItem>
+                        <SelectItem value="advanced">Plano Avançado</SelectItem>
+                        <SelectItem value="enterprise">Plano Enterprise</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

@@ -7,7 +7,7 @@ import {
   generateSuccessResponse
 } from '@shared/webhook-base';
 import { RETURN_ACTIONS } from '../../shared/enums';
-import { BanBanSalesFlowService } from '../../modules/custom/banban-sales-flow/services/banban-sales-flow-service';
+import { BanBanReturnsFlowService } from '../../integrations/banban/flows/returns/services/banban-returns-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {
@@ -27,7 +27,7 @@ interface UnifiedReturnRequest {
 // --- DEFINIÇÃO DAS ROTAS FASTIFY ---
 
 export async function returnsFlowRoutes(server: FastifyInstance) {
-  const salesService = new BanBanSalesFlowService();
+  const returnsService = new BanBanReturnsFlowService();
 
   server.options('/*', async (request, reply) => {
     return reply.headers(corsHeaders).send();
@@ -60,19 +60,11 @@ export async function returnsFlowRoutes(server: FastifyInstance) {
       
       // Mapear ações de return para métodos do sales service
       try {
-        switch (payload.action) {
-          case RETURN_ACTIONS.REQUEST_RETURN:
-            result = await salesService.processAction('request_return', payload.attributes, payload.metadata);
-            break;
-          case RETURN_ACTIONS.COMPLETE_RETURN:
-            result = await salesService.processAction('complete_return', payload.attributes, payload.metadata);
-            break;
-          case RETURN_ACTIONS.TRANSFER_BETWEEN_STORES:
-            result = await salesService.processAction('transfer_between_stores', payload.attributes, payload.metadata);
-            break;
-          default:
-            throw new Error(`Ação de devolução desconhecida: ${payload.action}`);
-        }
+        result = await returnsService.processAction(
+          payload.action,
+          payload.attributes,
+          payload.metadata
+        );
       } catch (e: any) {
         console.error(`ERRO CAPTURADO NA ROTA: ${e.message}`, e.stack);
         throw e; // Re-lança para o handler de erro principal
@@ -94,7 +86,7 @@ export async function returnsFlowRoutes(server: FastifyInstance) {
   // Rota GET para consultar dados de devolução
   server.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const result = await salesService.getSalesData(request.query as any);
+      const result = await returnsService.getReturnsData(request.query as any);
       return reply.headers(corsHeaders).send({ success: true, data: result, timestamp: new Date().toISOString() });
 
     } catch (error: any) {

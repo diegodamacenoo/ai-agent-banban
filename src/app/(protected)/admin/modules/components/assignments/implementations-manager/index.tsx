@@ -23,11 +23,13 @@ import {
   Archive,
   Trash2,
   Eye,
+  Plus,
 } from 'lucide-react';
 import { useImplementationsManager } from './useImplementationsManager';
 import { ModuleImplementationCard } from './ModuleImplementationCard';
 import { ImplementationDetailsPanel } from './ImplementationDetailsPanel';
 import { BaseModule, ModuleImplementation } from '@/app/(protected)/admin/modules/types';
+import { useMemo } from 'react';
 
 interface ImplementationsManagerProps {
   baseModules: BaseModule[];
@@ -44,6 +46,14 @@ interface ImplementationsManagerProps {
   includeDeletedModules?: boolean;
   onToggleArchivedModules?: (include: boolean) => void;
   onToggleDeletedModules?: (include: boolean) => void;
+  pagination?: {
+    currentPage: number;
+    totalItems: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
 export function ImplementationsManager({
@@ -61,6 +71,9 @@ export function ImplementationsManager({
   includeDeletedModules = false,
   onToggleArchivedModules,
   onToggleDeletedModules,
+  pagination,
+  onLoadMore,
+  loadingMore = false,
 }: ImplementationsManagerProps) {
   const {
     searchTerm,
@@ -72,6 +85,7 @@ export function ImplementationsManager({
     isAllExpanded,
     toggleAll,
     processedModules,
+    totalVisibleImplementations,
   } = useImplementationsManager({
     baseModules,
     implementations,
@@ -79,6 +93,13 @@ export function ImplementationsManager({
     includeArchivedModules,
     includeDeletedModules,
   });
+
+  // Contar implementações realmente exibidas nos módulos processados
+  const displayedImplementationsCount = useMemo(() => {
+    return processedModules.reduce((total, module) => {
+      return total + module.implementations.length;
+    }, 0);
+  }, [processedModules]);
 
   if (loading) {
     return (
@@ -194,6 +215,39 @@ export function ImplementationsManager({
                   onServerError={onServerError}
                 />
               ))}
+            </div>
+          )}
+          
+          {/* Indicador de paginação e botão carregar mais */}
+          {pagination && pagination.totalItems > 0 && (
+            <div className="mt-4 flex justify-between items-center">
+              {/* Indicador "Mostrando X de Y" */}
+              <div className="text-center text-sm text-muted-foreground">
+                Mostrando {displayedImplementationsCount} de {pagination.totalItems} implementações
+              </div>
+              
+              {/* Botão Carregar Mais */}
+              {displayedImplementationsCount < totalVisibleImplementations && (
+                <div className="text-center">
+                  <Button
+                    variant="secondary"
+                    onClick={onLoadMore}
+                    disabled={loadingMore || !onLoadMore}
+                    className="min-w-[120px]"
+                    leftIcon={loadingMore ? <CircleDashed className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  >
+                    {loadingMore ? (
+                      <>
+                        Carregando...
+                      </>
+                    ) : (
+                      <>
+                        Carregar Mais
+                      </>
+                    )}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>

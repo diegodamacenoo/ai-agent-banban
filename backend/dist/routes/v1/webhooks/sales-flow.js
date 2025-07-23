@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.salesFlowRoutes = salesFlowRoutes;
 const webhook_base_1 = require("@shared/webhook-base");
-const banban_sales_flow_service_1 = require("../../modules/custom/banban-sales-flow/services/banban-sales-flow-service");
+const banban_sales_flow_service_1 = require("../../../integrations/banban/flows/sales/services/banban-sales-flow-service");
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',

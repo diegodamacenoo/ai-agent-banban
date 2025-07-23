@@ -1,11 +1,12 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { randomUUID } from 'crypto';
 import {
   validateWebhookPayload,
   logWebhookEvent,
   generateErrorResponse,
   generateSuccessResponse
 } from '@shared/webhook-base';
-import { BanBanSalesFlowService } from '../../modules/custom/banban-sales-flow/services/banban-sales-flow-service';
+import { BanBanSalesFlowService } from '../../integrations/banban/flows/sales/services/banban-sales-flow-service';
 
 // --- CONFIGURAÇÃO CENTRAL ---
 const corsHeaders = {
@@ -73,7 +74,7 @@ export async function salesFlowRoutes(server: FastifyInstance) {
       const processingTime = Date.now() - startTime;
       await logWebhookEvent('sales', payload.action, payload, 'success', result, undefined, processingTime);
 
-      const response = generateSuccessResponse(payload.action, result, { processed_at: new Date().toISOString(), event_uuid: crypto.randomUUID(), processing_time_ms: processingTime });
+      const response = generateSuccessResponse(payload.action, result, { processed_at: new Date().toISOString(), event_uuid: randomUUID(), processing_time_ms: processingTime });
       return reply.headers(corsHeaders).send(response);
 
     } catch (error: any) {

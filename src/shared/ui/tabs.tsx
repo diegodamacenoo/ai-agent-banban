@@ -233,4 +233,8 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
 
 TabsContent.displayName = "TabsContent";
 
+// Alias exports for compatibility
+export const TabsList = Tabs;
+export const TabsTrigger = Tabs; // Tabs component already handles triggers internally
+
 export { Tabs, TabsContent, tabsVariants };

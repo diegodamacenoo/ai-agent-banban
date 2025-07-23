@@ -1299,4 +1299,87 @@ export class BanBanSalesFlowService {
     }
     return entity;
   }
+
+  /**
+   * Public method for sales analytics - temporary compatibility
+   */
+  async getSalesAnalytics(organizationId: string, filters: any = {}) {
+    console.log(`[SalesService] Getting sales analytics for org: ${organizationId}`, filters);
+    
+    try {
+      // Basic analytics from existing data
+      const { data: sales, error } = await this.supabase
+        .from('tenant_business_transactions')
+        .select('*')
+        .eq('organization_id', organizationId)
+        .eq('transaction_type', 'DOCUMENT_SALE')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) {
+        throw error;
+      }
+
+      // Calculate basic metrics
+      const totalSales = sales?.length || 0;
+      const totalRevenue = sales?.reduce((sum: number, sale: any) => {
+        const amount = sale.attributes?.total_amount || 0;
+        return sum + amount;
+      }, 0) || 0;
+
+      const avgOrderValue = totalSales > 0 ? totalRevenue / totalSales : 0;
+
+      // Group by date for trends
+      const salesByDate = sales?.reduce((acc: any, sale: any) => {
+        const date = sale.created_at?.split('T')[0];
+        if (!acc[date]) {
+          acc[date] = { count: 0, revenue: 0 };
+        }
+        acc[date].count += 1;
+        acc[date].revenue += sale.attributes?.total_amount || 0;
+        return acc;
+      }, {}) || {};
+
+      return {
+        summary: {
+          total_sales: totalSales,
+          total_revenue: totalRevenue,
+          avg_order_value: avgOrderValue,
+          date_range: {
+            from: filters.dateFrom || null,
+            to: filters.dateTo || null
+          }
+        },
+        trends: {
+          daily_sales: salesByDate
+        },
+        top_products: [], // Could be implemented with more complex query
+        customer_segments: [], // Could be implemented with RFM analysis
+        last_updated: new Date().toISOString()
+      };
+
+    } catch (error) {
+      console.error('[SalesService] Error getting sales analytics:', error);
+      
+      // Return fallback data
+      return {
+        summary: {
+          total_sales: 0,
+          total_revenue: 0,
+          avg_order_value: 0,
+          date_range: {
+            from: filters.dateFrom || null,
+            to: filters.dateTo || null
+          }
+        },
+        trends: {
+          daily_sales: {}
+        },
+        top_products: [],
+        customer_segments: [],
+        last_updated: new Date().toISOString(),
+        error: 'Failed to load analytics data'
+      };
+    }
+  }
 }

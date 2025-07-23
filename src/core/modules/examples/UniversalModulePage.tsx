@@ -47,7 +47,7 @@ async function getOrganizationBySlug(slug: string) {
  */
 async function verifyModuleAccess(organizationId: string, moduleSlug: string) {
   // Simulação - substituir pela sua implementação de verificação de acesso
-  // Pode usar o moduleConfigurationService.hasModuleAccess()
+  // Pode usar getAssignedModulesForOrg() para verificar se o módulo está atribuído
   return true;
 }
 

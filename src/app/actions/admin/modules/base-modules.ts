@@ -14,7 +14,13 @@ import {
   validateJsonSchema,
   checkCircularDependencies,
 } from './utils';
+import { conditionalAuditLog, conditionalDebugLog, checkMaintenanceMode } from './system-config-utils';
 import { trackServerCall } from './call-tracker';
+
+// Helper para consolidar revalidações e evitar calls redundantes
+function revalidateModulesPaths() {
+  revalidatePath('/admin/modules', 'layout');
+}
 
 // ================================================
 // SERVER ACTIONS - CRUD MÓDULOS BASE
@@ -114,6 +120,12 @@ export async function getBaseModules(
  */
 export async function createBaseModule(input: CreateBaseModuleInput): Promise<ActionResult<BaseModule>> {
   try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
     // Verificar autenticação e permissões
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
@@ -124,6 +136,9 @@ export async function createBaseModule(input: CreateBaseModuleInput): Promise<Ac
     if (!isAdmin) {
       return { success: false, error: 'Acesso negado. Apenas administradores podem criar módulos' };
     }
+
+    // Debug log se habilitado
+    await conditionalDebugLog('createBaseModule iniciado', { input, userId: user?.id });
 
     // Validar entrada
     // AIDEV-NOTE: CreateBaseModuleSchema é importado de schemas.ts
@@ -212,19 +227,23 @@ export async function createBaseModule(input: CreateBaseModuleInput): Promise<Ac
       return { success: false, error: 'Erro interno ao criar módulo' };
     }
 
+    // Aplicar configurações automáticas do sistema
+    const { applySystemConfigurationsToNewEntity } = await import('./auto-config-applier');
+    await applySystemConfigurationsToNewEntity('base_module', newModule.id, newModule);
+
     // Auto-criar implementação standard se solicitado
     if (data.auto_create_standard) {
       await createStandardImplementation(newModule.id, user!.id);
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
 
-    // Log de auditoria
-    await supabase.from('audit_logs').insert({
-      user_id: user!.id,
-      action: 'create_base_module',
+    // Log de auditoria condicional
+    await conditionalAuditLog({
+      actor_user_id: user!.id,
+      action_type: 'CREATE_BASE_MODULE',
       resource_type: 'base_module',
       resource_id: newModule.id,
       details: {
@@ -312,7 +331,7 @@ export async function updateBaseModule(input: UpdateBaseModuleInput): Promise<Ac
 
     const { id, ...updateData } = validation.data;
     
-    console.debug('updateBaseModule - Dados para atualização:', updateData);
+    await conditionalDebugLog('updateBaseModule - Dados para atualização', updateData);
     
     const supabase = await createSupabaseServerClient();
 
@@ -410,8 +429,8 @@ export async function updateBaseModule(input: UpdateBaseModuleInput): Promise<Ac
       });
     }
 
-    revalidatePath('/admin/modules');
-    revalidatePath(`/admin/modules/${updatedModule.slug}`);
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
     return {
       success: true,
@@ -516,8 +535,8 @@ export async function deleteBaseModule(moduleId: string): Promise<ActionResult> 
       .update({ is_active: false })
       .eq('base_module_id', moduleId);
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
 
     // Log de auditoria
@@ -583,20 +602,14 @@ export async function archiveBaseModule(moduleId: string): Promise<ActionResult>
       return { success: false, error: 'Erro interno ao arquivar módulo' };
     }
 
-    // Arquivar implementações associadas
-    await supabase
-      .from('module_implementations')
-      .update({ archived_at: new Date().toISOString() })
-      .eq('base_module_id', moduleId);
+    // NÃO arquivar implementações - elas devem continuar ativas para tenants existentes
+    // Apenas o módulo base é arquivado, impedindo novas atribuições
+    
+    // NÃO desativar assignments existentes - tenants que já têm o módulo continuam acessando
+    // Apenas impede que novos tenants recebam o módulo
 
-    // Desativar assignments associados
-    await supabase
-      .from('tenant_module_assignments')
-      .update({ is_active: false })
-      .eq('base_module_id', moduleId);
-
-    // Invalidar cache
-    revalidatePath('/admin/modules');
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
 
     // Log de auditoria
@@ -665,21 +678,14 @@ export async function restoreBaseModule(moduleId: string): Promise<ActionResult>
       return { success: false, error: 'Erro interno ao restaurar módulo' };
     }
 
-    // Restaurar implementações associadas
-    await supabase
-      .from('module_implementations')
-      .update({ archived_at: null, deleted_at: null })
-      .eq('base_module_id', moduleId);
+    // Como implementações não foram arquivadas, não precisam ser restauradas
+    // Apenas o módulo base volta a ficar disponível para novas atribuições
+    
+    // Como assignments não foram desativados, não precisam ser reativados
+    // O módulo volta a ficar disponível para novas atribuições automaticamente
 
-    // Reativar assignments associados (que não estavam inativo por outros motivos)
-    await supabase
-      .from('tenant_module_assignments')
-      .update({ is_active: true })
-      .eq('base_module_id', moduleId)
-      .eq('is_active', false);
-
-    // Invalidar cache
-    revalidatePath('/admin/modules');
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
 
     // Log de auditoria
@@ -767,8 +773,8 @@ export async function purgeBaseModule(moduleId: string): Promise<ActionResult> {
       return { success: false, error: 'Erro interno ao excluir módulo permanentemente' };
     }
 
-    // Invalidar cache
-    revalidatePath('/admin/modules');
+    // Invalidar cache (consolidado)
+    revalidateModulesPaths();
 
 
     // Log de auditoria
@@ -949,34 +955,37 @@ export async function getBaseModuleStats(): Promise<ActionResult<any>> {
       orphanModules: []
     };
 
-    // Tentar carregar dados reais se as tabelas existirem
+    // Primeiro carregar contadores básicos
+    let baseModulesData = [];
+    
     try {
       const { data: baseModules, count: baseModulesCount } = await supabase
         .from('base_modules')
         .select('id, name, category', { count: 'exact' })
+        .eq('is_active', true)
         .is('deleted_at', null);
 
       if (baseModules) {
         stats.overview.totalBaseModules = baseModulesCount || 0;
-        stats.adoptionByModule = baseModules.map(module => ({
-          moduleId: module.id,
-          moduleName: module.name,
-          category: module.category || 'Unknown',
-          totalTenants: 0,
-          adoptionRate: 0
-        }));
+        baseModulesData = baseModules;
+        console.debug('📊 Base modules count:', baseModulesCount, 'Active modules found:', baseModules.length);
       }
     } catch (error) {
       console.warn('Tabela base_modules não encontrada:', error);
     }
 
     try {
+      // Contar apenas implementações ativas
       const { data: implementations, count: implementationsCount } = await supabase
         .from('module_implementations')
-        .select('id, implementation_key', { count: 'exact' });
+        .select('id, implementation_key', { count: 'exact' })
+        .eq('is_active', true);
 
       if (implementations) {
         stats.overview.totalImplementations = implementationsCount || 0;
+        console.debug('📊 Implementations count:', implementationsCount, 'Active implementations found:', implementations.length);
+        
+        // Estrutura de implementationsByType apenas com implementações ativas
         stats.implementationsByType = implementations.reduce((acc, impl) => {
           const key = impl.implementation_key || 'unknown';
           acc[key] = (acc[key] || 0) + 1;
@@ -996,6 +1005,121 @@ export async function getBaseModuleStats(): Promise<ActionResult<any>> {
       stats.overview.totalOrganizations = organizationsCount || 0;
     } catch (error) {
       console.warn('Tabela organizations não encontrada:', error);
+    }
+
+    // Query real para totalActiveAssignments
+    try {
+      const { count: assignmentsCount } = await supabase
+        .from('tenant_module_assignments')
+        .select('id', { count: 'exact' })
+        .eq('is_active', true);
+
+      stats.overview.totalActiveAssignments = assignmentsCount || 0;
+    } catch (error) {
+      console.warn('Tabela tenant_module_assignments não encontrada:', error);
+    }
+
+    // Detectar módulos órfãos (sem implementações ativas)
+    try {
+      if (stats.overview.totalBaseModules > 0) {
+        const { data: modulesWithoutImplementations } = await supabase
+          .from('base_modules')
+          .select(`
+            id, 
+            name, 
+            category,
+            module_implementations!left (id)
+          `)
+          .eq('is_active', true)
+          .is('deleted_at', null)
+          .eq('module_implementations.is_active', true)
+          .is('module_implementations.id', null);
+
+        if (modulesWithoutImplementations) {
+          stats.orphanModules = modulesWithoutImplementations.map(module => ({
+            id: module.id,
+            name: module.name,
+            category: module.category || 'Unknown'
+          }));
+        }
+      }
+    } catch (error) {
+      console.warn('Erro ao detectar módulos órfãos:', error);
+    }
+
+    // Calcular health score real baseado em métricas
+    try {
+      const totalModules = stats.overview.totalBaseModules;
+      const totalImplementations = stats.overview.totalImplementations;
+      const totalAssignments = stats.overview.totalActiveAssignments;
+      const orphanModulesCount = stats.orphanModules.length;
+
+      if (totalModules > 0) {
+        // Fórmula de saúde: 
+        // - 40% baseado na cobertura de implementações (módulos com pelo menos 1 implementação)
+        // - 30% baseado na taxa de uso (assignments vs implementações)
+        // - 30% penalidade por módulos órfãos
+        
+        const implementationCoverage = totalModules > 0 ? ((totalModules - orphanModulesCount) / totalModules) * 100 : 0;
+        const usageRate = totalImplementations > 0 ? Math.min((totalAssignments / totalImplementations) * 100, 100) : 0;
+        const orphanPenalty = totalModules > 0 ? (orphanModulesCount / totalModules) * 100 : 0;
+
+        stats.overview.healthScore = Math.round(
+          (implementationCoverage * 0.4) + 
+          (usageRate * 0.3) + 
+          ((100 - orphanPenalty) * 0.3)
+        );
+      } else {
+        stats.overview.healthScore = 0;
+      }
+    } catch (error) {
+      console.warn('Erro ao calcular health score:', error);
+      stats.overview.healthScore = 100; // fallback
+    }
+
+    // Calcular dados de adoção por módulo (depois de ter totalOrganizations)
+    try {
+      if (baseModulesData.length > 0) {
+        const adoptionData = await Promise.all(
+          baseModulesData.map(async (module) => {
+            try {
+              // Contar quantas organizações usam este módulo
+              const { count: assignmentsCount } = await supabase
+                .from('tenant_module_assignments')
+                .select('tenant_id', { count: 'exact' })
+                .eq('base_module_id', module.id)
+                .eq('is_active', true);
+
+              const totalTenants = assignmentsCount || 0;
+              const totalOrgs = stats.overview.totalOrganizations || 1; // Evitar divisão por zero
+              const adoptionRate = totalOrgs > 0 ? (totalTenants / totalOrgs) * 100 : 0;
+
+              return {
+                moduleId: module.id,
+                moduleName: module.name,
+                category: module.category || 'Unknown',
+                totalTenants,
+                adoptionRate: Math.round(adoptionRate),
+                assignments: totalTenants
+              };
+            } catch (error) {
+              console.warn(`Erro ao calcular adoção para módulo ${module.name}:`, error);
+              return {
+                moduleId: module.id,
+                moduleName: module.name,
+                category: module.category || 'Unknown',
+                totalTenants: 0,
+                adoptionRate: 0,
+                assignments: 0
+              };
+            }
+          })
+        );
+
+        stats.adoptionByModule = adoptionData;
+      }
+    } catch (error) {
+      console.warn('Erro ao calcular dados de adoção:', error);
     }
 
     return {

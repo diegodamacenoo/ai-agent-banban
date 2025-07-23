@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabaseClient } from '@/lib/supabase/client';
-import { safeGetUser } from '@/core/supabase/auth-helpers';
+import { createSupabaseBrowserClient } from '@/core/supabase/client';
+import { getUserWithProfile, getUserOrganizationSafe } from '@/core/supabase/auth-helpers-v2';
 
 export interface Organization {
   id: string;
@@ -36,10 +36,14 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       setIsLoading(true);
       setError(null);
 
-      const { user, error: userError } = await safeGetUser();
+      // Use the new robust helper
+      const { user, profile, error: authError } = await getUserWithProfile();
       
-      if (userError) {
-        throw new Error(`Authentication error: ${userError}`);
+      if (authError) {
+        console.warn('[OrganizationContext] Auth error:', authError);
+        setOrganization(null);
+        setIsLoading(false);
+        return;
       }
       
       if (!user) {
@@ -48,24 +52,29 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      // First, get the profile to get organization_id
-      const { data: profile, error: profileError } = await supabaseClient
-        .from('profiles')
-        .select('organization_id')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        throw new Error(`Profile error: ${profileError.message}`);
-      }
-
-      if (!profile?.organization_id) {
+      // Check if user is master_admin (doesn't need organization)
+      if (profile?.role === 'master_admin') {
+        console.debug('[OrganizationContext] Master admin detected - no organization needed');
         setOrganization(null);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Get organization_id safely
+      const organizationId = profile?.organization_id || await getUserOrganizationSafe(user.id);
+      
+      if (!organizationId) {
+        console.debug('[OrganizationContext] User has no organization');
+        setOrganization(null);
+        setIsLoading(false);
         return;
       }
 
-      // Then get the organization data
-      const { data: organization, error: orgError } = await supabaseClient
+      // Create a new client instance for this request
+      const supabase = createSupabaseBrowserClient();
+
+      // Get the organization data
+      const { data: organization, error: orgError } = await supabase
         .from('organizations')
         .select(`
           id,
@@ -79,11 +88,13 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
           implementation_date,
           implementation_team_notes
         `)
-        .eq('id', profile.organization_id)
+        .eq('id', organizationId)
         .single();
 
       if (orgError) {
-        throw new Error(`Organization error: ${orgError.message}`);
+        console.warn('[OrganizationContext] Organization fetch error:', orgError);
+        setOrganization(null);
+        return;
       }
       
       if (organization) {
@@ -93,7 +104,9 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('[OrganizationContext] Unexpected error:', errorMessage);
       setError(errorMessage);
+      setOrganization(null);
     } finally {
       setIsLoading(false);
     }

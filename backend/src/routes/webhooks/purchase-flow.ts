@@ -5,7 +5,7 @@ import {
   generateErrorResponse,
   generateSuccessResponse
 } from '../../shared/webhook-base';
-import { BanBanPurchaseFlowService } from '../../modules/custom/banban-purchase-flow/services/banban-purchase-flow-service';
+import { BanBanPurchaseFlowService } from '../../integrations/banban/flows/purchase/services/banban-purchase-flow-service';
 import { logger } from '../../utils/logger';
 
 // --- CONFIGURAÇÃO CENTRAL ---

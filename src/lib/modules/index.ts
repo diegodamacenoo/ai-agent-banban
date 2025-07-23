@@ -5,14 +5,15 @@
 // ========================================
 
 import { createSupabaseServerClient } from '@/core/supabase/server';
+import { cache } from 'react';
 
 interface ModuleImplementation {
   id: string;
   implementation_key: string;
   name: string;
   component_path: string;
-  target_audience: 'generic' | 'client-specific' | 'enterprise';
-  complexity_tier: 'basic' | 'standard' | 'advanced' | 'enterprise';
+  audience: 'generic' | 'client-specific' | 'enterprise';
+  component_type: 'basic' | 'standard' | 'advanced' | 'enterprise';
   is_default: boolean;
 }
 
@@ -43,8 +44,9 @@ interface ModuleResult {
 
 /**
  * Busca a implementação ativa de um módulo para um tenant específico
+ * Com cache para evitar múltiplas requests durante SSR
  */
-export async function getModuleImplementation(
+export const getModuleImplementation = cache(async function getModuleImplementation(
   tenantSlug: string, 
   moduleSlug: string
 ): Promise<ModuleResult | null> {
@@ -93,12 +95,13 @@ export async function getModuleImplementation(
     console.error('Erro ao buscar implementação do módulo:', error);
     return await getDefaultModuleImplementation(moduleSlug);
   }
-}
+});
 
 /**
  * Busca a implementação padrão de um módulo
+ * Com cache para evitar múltiplas requests
  */
-export async function getDefaultModuleImplementation(
+export const getDefaultModuleImplementation = cache(async function getDefaultModuleImplementation(
   moduleSlug: string
 ): Promise<ModuleResult | null> {
   const supabase = await createSupabaseServerClient();
@@ -138,7 +141,7 @@ export async function getDefaultModuleImplementation(
     console.error('Erro ao buscar implementação padrão:', error);
     return null;
   }
-}
+});
 
 /**
  * Lista todos os módulos disponíveis para um tenant
