@@ -5070,3 +5070,662 @@ Sales flow processed successfully: {
 [14:32:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
 [14:33:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
 [14:33:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:34:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:34:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:35:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:35:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:36:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:36:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:37:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:37:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:38:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:38:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:39:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:39:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:40:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:40:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:41:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:41:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:42:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:42:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:43:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:43:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:44:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:44:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:45:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:45:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:46:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:46:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:47:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:47:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:48:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:48:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:49:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:49:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:50:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:50:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:51:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:51:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:52:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:52:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:53:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:53:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:54:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:54:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:55:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:55:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:56:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:56:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:57:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:57:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:58:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:58:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:59:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[14:59:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:00:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[2025-07-23T15:00:06.873Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 15:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[15:00:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:01:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:01:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:02:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:02:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:03:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:03:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:04:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:04:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:05:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:05:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:06:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:06:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:07:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:07:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:08:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:08:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:09:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:09:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:10:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:10:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:11:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:11:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:12:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:12:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:13:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:13:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:14:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:14:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:15:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:15:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:16:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:16:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:17:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:17:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:18:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:18:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:19:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:19:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:20:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:20:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:21:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:21:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:22:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:22:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:23:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:23:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:24:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:24:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:25:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:25:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:26:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:26:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:27:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:27:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:28:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:28:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:29:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:29:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:30:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:30:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:31:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:31:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:32:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:32:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:33:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:33:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:34:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:34:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:35:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:35:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:36:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:36:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:37:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:37:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:38:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:38:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:39:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:39:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:40:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:40:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:41:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:41:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:42:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:42:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:43:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:43:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:44:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:44:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:45:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:45:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:46:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:46:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:47:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:47:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:48:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:48:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:49:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:49:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:50:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:50:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:51:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:51:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:52:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:52:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:53:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:53:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:54:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:54:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:55:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:55:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:56:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:56:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:57:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:57:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:58:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:58:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:59:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[15:59:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:00:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[2025-07-23T16:00:08.992Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 16:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[16:00:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:01:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:01:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:02:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:02:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:03:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:03:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:04:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:04:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:05:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:05:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:06:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:06:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:07:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:07:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:08:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:08:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:09:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:09:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:10:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:10:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:11:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:11:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:12:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:12:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:13:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:13:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:14:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:14:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:15:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:15:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:16:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:16:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:17:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:17:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:18:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:18:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:19:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:19:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:20:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:20:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:21:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:21:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:22:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:22:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:23:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:23:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:24:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:24:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:25:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:25:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:26:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:26:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:27:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:27:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:28:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:28:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:29:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:29:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:30:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:30:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:31:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:31:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:32:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:32:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:33:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:33:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:34:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:34:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:35:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:35:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:36:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:36:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:37:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:37:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:38:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:38:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:39:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:39:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:40:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:40:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:41:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:41:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:42:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:42:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:43:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:43:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:44:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:44:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:45:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:45:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:46:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:46:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:47:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:47:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:48:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:48:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:49:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:49:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:50:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:50:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:51:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:51:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:52:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:52:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:53:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:53:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:54:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:54:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:55:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:55:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:56:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:56:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:57:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:57:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:58:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:58:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:59:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[16:59:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:00:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[2025-07-23T17:00:11.317Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[17:00:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:01:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:01:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:02:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:02:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:03:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:03:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:04:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:04:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:05:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:05:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:06:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:06:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:07:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:07:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:08:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:08:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:09:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:09:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:10:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:10:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:11:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:11:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:12:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:12:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:13:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:13:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:14:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:14:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:15:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:15:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:16:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:16:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:17:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:17:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:18:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:18:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:19:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:19:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:20:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:20:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:21:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:21:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:22:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:22:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:23:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:23:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:24:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:24:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:25:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:25:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:26:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:26:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:27:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:27:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:28:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:28:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:29:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:29:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[17:30:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[2025-07-23T18:56:57.279Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:30:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.335Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:31:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.339Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:31:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.346Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:32:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.351Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:32:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.360Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:33:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.365Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:33:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.371Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:34:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.379Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:34:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.388Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:35:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.393Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:35:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.401Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:36:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.409Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:36:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.414Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:37:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.419Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:37:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.427Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:38:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.435Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:38:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.445Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:39:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.458Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:39:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.486Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:40:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.506Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:40:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.517Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:41:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.525Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:41:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.553Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:42:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.565Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:42:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.573Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:43:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.591Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:43:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.602Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:44:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.608Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:44:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.620Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:45:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.634Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:45:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.651Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:46:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.666Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:46:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.684Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:47:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.700Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:47:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.715Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:48:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.721Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:48:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.738Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:49:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.757Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:49:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.771Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:50:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.774Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:50:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.775Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:51:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.777Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:51:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.778Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:52:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.779Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:52:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.780Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:53:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.782Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:53:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.783Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:54:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.786Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:54:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.787Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:55:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.788Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:55:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.790Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:56:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.791Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:56:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.794Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:57:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.797Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:57:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.800Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:58:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.801Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:58:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.803Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:59:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.804Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 17:59:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.810Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.814Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:00:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.816Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:01:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.819Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:01:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.821Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:02:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.823Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:02:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.825Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:03:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.827Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:03:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.829Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:04:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.832Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:04:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.835Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:05:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.845Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:05:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.856Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:06:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.859Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:06:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.861Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:07:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.862Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:07:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.864Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:08:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.865Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:08:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.867Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:09:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.871Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:09:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.875Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:10:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.888Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:10:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.891Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:11:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.892Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:11:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.896Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:12:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.902Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:12:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.904Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:13:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.906Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:13:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.908Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:14:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.910Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:14:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.912Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:15:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.914Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:15:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.917Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:16:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.919Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:16:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.921Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:17:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.922Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:17:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.924Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:18:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.927Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:18:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.939Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:19:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.941Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:19:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.943Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:20:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.954Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:20:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.956Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:21:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.958Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:21:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.960Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:22:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.962Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:22:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.966Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:23:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.968Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:23:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.971Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:24:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.973Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:24:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.975Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:25:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.977Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:25:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.978Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:26:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.980Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:26:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.982Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:27:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.985Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:27:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.987Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:28:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.991Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:28:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.996Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:29:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:57.999Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:29:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.001Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:30:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.008Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:30:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.020Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:31:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.022Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:31:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.024Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:32:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.026Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:32:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.030Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:33:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.040Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:33:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.043Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:34:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.046Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:34:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.049Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:35:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.054Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:35:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.056Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:36:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.058Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:36:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.061Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:37:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.063Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:37:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.066Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:38:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.068Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:38:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.076Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:39:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.079Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:39:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.082Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:40:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.084Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:40:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.101Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:41:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.103Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:41:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.106Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:42:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.107Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:42:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.110Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:43:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.112Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:43:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.114Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:44:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.115Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:44:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.117Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:45:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.119Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:45:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.121Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:46:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.126Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:46:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.130Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:47:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.132Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:47:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.135Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:48:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.140Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:48:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.145Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:49:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.147Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:49:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.149Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:50:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.151Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:50:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.153Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:51:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.163Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:51:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.165Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:52:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.168Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:52:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.171Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:53:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.175Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:53:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.178Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:54:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.180Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:54:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.181Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:55:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.183Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:55:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.186Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:56:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T18:56:58.189Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:56:30 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[18:57:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[18:57:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[18:58:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[18:58:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[18:59:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[18:59:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:00:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:00:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:01:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:01:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:02:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:02:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:03:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:03:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:04:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:04:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:05:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:05:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:06:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:06:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:07:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:07:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:08:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:08:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:09:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:09:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:10:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:10:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:11:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:11:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:12:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:12:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:13:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:13:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:14:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:14:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:15:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:15:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:16:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:16:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:17:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:17:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:18:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:18:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:19:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:19:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:20:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:20:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:21:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:21:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:22:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:22:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:23:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:23:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:24:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:24:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:25:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:25:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:26:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:26:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[2025-07-23T19:26:34.364Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 18:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[2025-07-23T19:26:34.369Z] [PID: 16192] [32m[NODE-CRON][32m [33m[WARN][0m missed execution at Wed Jul 23 2025 19:00:00 GMT+0000 (Coordinated Universal Time)! Possible blocking IO or high CPU user at the same process used by node-cron.
+[19:27:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:27:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:28:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:28:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:29:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:29:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:30:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:30:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:31:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:31:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:32:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:32:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:33:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:33:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:34:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:34:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:35:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:35:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:36:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:36:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:37:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:37:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:38:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:38:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:39:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:39:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:40:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:40:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:41:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:41:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:42:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:42:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:43:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:43:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:44:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:44:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:45:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:45:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:46:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:46:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:47:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:47:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:48:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:48:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:49:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:49:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:50:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:50:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:51:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:51:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:52:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:52:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:53:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:53:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:54:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:54:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:55:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:55:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:56:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:56:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:57:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:57:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:58:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:58:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:59:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[19:59:30 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[20:00:00 UTC] [32mINFO[39m: [36mMetrics collected:[39m
+[20:00:00 UTC] [32mINFO[39m: [36mOld metrics cleaned up[39m

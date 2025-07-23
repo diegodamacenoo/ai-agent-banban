@@ -1,18 +1,33 @@
 'use client';
 
 import React, { ReactNode, createContext, useContext } from 'react';
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator } from '@/shared/ui/breadcrumb';
 import { Button } from '@/shared/ui/button';
 import { Card } from '@/shared/ui/card';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Chip } from '@/shared/ui/chip';
 
-// --- CONTEXT ---
+// ==========================================
+// TYPES & INTERFACES
+// ==========================================
+
 interface LayoutContextProps {
   loading: boolean;
   error: string | null;
   onRetry?: () => void;
 }
+
+interface LayoutProps {
+  children: ReactNode;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
+  className?: string;
+  width?: 'fluid' | 'container';
+}
+
+// ==========================================
+// CONTEXT
+// ==========================================
 
 const LayoutContext = createContext<LayoutContextProps | undefined>(undefined);
 
@@ -24,7 +39,10 @@ function useLayoutContext() {
   return context;
 }
 
-// --- GENERIC STATES ---
+// ==========================================
+// LOADING & ERROR STATES
+// ==========================================
+
 function LoadingOverlay() {
   return (
     <div className="flex items-center justify-center h-full flex-1">
@@ -54,43 +72,17 @@ function ErrorState({ error, onRetry }: { error: string; onRetry?: () => void })
   );
 }
 
-// --- SUBCOMPONENTS ---
+// ==========================================
+// LAYOUT COMPONENTS
+// ==========================================
 
-interface BreadcrumbItemDef {
-  title: string;
-  href?: string;
-  icon?: React.ComponentType<{ className?: string, strokeWidth?: number }>;
-}
+// Header Components
+const Title = ({ children }: { children: ReactNode }) => {
+  return <h1 className="text-xl font-medium text-[hsl(var(--foreground))]">{children}</h1>;
+};
 
-const Breadcrumbs = ({ items = [] }: { items?: BreadcrumbItemDef[] }) => {
-  if (!items || items.length === 0) {
-    return null;
-  }
-  return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {items.map((item, index) => (
-          <React.Fragment key={index}>
-            <BreadcrumbItem>
-              {item.href ? (
-                <BreadcrumbLink href={item.href} className="text-xl font-medium text-[hsl(var(--foreground))]">
-                  {item.title}
-                </BreadcrumbLink>
-              ) : index === 0 ? (
-                <div className="flex items-center gap-2">
-                  {item.icon ? <item.icon className="h-5 w-5 text-[hsl(var(--foreground))]" strokeWidth={2.3} /> : null}
-                  <span className="text-lg font-medium text-[hsl(var(--foreground))]">{item.title}</span>
-                </div>
-              ) : (
-                <span className="text-lg font-medium text-[hsl(var(--foreground))]/60">{item.title}</span>
-              )}
-            </BreadcrumbItem>
-            {index < items.length - 1 && <BreadcrumbSeparator />}
-          </React.Fragment>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
-  );
+const Description = ({ children }: { children: ReactNode }) => {
+  return <p className="text-sm text-[hsl(var(--muted-foreground))] mt-1">{children}</p>;
 };
 
 const Actions = ({ children }: { children: ReactNode }) => {
@@ -102,7 +94,7 @@ const Header = ({ children, className = '' }: { children: ReactNode; className?:
   
   if (loading) {
     return (
-      <header className={`flex items-center justify-between h-[40px] border-b border-[hsl(var(--border))] ${className}`}>
+      <header className={`flex items-center justify-between h-[40px] px-4 border-b border-[hsl(var(--border))] ${className}`}>
         <div className="h-6 bg-zinc-200 rounded animate-pulse w-48"></div>
         <div className="flex gap-3">
           <div className="h-10 bg-zinc-200 rounded animate-pulse w-24"></div>
@@ -113,25 +105,26 @@ const Header = ({ children, className = '' }: { children: ReactNode; className?:
   }
 
   return (
-    <header className={`flex items-center justify-between h-[60px] px-4 border-b border-[hsl(var(--border))] ${className}`}>
+    <header className={`flex items-center justify-between h-[60px] ${className}`}>
       {children}
     </header>
   );
 };
 
+// Layout Structure Components
 const Sidebar = ({ children, className = '', width = 'w-1/3' }: { children: ReactNode; className?: string; width?: string }) => {
   return <aside className={`px-4 pt-4 ${width} ${className}`}>{children}</aside>;
 };
 
 const Content = ({ children, className = '' }: { children: ReactNode; className?: string }) => {
-  return <main className={`flex-1 flex flex-col gap-6 px-4 pt-4 ${className}`}>{children}</main>;
+  return <main className={`flex-1 flex flex-col gap-6 mt-6 ${className}`}>{children}</main>;
 };
 
 const Body = ({ children, className = '' }: { children: ReactNode; className?: string }) => {
   const { loading, error, onRetry } = useLayoutContext();
 
   return (
-    <div className={`flex-1 overflow-auto flex flex-col ${className}`}>
+    <div className={`flex-1 flex flex-col ${className}`}>
       {loading ? (
         <LoadingOverlay />
       ) : error ? (
@@ -145,33 +138,53 @@ const Body = ({ children, className = '' }: { children: ReactNode; className?: s
   );
 };
 
-// --- MAIN COMPONENT ---
-interface LayoutProps {
-  children: ReactNode;
-  loading?: boolean;
-  error?: string | null;
-  onRetry?: () => void;
-  className?: string;
-}
+// ==========================================
+// MAIN LAYOUT COMPONENT
+// ==========================================
 
 const LayoutRoot = React.forwardRef<HTMLDivElement, LayoutProps>(
-  ({ children, loading = false, error = null, onRetry, className = '' }, ref) => {
+  ({ children, loading = false, error = null, onRetry, className = '', width = 'fluid' }, ref) => {
     const contextValue = { loading, error, onRetry };
+
+    const containerClass = width === 'container' 
+      ? 'flex flex-col h-full w-full items-center' 
+      : 'flex flex-col h-full';
 
     return (
       <LayoutContext.Provider value={contextValue}>
-        <div ref={ref} className={`flex flex-col h-full ${className}`}>
-          {children}
-        </div>
+        {width === 'container' ? (
+          <div className={containerClass}>
+            <div 
+              ref={ref} 
+              className={`flex flex-col h-full py-6 ${className}`}
+              style={{ width: '80%' }}
+            >
+              {children}
+            </div>
+          </div>
+        ) : (
+          <div 
+            ref={ref} 
+            className={`flex flex-col h-full ${className}`}
+          >
+            {children}
+          </div>
+        )}
       </LayoutContext.Provider>
     );
   }
 );
 LayoutRoot.displayName = 'Layout';
 
+// ==========================================
+// LAYOUT COMPOSITION & TYPES
+// ==========================================
+
 type LayoutComponent = typeof LayoutRoot & {
-    Header: typeof Header;
-    Breadcrumbs: typeof Breadcrumbs;
+    Header: typeof Header & {
+      Title: typeof Title;
+      Description: typeof Description;
+    };
     Actions: typeof Actions;
     Body: typeof Body;
     Sidebar: typeof Sidebar;
@@ -180,8 +193,13 @@ type LayoutComponent = typeof LayoutRoot & {
 
 const Layout = LayoutRoot as LayoutComponent;
 
-Layout.Header = Header;
-Layout.Breadcrumbs = Breadcrumbs;
+// Attach subcomponents
+Layout.Header = Header as typeof Header & {
+  Title: typeof Title;
+  Description: typeof Description;
+};
+Layout.Header.Title = Title;
+Layout.Header.Description = Description;
 Layout.Actions = Actions;
 Layout.Body = Body;
 Layout.Sidebar = Sidebar;
@@ -189,7 +207,10 @@ Layout.Content = Content;
 
 export { Layout };
 
-// --- EXPORTED UTILS (for backward compatibility / convenience) ---
+// ==========================================
+// UTILITY COMPONENTS (Backward Compatibility)
+// ==========================================
+
 export function AnalyticsCard({ 
   title, 
   description, 
@@ -244,4 +265,4 @@ export function AnalyticsGrid({ children, className = '' }: { children: ReactNod
       {children}
     </Card>
   );
-} 
+}

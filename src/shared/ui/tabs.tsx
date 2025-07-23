@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useDirection } from "@radix-ui/react-direction";
 
 const tabsVariants = cva(
-  "relative inline-flex items-center justify-center rounded-lg transition-all duration-300 w-full",
+  "relative items-center justify-center rounded-lg transition-all duration-300 w-fit",
   {
     variants: {
       variant: {

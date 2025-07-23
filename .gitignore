@@ -22,6 +22,11 @@ yarn-error.log
 .gemini/
 backups/
 .windsurf*
+.mcp.json
+/scripts/
+/.cursor/
+/backend/node_modules/
+/backend/scripts/
 
 # testing
 /coverage

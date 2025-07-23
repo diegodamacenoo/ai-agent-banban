@@ -1,9 +1,16 @@
 'use client';
 
+// React imports
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+
+// UI Components
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Tabs, TabsContent } from '@/shared/ui/tabs';
+import { Layout } from '@/shared/components/Layout';
+import { Skeleton } from '@/shared/ui/skeleton';
+
+// Icons
 import {
   RefreshCw,
   Plus,
@@ -14,26 +21,30 @@ import {
   Save,
   Shield,
   Bell,
-  FileText
+  FileText,
+  Loader2
 } from 'lucide-react';
-import { Layout } from '@/shared/components/Layout';
 
-// Hooks e componentes para gestão de módulos
+// Types
 import { type TenantModuleAssignment } from '../hooks/useModuleData';
+
+// Hooks
 import { useOptimisticImplementations } from '../hooks/useOptimisticImplementations';
 import { useOptimisticAssignments } from '../hooks/useOptimisticAssignments';
 import { useOptimisticBaseModules } from '../hooks/useOptimisticBaseModules';
 
-// Componentes principais
+// Components - Tables and Managers
 import { BaseModulesTable } from '../components/shared';
 import { ImplementationsManager } from '../components/assignments/implementations-manager';
 import { TenantAssignmentsManager } from '../components/assignments/TenantAssignmentsManager';
 import { ModuleStatsWidget } from '../components/analytics/ModuleStatsWidget';
+
+// Components - Dialogs
 import { CreateImplementationDialog } from '../components/assignments/CreateImplementationDialog';
 import { NewAssignmentDialog } from '../components/assignments/NewAssignmentDialog';
 import { CreateBaseModuleDialog } from '../components/lifecycle/CreateBaseModuleDialog';
 
-// Componentes de configuração (versões sem card wrapper)
+// Components - Configuration
 import { ModuleSettingsFormContent } from '../components/configurations/ModuleSettingsFormContent';
 import { SystemConfigProvider } from '../contexts/SystemConfigContext';
 // COMENTADOS PARA MVP - recursos avançados para implementação posterior
@@ -41,10 +52,30 @@ import { SystemConfigProvider } from '../contexts/SystemConfigContext';
 // import { NotificationManagerContent } from '../components/configurations/NotificationManagerContent';
 // import { ModulePoliciesWidgetContent } from '../components/configurations/ModulePoliciesWidgetContent';
 
+// Constants
+const TAB_ITEMS = [
+  { id: 'overview', label: 'Overview', icon: <FileText className="w-4 h-4" /> },
+  { id: 'base-modules', label: 'Módulos Base', icon: <Database className="w-4 h-4" /> },
+  { id: 'implementations', label: 'Implementações', icon: <Settings className="w-4 h-4" /> },
+  { id: 'assignments', label: 'Atribuições', icon: <Users className="w-4 h-4" /> },
+  { id: 'configurations', label: 'Configurações', icon: <Package className="w-4 h-4" /> },
+];
+
+const INITIAL_PAGINATION = {
+  currentPage: 1,
+  totalItems: 0,
+  totalPages: 0,
+  hasMore: false
+};
+
+const DEBOUNCE_DELAY = 300;
+const LOAD_MORE_LIMIT = 1000;
+
 /**
  * Página Principal de Gestão de Módulos
  * 
  * Consolida toda a funcionalidade de gestão em abas organizadas:
+ * - Overview: Estatísticas e visão geral do sistema
  * - Módulos Base: CRUD de módulos fundamentais
  * - Implementações: Variações específicas dos módulos
  * - Atribuições: Vinculação com organizações
@@ -56,7 +87,7 @@ import { SystemConfigProvider } from '../contexts/SystemConfigContext';
 export default function GestaoModulosPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
-  const [activeTab, setActiveTab] = useState('base-modules');
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Filtros específicos para implementações
   const [includeArchivedModules, setIncludeArchivedModules] = useState(false);
@@ -70,6 +101,7 @@ export default function GestaoModulosPage() {
   const [organizations, setOrganizations] = useState([]);
   const [stats, setStats] = useState(null);
   const [moduleLoading, setModuleLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Estado de paginação das implementações
   const [implementationsPagination, setImplementationsPagination] = useState({
@@ -196,7 +228,7 @@ export default function GestaoModulosPage() {
           includeDeleted: true,
           includeArchivedModules: true,
           includeDeletedModules: true,
-          limit: 1000 // Limite alto para pegar todas
+          limit: LOAD_MORE_LIMIT
         }),
         getTenantAssignments({}),
         getAllModulesWithOrganizationAssignments()
@@ -271,6 +303,7 @@ export default function GestaoModulosPage() {
     } finally {
       loadingRef.current = false;
       setModuleLoading(false);
+      setIsInitialLoad(false);
       loadCompletedRef.current = true;
       console.debug(`✅ CLIENT: Completed loadData ${callId}`);
     }
@@ -381,27 +414,30 @@ export default function GestaoModulosPage() {
     }
   };
 
-  // Funções auxiliares
-  const getImplementationsForModule = (baseModuleId: string) => {
+  // ===========================================
+  // UTILITY FUNCTIONS
+  // ===========================================
+  
+  const getImplementationsForModule = useCallback((baseModuleId: string) => {
     return implementations.filter(impl => impl.base_module_id === baseModuleId);
-  };
+  }, [implementations]);
 
-  // Função separada para contagem na tab Módulos Base (usa TODAS as implementações)
-  const getImplementationsForModuleCounting = (baseModuleId: string) => {
+  const getImplementationsForModuleCounting = useCallback((baseModuleId: string) => {
     return allImplementationsForCounting.filter(impl => impl.base_module_id === baseModuleId);
-  };
+  }, [allImplementationsForCounting]);
 
-  const getAssignmentsForTenant = (tenantId: string) => {
+  const getAssignmentsForTenant = useCallback((tenantId: string) => {
     return assignments.filter(assignment => assignment.tenant_id === tenantId);
-  };
-  const getAssignmentsForModule = (baseModuleId: string) => {
+  }, [assignments]);
+  
+  const getAssignmentsForModule = useCallback((baseModuleId: string) => {
     return assignments.filter(assignment => assignment.base_module_id === baseModuleId);
-  };
+  }, [assignments]);
 
-  const moduleStats = stats;
-  const statsLoading = moduleLoading;
-
-  // Callbacks otimísticos para base modules
+  // ===========================================
+  // BASE MODULES HANDLERS
+  // ===========================================
+  
   const handleBaseModuleChange = useCallback(() => {
     console.debug('🚀 Mudança de base module detectada - usando estado otimístico');
   }, []);
@@ -436,7 +472,6 @@ export default function GestaoModulosPage() {
     return optimisticPurgeBaseModule(moduleId);
   }, [optimisticPurgeBaseModule]);
 
-  // Callbacks para operações de base modules do servidor
   const handleBaseModuleServerOperationSuccess = useCallback((operationId, serverData = null) => {
     console.debug('✅ PAGE: handleBaseModuleServerOperationSuccess chamado:', operationId, serverData?.name);
     confirmBaseModuleOperation(operationId, serverData);
@@ -447,7 +482,10 @@ export default function GestaoModulosPage() {
     revertBaseModuleOperation(operationId, errorMessage);
   }, [revertBaseModuleOperation]);
 
-  // Callbacks otimísticos para implementações
+  // ===========================================
+  // IMPLEMENTATIONS HANDLERS
+  // ===========================================
+  
   const handleImplementationChange = useCallback(() => {
     console.debug('🚀 Mudança de implementação detectada - usando estado otimístico');
   }, []);
@@ -464,7 +502,6 @@ export default function GestaoModulosPage() {
     return optimisticDeleteImplementation(implementationId);
   }, [optimisticDeleteImplementation]);
 
-  // Callbacks para operações de implementações do servidor
   const handleImplementationServerOperationSuccess = useCallback((operationId, serverData = null) => {
     confirmImplementationOperation(operationId, serverData);
   }, [confirmImplementationOperation]);
@@ -473,7 +510,10 @@ export default function GestaoModulosPage() {
     revertImplementationOperation(operationId, errorMessage);
   }, [revertImplementationOperation]);
 
-  // Callbacks otimísticos para assignments
+  // ===========================================
+  // ASSIGNMENTS HANDLERS
+  // ===========================================
+  
   const handleAssignmentChange = useCallback(() => {
     console.debug('🚀 Mudança de assignment detectada - usando estado otimístico');
   }, []);
@@ -490,7 +530,6 @@ export default function GestaoModulosPage() {
     return optimisticDeleteAssignment(tenantId, baseModuleId, assignmentInfo);
   }, [optimisticDeleteAssignment]);
 
-  // Callbacks para operações de assignments do servidor
   const handleAssignmentServerOperationSuccess = useCallback((operationId, serverData = null) => {
     confirmAssignmentOperation(operationId, serverData);
   }, [confirmAssignmentOperation]);
@@ -499,7 +538,10 @@ export default function GestaoModulosPage() {
     revertAssignmentOperation(operationId, errorMessage);
   }, [revertAssignmentOperation]);
 
-  // Callback tradicional para recarregamento
+  // ===========================================
+  // GENERAL HANDLERS
+  // ===========================================
+  
   const handleReload = useCallback(() => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -508,376 +550,530 @@ export default function GestaoModulosPage() {
     // Reset flags para permitir novo carregamento
     loadCompletedRef.current = false;
     loadCalledRef.current = false;
+    // Não resetar isInitialLoad durante refresh - mantém false
 
     // Reset paginação
-    setImplementationsPagination({
-      currentPage: 1,
-      totalItems: 0,
-      totalPages: 0,
-      hasMore: false
-    });
+    setImplementationsPagination(INITIAL_PAGINATION);
 
     debounceRef.current = setTimeout(() => {
       loadData();
-    }, 300); // Aumentar debounce para 300ms
+    }, DEBOUNCE_DELAY);
   }, [loadData]);
 
-  const combinedLoading = moduleLoading || statsLoading;
+  const combinedLoading = moduleLoading;
   const hasAnyOptimisticOperations = hasOptimisticBaseModuleOperations || hasOptimisticImplementationOperations || hasOptimisticAssignmentOperations;
 
-  const tabItems = [
-    { id: 'base-modules', label: 'Módulos Base', icon: <Database className="w-4 h-4" /> },
-    { id: 'implementations', label: 'Implementações', icon: <Settings className="w-4 h-4" /> },
-    { id: 'assignments', label: 'Atribuições', icon: <Users className="w-4 h-4" /> },
-    { id: 'configurations', label: 'Configurações', icon: <Package className="w-4 h-4" /> },
-  ];
 
-  // Sidebar content com estatísticas
-  const sidebarContent = (
-    <div className="flex flex-col gap-4">
-      <ModuleStatsWidget
-        stats={moduleStats}
-        loading={statsLoading}
-      />
-    </div>
-  );
-
+  // ===========================================
+  // RENDER
+  // ===========================================
+  
   return (
     <SystemConfigProvider>
-      <Layout loading={combinedLoading}>
+      <Layout width="container">
         <Layout.Header>
-          <Layout.Breadcrumbs items={[
-            { title: 'Módulos', icon: Package },
-            { title: 'Gestão de Módulos' }
-          ]} />
+          <Layout.Header.Title>
+            Gestão de Módulos
+            <Layout.Header.Description>
+              Gerencie módulos, implementações e atribuições de forma centralizada.
+            </Layout.Header.Description>
+          </Layout.Header.Title>
           <Layout.Actions>
-            <Button variant="secondary" leftIcon={<RefreshCw className="h-4 w-4" />} onClick={handleReload} disabled={combinedLoading}>
-              Atualizar
+            <Button 
+              variant="secondary" 
+              leftIcon={
+                !isInitialLoad && moduleLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )
+              }
+              onClick={handleReload} 
+              disabled={!isInitialLoad && moduleLoading}
+            >
+              {!isInitialLoad && moduleLoading ? 'Atualizando' : 'Atualizar'}
             </Button>
           </Layout.Actions>
         </Layout.Header>
 
         <Layout.Body>
-          <Layout.Sidebar width="w-80">
-            {sidebarContent}
-          </Layout.Sidebar>
-
           <Layout.Content>
             <div className="w-full space-y-4">
               <Tabs
-                items={tabItems}
+                items={TAB_ITEMS}
                 value={activeTab}
                 onValueChange={setActiveTab}
                 variant="underline"
                 className="w-full"
-                defaultValue="base-modules"
+                defaultValue="overview"
               />
 
-              {/* Tab: Módulos Base */}
-              <TabsContent value="base-modules" activeValue={activeTab}>
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Módulos Base do Sistema</CardTitle>
-                        <CardDescription>
-                          Gerencie os módulos base que servem como fundação para implementações específicas.
-                        </CardDescription>
-                      </div>
-                      <CreateBaseModuleDialog
-                        onSuccess={handleBaseModuleChange}
-                        onOptimisticCreate={handleOptimisticBaseModuleCreate}
-                        onServerSuccess={handleBaseModuleServerOperationSuccess}
-                        onServerError={handleBaseModuleServerOperationError}
-                        trigger={
-                          <Button variant="secondary" className="flex items-center gap-2" leftIcon={<Plus className="w-4 h-4" />}>
-                            Novo Módulo Base
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <BaseModulesTable
-                      baseModules={baseModules}
-                      implementations={allImplementationsForCounting}
-                      assignments={assignments}
-                      loading={moduleLoading}
-                      getImplementationsForModule={getImplementationsForModuleCounting}
-                      getAssignmentsForModule={getAssignmentsForModule}
-                      onModuleChange={handleReload}
-                      showArchived={showArchived}
-                      showDeleted={showDeleted}
-                      setShowArchived={setShowArchived}
-                      setShowDeleted={setShowDeleted}
-                      onOptimisticUpdate={handleOptimisticBaseModuleUpdate}
-                      onOptimisticArchive={handleOptimisticBaseModuleArchive}
-                      onOptimisticDelete={handleOptimisticBaseModuleDelete}
-                      onOptimisticRestore={handleOptimisticBaseModuleRestore}
-                      onOptimisticPurge={handleOptimisticBaseModulePurge}
-                      onServerSuccess={handleBaseModuleServerOperationSuccess}
-                      onServerError={handleBaseModuleServerOperationError}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tab: Implementações */}
-              <TabsContent value="implementations" activeValue={activeTab}>
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Gestão de Implementações</CardTitle>
-                        <CardDescription>
-                          Configure implementações específicas para cada módulo base (Standard, Banban, Enterprise, etc.).
-                        </CardDescription>
-                      </div>
-                      <CreateImplementationDialog
-                        baseModules={activeBaseModules}
-                        onImplementationCreated={handleImplementationChange}
-                        onOptimisticCreate={handleOptimisticImplementationCreate}
-                        onServerSuccess={handleImplementationServerOperationSuccess}
-                        onServerError={handleImplementationServerOperationError}
-                      >
-                        <Button variant="secondary" className="flex items-center gap-2" leftIcon={<Plus className="w-4 h-4" />}>
-                          Nova Implementação
-                        </Button>
-                      </CreateImplementationDialog>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ImplementationsManager
-                      baseModules={baseModules}
-                      implementations={implementations}
-                      loading={moduleLoading}
-                      getImplementationsForModule={getImplementationsForModule}
-                      onDataChange={handleImplementationChange}
-                      onOptimisticUpdate={handleOptimisticImplementationUpdate}
-                      onOptimisticDelete={handleOptimisticImplementationDelete}
-                      onServerSuccess={handleImplementationServerOperationSuccess}
-                      onServerError={handleImplementationServerOperationError}
-                      hasOptimisticOperations={hasOptimisticImplementationOperations}
-                      includeArchivedModules={includeArchivedModules}
-                      includeDeletedModules={includeDeletedModules}
-                      onToggleArchivedModules={setIncludeArchivedModules}
-                      onToggleDeletedModules={setIncludeDeletedModules}
-                      pagination={implementationsPagination}
-                      onLoadMore={loadMoreImplementations}
-                      loadingMore={loadingMore}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tab: Atribuições */}
-              <TabsContent value="assignments" activeValue={activeTab}>
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Atribuições por Organização</CardTitle>
-                        <CardDescription>
-                          Gerencie quais implementações cada organização está usando.
-                        </CardDescription>
-                      </div>
-                      <NewAssignmentDialog
-                        tenants={tenantGroups}
-                        organizations={organizations}
-                        baseModules={activeBaseModules}
-                        implementations={implementations}
-                        onAssignmentCreated={handleAssignmentChange}
-                        onOptimisticCreate={handleOptimisticAssignmentCreate}
-                        onServerSuccess={handleAssignmentServerOperationSuccess}
-                        onServerError={handleAssignmentServerOperationError}
-                        trigger={
-                          <Button
-                            variant="secondary"
-                            className="flex items-center gap-2"
-                            leftIcon={<Plus className="w-4 h-4" />}>
-                            Nova Atribuição
-                          </Button>
-                        }
-                      />
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <TenantAssignmentsManager
-                      tenantGroups={tenantGroups}
-                      assignments={assignments}
-                      baseModules={baseModules}
-                      implementations={implementations}
-                      organizations={organizations}
-                      loading={moduleLoading}
-                      updateModuleConfig={updateModuleConfig}
-                      getAssignmentsForTenant={getAssignmentsForTenant}
-                      onAssignmentCreated={handleAssignmentChange}
-                      onOptimisticCreate={handleOptimisticAssignmentCreate}
-                      onOptimisticUpdate={handleOptimisticAssignmentUpdate}
-                      onOptimisticDelete={handleOptimisticAssignmentDelete}
-                      onServerSuccess={handleAssignmentServerOperationSuccess}
-                      onServerError={handleAssignmentServerOperationError}
-                      hasOptimisticOperations={hasOptimisticAssignmentOperations}
-                    />
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Tab: Configurações */}
-              <TabsContent value="configurations" activeValue={activeTab}>
-                <div className="space-y-4">
-                  {/* Configurações Gerais - ESSENCIAL PARA MVP */}
-                  <Card size="sm" variant="ghost">
-                    <CardHeader>
-                      <div className="flex flex-row items-center justify-between">
-                        <div>
-                          <CardTitle>Configurações Gerais</CardTitle>
-                          <CardDescription>
-                            Configure comportamentos padrão e parâmetros globais do sistema.
-                          </CardDescription>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          className="flex items-center gap-2"
-                          leftIcon={<Save className="w-4 h-4" />}
-                          onClick={() => {
-                            // O formulário gerencia seu próprio estado de salvamento
-                            const saveButton = document.querySelector('[data-save-settings]') as HTMLButtonElement;
-                            if (saveButton) {
-                              saveButton.click();
-                            }
-                          }}
-                        >
-                          Salvar Configurações
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <ModuleSettingsFormContent />
-                    </CardContent>
-                  </Card>
-
-                  {/* RECURSOS AVANÇADOS - COMENTADOS PARA PÓS-MVP */}
-                  {/* 
-                Gerenciamento de Permissões - AVANÇADO
-                Sistema robusto de RBAC com controle granular
-                Implementar após MVP quando houver múltiplos usuários
-                */}
-                  {/*
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Permissões e Controle de Acesso</CardTitle>
-                        <CardDescription>
-                          Configure roles, permissões e controle de acesso.
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="secondary" className="flex items-center gap-2" leftIcon={<RefreshCw className="w-4 h-4" />}>
-                          Atualizar
-                        </Button>
-                        <Button variant="secondary" className="flex items-center gap-2" leftIcon={<Plus className="w-4 h-4" />}>
-                          Nova Permissão
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <PermissionManagerContent />
-                  </CardContent>
-                </Card>
-                */}
-
-                  {/* 
-                Sistema de Notificações - AVANÇADO
-                Notificações automáticas e alertas em tempo real
-                Implementar após MVP quando houver integração com email/SMS
-                */}
-                  {/*
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Sistema de Notificações</CardTitle>
-                        <CardDescription>
-                          Configure alertas e notificações automáticas.
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button variant="secondary" className="flex items-center gap-2" leftIcon={<RefreshCw className="w-4 h-4" />}>
-                          Atualizar
-                        </Button>
-                        <Button variant="secondary" className="flex items-center gap-2" leftIcon={<Plus className="w-4 h-4" />}>
-                          Nova Regra
-                        </Button>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <NotificationManagerContent />
-                  </CardContent>
-                </Card>
-                */}
-
-                  {/* 
-                Políticas e Regras - AVANÇADO
-                Sistema complexo de validação e políticas de segurança
-                Implementar após MVP quando houver necessidade de compliance avançado
-                */}
-                  {/*
-                <Card size="sm" variant="ghost">
-                  <CardHeader>
-                    <div className="flex flex-row items-center justify-between">
-                      <div>
-                        <CardTitle>Políticas e Regras</CardTitle>
-                        <CardDescription>
-                          Defina regras de validação e políticas de segurança.
-                        </CardDescription>
-                      </div>
-                      <Button variant="secondary" className="flex items-center gap-2" leftIcon={<FileText className="w-4 h-4" />}>
-                        Configurar Políticas
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ModulePoliciesWidgetContent />
-                  </CardContent>
-                </Card>
-                */}
-
-                  {/* Placeholder para indicar recursos futuros */}
-                  <Card size="sm" variant="ghost" className="border-dashed border-muted-foreground/30">
-                    <CardHeader>
-                      <CardTitle className="text-muted-foreground">Recursos Avançados (Pós-MVP)</CardTitle>
-                      <CardDescription>
-                        Funcionalidades como gerenciamento de permissões, sistema de notificações
-                        e políticas avançadas serão implementadas nas próximas iterações.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-sm text-muted-foreground space-y-2">
-                        <div className="flex items-center gap-2">
-                          <Shield className="w-4 h-4" />
-                          <span>Controle de Acesso Baseado em Roles (RBAC)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Bell className="w-4 h-4" />
-                          <span>Sistema de Notificações Automáticas</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4" />
-                          <span>Políticas de Validação e Compliance</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </TabsContent>
+              {renderOverviewTab()}
+              {renderBaseModulesTab()}
+              {renderImplementationsTab()}
+              {renderAssignmentsTab()}
+              {renderConfigurationsTab()}
             </div>
           </Layout.Content>
         </Layout.Body>
       </Layout>
     </SystemConfigProvider>
   );
+  
+  // ===========================================
+  // SKELETON COMPONENTS
+  // ===========================================
+  
+  function OverviewSkeleton() {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} size="sm">
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-16 mb-2" />
+              <Skeleton className="h-3 w-20" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+  
+  function BaseModulesSkeleton() {
+    return (
+      <Card size="sm" variant="ghost">
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <Skeleton className="h-9 w-36" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+                <div className="flex gap-2">
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-6 w-12" />
+                  <Skeleton className="h-8 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  function ImplementationsSkeleton() {
+    return (
+      <Card size="sm" variant="ghost">
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-52" />
+              <Skeleton className="h-4 w-80" />
+            </div>
+            <Skeleton className="h-9 w-40" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-5 w-40" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {[...Array(3)].map((_, j) => (
+                    <div key={j} className="p-3 border rounded-lg space-y-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                      <Skeleton className="h-8 w-20" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  function AssignmentsSkeleton() {
+    return (
+      <Card size="sm" variant="ghost">
+        <CardHeader>
+          <div className="flex flex-row items-center justify-between">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-56" />
+              <Skeleton className="h-4 w-72" />
+            </div>
+            <Skeleton className="h-9 w-32" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-5 w-36" />
+                </div>
+                <div className="ml-11 space-y-2">
+                  {[...Array(2)].map((_, j) => (
+                    <div key={j} className="flex items-center justify-between p-2 border rounded">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-6 w-16" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  function ConfigurationsSkeleton() {
+    return (
+      <div className="space-y-4">
+        <Card size="sm" variant="ghost">
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between">
+              <div className="space-y-2">
+                <Skeleton className="h-6 w-44" />
+                <Skeleton className="h-4 w-80" />
+              </div>
+              <Skeleton className="h-9 w-40" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                  <Skeleton className="h-8 w-24" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card size="sm" variant="ghost" className="border-dashed">
+          <CardHeader>
+            <Skeleton className="h-5 w-48" />
+            <Skeleton className="h-4 w-96" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-56" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ===========================================
+  // TAB RENDERERS
+  // ===========================================
+  
+  function renderOverviewTab() {
+    return (
+      <TabsContent value="overview" activeValue={activeTab}>
+        {isInitialLoad && moduleLoading ? (
+          <OverviewSkeleton />
+        ) : (
+          <ModuleStatsWidget
+            stats={stats}
+            loading={false}
+          />
+        )}
+      </TabsContent>
+    );
+  }
+  
+  function renderBaseModulesTab() {
+    if (isInitialLoad && moduleLoading) {
+      return (
+        <TabsContent value="base-modules" activeValue={activeTab}>
+          <BaseModulesSkeleton />
+        </TabsContent>
+      );
+    }
+    
+    return (
+      <TabsContent value="base-modules" activeValue={activeTab}>
+        <Card size="sm" variant="ghost">
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Módulos Base do Sistema</CardTitle>
+                <CardDescription>
+                  Gerencie os módulos base que servem como fundação para implementações específicas.
+                </CardDescription>
+              </div>
+              <CreateBaseModuleDialog
+                onSuccess={handleBaseModuleChange}
+                onOptimisticCreate={handleOptimisticBaseModuleCreate}
+                onServerSuccess={handleBaseModuleServerOperationSuccess}
+                onServerError={handleBaseModuleServerOperationError}
+                trigger={
+                  <Button 
+                    variant="secondary" 
+                    className="flex items-center gap-2" 
+                    leftIcon={<Plus className="w-4 h-4" />}
+                  >
+                    Novo Módulo Base
+                  </Button>
+                }
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <BaseModulesTable
+              baseModules={baseModules}
+              implementations={allImplementationsForCounting}
+              assignments={assignments}
+              loading={false}
+              getImplementationsForModule={getImplementationsForModuleCounting}
+              getAssignmentsForModule={getAssignmentsForModule}
+              onModuleChange={handleReload}
+              showArchived={showArchived}
+              showDeleted={showDeleted}
+              setShowArchived={setShowArchived}
+              setShowDeleted={setShowDeleted}
+              onOptimisticUpdate={handleOptimisticBaseModuleUpdate}
+              onOptimisticArchive={handleOptimisticBaseModuleArchive}
+              onOptimisticDelete={handleOptimisticBaseModuleDelete}
+              onOptimisticRestore={handleOptimisticBaseModuleRestore}
+              onOptimisticPurge={handleOptimisticBaseModulePurge}
+              onServerSuccess={handleBaseModuleServerOperationSuccess}
+              onServerError={handleBaseModuleServerOperationError}
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  }
+  
+  function renderImplementationsTab() {
+    if (isInitialLoad && moduleLoading) {
+      return (
+        <TabsContent value="implementations" activeValue={activeTab}>
+          <ImplementationsSkeleton />
+        </TabsContent>
+      );
+    }
+    
+    return (
+      <TabsContent value="implementations" activeValue={activeTab}>
+        <Card size="sm" variant="ghost">
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Gestão de Implementações</CardTitle>
+                <CardDescription>
+                  Configure implementações específicas para cada módulo base (Standard, Banban, Enterprise, etc.).
+                </CardDescription>
+              </div>
+              <CreateImplementationDialog
+                baseModules={activeBaseModules}
+                onImplementationCreated={handleImplementationChange}
+                onOptimisticCreate={handleOptimisticImplementationCreate}
+                onServerSuccess={handleImplementationServerOperationSuccess}
+                onServerError={handleImplementationServerOperationError}
+              >
+                <Button 
+                  variant="secondary" 
+                  className="flex items-center gap-2" 
+                  leftIcon={<Plus className="w-4 h-4" />}
+                >
+                  Nova Implementação
+                </Button>
+              </CreateImplementationDialog>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <ImplementationsManager
+              baseModules={baseModules}
+              implementations={implementations}
+              loading={false}
+              getImplementationsForModule={getImplementationsForModule}
+              onDataChange={handleImplementationChange}
+              onOptimisticUpdate={handleOptimisticImplementationUpdate}
+              onOptimisticDelete={handleOptimisticImplementationDelete}
+              onServerSuccess={handleImplementationServerOperationSuccess}
+              onServerError={handleImplementationServerOperationError}
+              hasOptimisticOperations={hasOptimisticImplementationOperations}
+              includeArchivedModules={includeArchivedModules}
+              includeDeletedModules={includeDeletedModules}
+              onToggleArchivedModules={setIncludeArchivedModules}
+              onToggleDeletedModules={setIncludeDeletedModules}
+              pagination={implementationsPagination}
+              onLoadMore={loadMoreImplementations}
+              loadingMore={loadingMore}
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  }
+  
+  function renderAssignmentsTab() {
+    if (isInitialLoad && moduleLoading) {
+      return (
+        <TabsContent value="assignments" activeValue={activeTab}>
+          <AssignmentsSkeleton />
+        </TabsContent>
+      );
+    }
+    
+    return (
+      <TabsContent value="assignments" activeValue={activeTab}>
+        <Card size="sm" variant="ghost">
+          <CardHeader>
+            <div className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Atribuições por Organização</CardTitle>
+                <CardDescription>
+                  Gerencie quais implementações cada organização está usando.
+                </CardDescription>
+              </div>
+              <NewAssignmentDialog
+                tenants={tenantGroups}
+                organizations={organizations}
+                baseModules={activeBaseModules}
+                implementations={implementations}
+                onAssignmentCreated={handleAssignmentChange}
+                onOptimisticCreate={handleOptimisticAssignmentCreate}
+                onServerSuccess={handleAssignmentServerOperationSuccess}
+                onServerError={handleAssignmentServerOperationError}
+                trigger={
+                  <Button
+                    variant="secondary"
+                    className="flex items-center gap-2"
+                    leftIcon={<Plus className="w-4 h-4" />}
+                  >
+                    Nova Atribuição
+                  </Button>
+                }
+              />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <TenantAssignmentsManager
+              tenantGroups={tenantGroups}
+              assignments={assignments}
+              baseModules={baseModules}
+              implementations={implementations}
+              organizations={organizations}
+              loading={false}
+              updateModuleConfig={updateModuleConfig}
+              getAssignmentsForTenant={getAssignmentsForTenant}
+              onAssignmentCreated={handleAssignmentChange}
+              onOptimisticCreate={handleOptimisticAssignmentCreate}
+              onOptimisticUpdate={handleOptimisticAssignmentUpdate}
+              onOptimisticDelete={handleOptimisticAssignmentDelete}
+              onServerSuccess={handleAssignmentServerOperationSuccess}
+              onServerError={handleAssignmentServerOperationError}
+              hasOptimisticOperations={hasOptimisticAssignmentOperations}
+            />
+          </CardContent>
+        </Card>
+      </TabsContent>
+    );
+  }
+  
+  function renderConfigurationsTab() {
+    if (isInitialLoad && moduleLoading) {
+      return (
+        <TabsContent value="configurations" activeValue={activeTab}>
+          <ConfigurationsSkeleton />
+        </TabsContent>
+      );
+    }
+    
+    return (
+      <TabsContent value="configurations" activeValue={activeTab}>
+        <div className="space-y-4">
+          {/* Configurações Gerais - ESSENCIAL PARA MVP */}
+          <Card size="sm" variant="ghost">
+            <CardHeader>
+              <div className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Configurações Gerais</CardTitle>
+                  <CardDescription>
+                    Configure comportamentos padrão e parâmetros globais do sistema.
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="secondary"
+                  className="flex items-center gap-2"
+                  leftIcon={<Save className="w-4 h-4" />}
+                  onClick={() => {
+                    const saveButton = document.querySelector('[data-save-settings]') as HTMLButtonElement;
+                    if (saveButton) {
+                      saveButton.click();
+                    }
+                  }}
+                >
+                  Salvar Configurações
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ModuleSettingsFormContent />
+            </CardContent>
+          </Card>
+
+          {/* Placeholder para indicar recursos futuros */}
+          <Card size="sm" variant="ghost" className="border-dashed border-muted-foreground/30">
+            <CardHeader>
+              <CardTitle className="text-muted-foreground">Recursos Avançados (Pós-MVP)</CardTitle>
+              <CardDescription>
+                Funcionalidades como gerenciamento de permissões, sistema de notificações
+                e políticas avançadas serão implementadas nas próximas iterações.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-sm text-muted-foreground space-y-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  <span>Controle de Acesso Baseado em Roles (RBAC)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Bell className="w-4 h-4" />
+                  <span>Sistema de Notificações Automáticas</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  <span>Políticas de Validação e Compliance</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </TabsContent>
+    );
+  }
 }
