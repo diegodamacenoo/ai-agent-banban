@@ -454,12 +454,15 @@ export function use${config.basic?.slug?.split('-').map(w => w.charAt(0).toUpper
     }
   ];
 
-  const { 
-    tasksWithStatus, 
-    progress, 
-    toggleTask, 
-    exportProgress 
-  } = useChecklistProgress(tasks);
+  const {
+    tasksWithStatus,
+    progress,
+    toggleTask,
+    exportProgress
+  } = useChecklistProgress(
+    tasks,
+    config.basic?.slug || creationResult?.module?.id || 'temp-module'
+  );
 
   const handleExportProgress = () => {
     const metadata = {
