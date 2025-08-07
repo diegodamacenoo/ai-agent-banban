@@ -39,10 +39,10 @@ interface ExportMetadata {
 /**
  * Hook para gerenciar progresso de checklist com persistência no localStorage
  */
-export function useChecklistProgress(tasks: ChecklistTask[]) {
+export function useChecklistProgress(tasks: ChecklistTask[], storageKey: string) {
   const [completedTasks, setCompletedTasks] = useState<string[]>([]);
-  
-  const STORAGE_KEY = 'module-checklist-progress';
+
+  const STORAGE_KEY = `module-checklist-progress-${storageKey}`;
 
   // Carregar progresso do localStorage
   useEffect(() => {
@@ -59,7 +59,7 @@ export function useChecklistProgress(tasks: ChecklistTask[]) {
     } catch (error) {
       console.debug('Erro ao carregar progresso do checklist:', error);
     }
-  }, [tasks]);
+  }, [tasks, STORAGE_KEY]);
 
   // Salvar progresso no localStorage
   const saveProgress = useCallback((newCompletedTasks: string[]) => {
@@ -68,7 +68,7 @@ export function useChecklistProgress(tasks: ChecklistTask[]) {
     } catch (error) {
       console.debug('Erro ao salvar progresso do checklist:', error);
     }
-  }, []);
+  }, [STORAGE_KEY]);
 
   // Toggle task completion
   const toggleTask = useCallback((taskId: string, completed: boolean) => {
@@ -215,7 +215,7 @@ ${remainingTasksList.length === 0
   const resetProgress = useCallback(() => {
     setCompletedTasks([]);
     localStorage.removeItem(STORAGE_KEY);
-  }, []);
+  }, [STORAGE_KEY]);
 
   // Marcar todas as tarefas como concluídas
   const completeAll = useCallback(() => {

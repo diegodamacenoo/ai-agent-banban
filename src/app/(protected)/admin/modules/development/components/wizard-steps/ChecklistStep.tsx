@@ -26,19 +26,6 @@ export function ChecklistStep() {
     implementationData: (config as any).implementation || (config as any).auto_created_implementation
   };
 
-  // Integração com tracking de progresso
-  const {
-    progress,
-    updateTaskProgress,
-    resetProgress,
-    exportReportAsJson,
-    exportReportAsMarkdown
-  } = useChecklistProgress(
-    moduleData.id || 'temp-module', 
-    moduleData.name || 'Novo Módulo',
-    15 // Total de tarefas (será calculado dinamicamente)
-  );
-
   // Gerar checklist baseado na configuração
   const generateChecklist = () => {
     const moduleName = config.basic?.name || 'módulo';
@@ -921,7 +908,7 @@ npm run typecheck`,
 
   const checklist = generateChecklist();
   const allTasks = checklist.steps;
-  
+
   // Converter para format interativo
   const interactiveTasks: ChecklistTask[] = useMemo(() => {
     const moduleSlug = config.basic?.slug || 'module';
@@ -979,6 +966,32 @@ npm run typecheck`,
       })()
     }));
   }, [allTasks, config]);
+
+  // Integração com tracking de progresso
+  const {
+    completedTasks,
+    progress,
+    toggleTask: updateTaskProgress,
+    resetProgress,
+    exportProgressJSON,
+    exportProgressMarkdown
+  } = useChecklistProgress(interactiveTasks, moduleData.slug || moduleData.id || 'temp-module');
+
+  const exportReportAsJson = () =>
+    exportProgressJSON({
+      moduleName: moduleData.name || 'Novo Módulo',
+      moduleSlug: moduleData.slug || 'module',
+      createdAt: new Date().toISOString(),
+      moduleId: moduleData.id
+    });
+
+  const exportReportAsMarkdown = () =>
+    exportProgressMarkdown({
+      moduleName: moduleData.name || 'Novo Módulo',
+      moduleSlug: moduleData.slug || 'module',
+      createdAt: new Date().toISOString(),
+      moduleId: moduleData.id
+    });
   
   // Extrair variáveis necessárias da checklist
   const moduleSlug = config.basic?.slug || 'module';
@@ -1154,7 +1167,7 @@ npm run typecheck`,
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">
-                {progress.completedTasks.length}
+                {completedTasks.length}
               </div>
               <div className="text-sm text-blue-700">Tarefas Concluídas</div>
             </div>
@@ -1166,19 +1179,16 @@ npm run typecheck`,
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {progress.completionPercentage}%
+                {progress.percentage}%
               </div>
               <div className="text-sm text-green-700">Progresso</div>
             </div>
           </div>
-          
-          <Progress value={progress.completionPercentage} className="mb-4" />
-          
-          <div className="flex items-center justify-between text-xs text-gray-600">
-            <span>Iniciado em: {progress.startedAt.toLocaleDateString('pt-BR')}</span>
-            {progress.estimatedCompletion && (
-              <span>Estimativa de conclusão: {progress.estimatedCompletion.toLocaleDateString('pt-BR')}</span>
-            )}
+
+          <Progress value={progress.percentage} className="mb-4" />
+
+          <div className="text-xs text-gray-600 text-center">
+            Tempo estimado restante: {progress.estimatedTimeRemaining}
           </div>
         </CardContent>
       </Card>
@@ -1190,7 +1200,7 @@ npm run typecheck`,
             <ClipboardList className="h-5 w-5 text-blue-600" />
             <h3 className="text-lg font-semibold text-gray-800">Checklist Interativo</h3>
             <Badge variant="outline">
-              {progress.completedTasks.length}/{interactiveTasks.length}
+              {completedTasks.length}/{interactiveTasks.length}
             </Badge>
           </div>
           
@@ -1220,7 +1230,7 @@ npm run typecheck`,
               key={task.id}
               task={{
                 ...task,
-                completed: progress.completedTasks.includes(task.id)
+                completed: completedTasks.includes(task.id)
               }}
               moduleData={moduleData}
               onToggle={updateTaskProgress}
