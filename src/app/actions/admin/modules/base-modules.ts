@@ -1,12 +1,14 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import {
   ActionResult,
   BaseModule,
   CreateBaseModuleInput,
   UpdateBaseModuleInput,
+  CreateBaseModuleSchema,
+  UpdateBaseModuleSchema,
 } from './schemas';
 import {
   verifyAdminAccess,
@@ -61,7 +63,21 @@ export async function getBaseModules(
     // Construir query base
     let query = supabase
       .from('base_modules')
-      .select('*', { count: 'exact' })
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        category,
+        version,
+        status,
+        is_active,
+        archived_at,
+        deleted_at,
+        created_at,
+        updated_at,
+        created_by
+      `, { count: 'exact' })
       .order('created_at', { ascending: false });
 
     // Aplicar filtros
@@ -96,7 +112,7 @@ export async function getBaseModules(
     const { data: modules, error: queryError, count } = await query;
 
     if (queryError) {
-      return { success: false, error: 'Erro ao buscar módulos: ' + queryError.message };
+      return { success: false, error: `Erro ao buscar módulos: ${  queryError.message}` };
     }
 
     const total = count || 0;
@@ -141,8 +157,6 @@ export async function createBaseModule(input: CreateBaseModuleInput): Promise<Ac
     await conditionalDebugLog('createBaseModule iniciado', { input, userId: user?.id });
 
     // Validar entrada
-    // AIDEV-NOTE: CreateBaseModuleSchema é importado de schemas.ts
-    const { CreateBaseModuleSchema } = await import('./schemas');
     const validation = CreateBaseModuleSchema.safeParse(input);
     if (!validation.success) {
       return { 
@@ -212,6 +226,7 @@ export async function createBaseModule(input: CreateBaseModuleInput): Promise<Ac
         route_pattern: data.route_pattern,
         permissions_required: data.permissions_required,
         supports_multi_tenant: data.supports_multi_tenant,
+        exclusive_tenant_id: data.exclusive_tenant_id,
         config_schema: data.config_schema,
         dependencies: data.dependencies,
         version: data.version,
@@ -320,7 +335,6 @@ export async function updateBaseModule(input: UpdateBaseModuleInput): Promise<Ac
       return { success: false, error: 'Acesso negado. Apenas administradores podem editar módulos' };
     }
 
-    const { UpdateBaseModuleSchema } = await import('./schemas');
     const validation = UpdateBaseModuleSchema.safeParse(input);
     if (!validation.success) {
       return { 
@@ -377,7 +391,7 @@ export async function updateBaseModule(input: UpdateBaseModuleInput): Promise<Ac
       // Propagar para assignments
       const { data: existingAssignments, count: totalAssignments } = await supabase
         .from('tenant_module_assignments')
-        .select('*', { count: 'exact' })
+        .select('id, tenant_id, base_module_id, implementation_id', { count: 'exact' })
         .eq('base_module_id', id);
       
       let assignError: any = null;
@@ -819,7 +833,20 @@ export async function getBaseModuleById(moduleId: string): Promise<ActionResult<
 
     const { data: module, error } = await supabase
       .from('base_modules')
-      .select('*')
+      .select(`
+        id,
+        name,
+        slug,
+        description,
+        category,
+        version,
+        status,
+        is_active,
+        archived_at,
+        deleted_at,
+        created_at,
+        updated_at
+      `)
       .eq('id', moduleId)
       .single();
 
@@ -923,6 +950,144 @@ export async function getAvailableCategories(): Promise<ActionResult<string[]>> 
 }
 
 /**
+ * NOVA FUNÇÃO: Criar módulo completo (base + implementação + assignments) em transação única
+ */
+export async function createFullModule(input: {
+  module: CreateBaseModuleInput;
+  implementation?: any;
+  assignments?: Array<{ tenant_id: string; is_active?: boolean }>;
+}): Promise<ActionResult<{
+  baseModule: BaseModule;
+  implementation?: any;
+  assignments?: any[];
+}>> {
+  try {
+    // Verificar modo de manutenção
+    const { inMaintenance, message } = await checkMaintenanceMode();
+    if (inMaintenance) {
+      return { success: false, error: message || 'Sistema em manutenção' };
+    }
+
+    // Verificar autenticação e permissões
+    const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
+    
+    if (!isAuthenticated) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+    
+    if (!isAdmin) {
+      return { success: false, error: 'Acesso negado. Apenas administradores podem criar módulos' };
+    }
+
+    await conditionalDebugLog('createFullModule iniciado', { input, userId: user?.id });
+
+    const supabase = await createSupabaseServerClient();
+    
+    // Criar módulo base primeiro
+    const moduleData = {
+      ...input.module,
+      slug: input.module.slug || generateSlugFromName(input.module.name),
+      created_by: user!.id
+    };
+
+    const { data: baseModule, error: moduleError } = await supabase
+      .from('base_modules')
+      .insert(moduleData)
+      .select()
+      .single();
+
+    if (moduleError) {
+      console.error('Erro ao criar módulo base:', moduleError);
+      return { success: false, error: 'Erro ao criar módulo base: ' + moduleError.message };
+    }
+
+    let implementation = null;
+    let assignments: any[] = [];
+
+    // Criar implementação se fornecida
+    if (input.implementation) {
+      const { data: implData, error: implError } = await supabase
+        .from('module_implementations')
+        .insert({
+          ...input.implementation,
+          base_module_id: baseModule.id,
+          created_by: user!.id
+        })
+        .select()
+        .single();
+
+      if (implError) {
+        console.error('Erro ao criar implementação:', implError);
+        // Rollback: deletar módulo base
+        await supabase.from('base_modules').delete().eq('id', baseModule.id);
+        return { success: false, error: 'Erro ao criar implementação: ' + implError.message };
+      }
+
+      implementation = implData;
+    }
+
+    // Criar assignments se fornecidos
+    if (input.assignments && input.assignments.length > 0) {
+      const assignmentsData = input.assignments.map(assignment => ({
+        base_module_id: baseModule.id,
+        tenant_id: assignment.tenant_id,
+        is_active: assignment.is_active ?? false,
+        created_by: user!.id
+      }));
+
+      const { data: assignmentsResult, error: assignmentsError } = await supabase
+        .from('tenant_module_assignments')
+        .insert(assignmentsData)
+        .select();
+
+      if (assignmentsError) {
+        console.error('Erro ao criar assignments:', assignmentsError);
+        // Não vamos fazer rollback completo para assignments, apenas log do erro
+        await conditionalDebugLog('Erro ao criar assignments, mas módulo foi criado', { 
+          error: assignmentsError,
+          moduleId: baseModule.id 
+        });
+      } else {
+        assignments = assignmentsResult || [];
+      }
+    }
+
+    const result = {
+      baseModule,
+      implementation,
+      assignments
+    };
+
+    // Invalidar cache
+    revalidateModulesPaths();
+
+    // Log de auditoria
+    await conditionalAuditLog({
+      actor_user_id: user!.id,
+      action_type: 'CREATE_FULL_MODULE',
+      resource_type: 'base_module',
+      resource_id: result.baseModule.id,
+      details: {
+        module_name: input.module.name,
+        module_slug: result.baseModule.slug,
+        with_implementation: !!input.implementation,
+        with_assignments: input.assignments?.length || 0,
+      },
+    });
+
+    return {
+      success: true,
+      message: `Módulo "${input.module.name}" criado com sucesso`,
+      data: result,
+    };
+
+  } catch (error) {
+    console.error('Erro em createFullModule:', error);
+    return { success: false, error: 'Erro interno do servidor' };
+  }
+}
+
+/**
  * NOVA FUNÇÃO: Calcula estatísticas dos módulos com nova estrutura
  */
 export async function getBaseModuleStats(): Promise<ActionResult<any>> {
@@ -968,7 +1133,10 @@ export async function getBaseModuleStats(): Promise<ActionResult<any>> {
       if (baseModules) {
         stats.overview.totalBaseModules = baseModulesCount || 0;
         baseModulesData = baseModules;
-        console.debug('📊 Base modules count:', baseModulesCount, 'Active modules found:', baseModules.length);
+        await conditionalDebugLog('📊 Base modules count', { 
+          baseModulesCount, 
+          activeModulesFound: baseModules.length 
+        });
       }
     } catch (error) {
       console.warn('Tabela base_modules não encontrada:', error);
@@ -983,7 +1151,10 @@ export async function getBaseModuleStats(): Promise<ActionResult<any>> {
 
       if (implementations) {
         stats.overview.totalImplementations = implementationsCount || 0;
-        console.debug('📊 Implementations count:', implementationsCount, 'Active implementations found:', implementations.length);
+        await conditionalDebugLog('📊 Implementations count', {
+          implementationsCount,
+          activeImplementationsFound: implementations.length
+        });
         
         // Estrutura de implementationsByType apenas com implementações ativas
         stats.implementationsByType = implementations.reduce((acc, impl) => {

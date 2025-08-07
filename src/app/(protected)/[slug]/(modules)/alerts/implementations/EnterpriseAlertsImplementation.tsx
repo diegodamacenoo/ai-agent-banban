@@ -3,12 +3,21 @@
 import { Suspense } from 'react';
 import { Shield, AlertTriangle, Bell, BarChart3 } from 'lucide-react';
 
-interface EnterpriseAlertsProps {
-  params: { slug: string };
-  config?: Record<string, any>;
+interface ModuleImplementation {
+  id: string;
+  implementation_key: string;
+  name: string;
+  component_path: string;
+  [key: string]: any;
 }
 
-export default function EnterpriseAlertsImplementation({ params, config }: EnterpriseAlertsProps) {
+interface EnterpriseAlertsProps {
+  params: { slug: string };
+  config: Record<string, any>;
+  implementation: ModuleImplementation;
+}
+
+export default function EnterpriseAlertsImplementation({ params, config, implementation }: EnterpriseAlertsProps) {
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">

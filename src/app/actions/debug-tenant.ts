@@ -1,6 +1,6 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 
 export async function debugTenantModules() {
   const organizationId = '2da2a9a7-89ec-48bf-a3bc-c46e58d5a9b4';

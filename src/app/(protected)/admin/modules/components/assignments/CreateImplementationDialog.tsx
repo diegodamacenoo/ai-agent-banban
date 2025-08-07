@@ -315,17 +315,37 @@ export function CreateImplementationDialog({
                           <Info className="h-4 w-4 text-muted-foreground" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p className="max-w-xs">
-                            Caminho para o arquivo do componente React que renderiza esta implementação.
+                          <p className="max-w-sm">
+                            <strong>Define como localizar o componente React</strong> desta implementação.
+                            <br /><br />
+                            <strong>Opções de Configuração:</strong>
+                            <br /><br />
+                            <strong>1. Nome do Componente (Recomendado):</strong>
                             <br />
-                            Ex: <code>@/clients/banban/modules/MyModule</code>
+                            • Digite apenas: <code>BanbanAlertsImplementation</code>
+                            <br />
+                            • Sistema usa mapeamento automático
+                            <br />
+                            • Mais confiável e mantível
+                            <br /><br />
+                            <strong>2. Path Relativo:</strong>
+                            <br />
+                            • Ex: <code>./alerts/implementations/BanbanAlerts</code>
+                            <br />
+                            • Relativo ao contexto atual
+                            <br /><br />
+                            <strong>3. Path Absoluto:</strong>
+                            <br />
+                            • Ex: <code>@/app/(protected)/[slug]/(modules)/alerts/implementations/BanbanAlerts</code>
+                            <br /><br />
+                            <strong>Auto-resolução:</strong> Se vazio, sistema tenta resolver automaticamente baseado no slug + implementation_key.
                           </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   </FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: /implementations/EnterpriseV2" {...field} className='mt-3'/>
+                    <Input placeholder="Ex: BanbanAlertsImplementation ou ./alerts/implementations/BanbanAlerts" {...field} className='mt-3'/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>

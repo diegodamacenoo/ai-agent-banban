@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { BaseModule } from './schemas'; // Importar BaseModule do novo arquivo de schemas
 import { conditionalDebugLog } from './system-config-utils';
 

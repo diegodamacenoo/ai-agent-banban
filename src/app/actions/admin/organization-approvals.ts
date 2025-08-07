@@ -1,6 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from "@/core/supabase/server";
+import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
 
 export interface OrganizationApprovalsData {
   pending: number;
@@ -176,4 +178,133 @@ export async function getOrganizationModulesStatusData(organizationId: string): 
       error: 'Erro inesperado ao buscar status dos módulos'
     };
   }
-} 
+}
+
+// Schema para validação de aprovação/negação
+const approvalActionSchema = z.object({
+  requestId: z.string().uuid(),
+  notes: z.string().optional(),
+  autoStartProvisioning: z.boolean().default(true),
+  notifyRequester: z.boolean().default(true),
+  scheduleOutsideHours: z.boolean().default(false),
+});
+
+/**
+ * Aprova uma solicitação de módulo
+ */
+export async function approveModuleRequest(formData: z.infer<typeof approvalActionSchema>): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const validation = approvalActionSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      return { 
+        success: false,
+        error: validation.error.errors.map(e => e.message).join(', ') 
+      };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    
+    // Verificar se request existe e está pendente
+    const { data: request, error: fetchError } = await supabase
+      .from('module_approval_requests')
+      .select('*')
+      .eq('id', validation.data.requestId)
+      .eq('status', 'PENDING')
+      .single();
+
+    if (fetchError || !request) {
+      return { success: false, error: 'Solicitação não encontrada ou já processada.' };
+    }
+
+    // Atualizar status para APPROVED
+    const { error: updateError } = await supabase
+      .from('module_approval_requests')
+      .update({
+        status: 'APPROVED',
+        approved_at: new Date().toISOString(),
+        review_notes: validation.data.notes,
+        metadata: {
+          auto_start_provisioning: validation.data.autoStartProvisioning,
+          notify_requester: validation.data.notifyRequester,
+          schedule_outside_hours: validation.data.scheduleOutsideHours
+        }
+      })
+      .eq('id', validation.data.requestId);
+
+    if (updateError) {
+      console.error('Erro ao aprovar solicitação:', updateError);
+      return { success: false, error: 'Erro ao processar aprovação.' };
+    }
+
+    revalidatePath('/admin/organizations');
+    return { success: true };
+  } catch (error) {
+    console.error('Erro inesperado em approveModuleRequest:', error);
+    return { success: false, error: 'Erro inesperado ao aprovar solicitação.' };
+  }
+}
+
+/**
+ * Nega uma solicitação de módulo
+ */
+export async function denyModuleRequest(formData: z.infer<typeof approvalActionSchema>): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const validation = approvalActionSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      return { 
+        success: false,
+        error: validation.error.errors.map(e => e.message).join(', ') 
+      };
+    }
+
+    if (!validation.data.notes?.trim()) {
+      return { success: false, error: 'Observações são obrigatórias para negação.' };
+    }
+
+    const supabase = await createSupabaseServerClient();
+    
+    // Verificar se request existe e está pendente
+    const { data: request, error: fetchError } = await supabase
+      .from('module_approval_requests')
+      .select('*')
+      .eq('id', validation.data.requestId)
+      .eq('status', 'PENDING')
+      .single();
+
+    if (fetchError || !request) {
+      return { success: false, error: 'Solicitação não encontrada ou já processada.' };
+    }
+
+    // Atualizar status para DENIED
+    const { error: updateError } = await supabase
+      .from('module_approval_requests')
+      .update({
+        status: 'DENIED',
+        denied_at: new Date().toISOString(),
+        review_notes: validation.data.notes,
+        metadata: {
+          notify_requester: validation.data.notifyRequester
+        }
+      })
+      .eq('id', validation.data.requestId);
+
+    if (updateError) {
+      console.error('Erro ao negar solicitação:', updateError);
+      return { success: false, error: 'Erro ao processar negação.' };
+    }
+
+    revalidatePath('/admin/organizations');
+    return { success: true };
+  } catch (error) {
+    console.error('Erro inesperado em denyModuleRequest:', error);
+    return { success: false, error: 'Erro inesperado ao negar solicitação.' };
+  }
+}

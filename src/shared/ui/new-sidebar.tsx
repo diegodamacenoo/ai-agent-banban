@@ -183,7 +183,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
         if (sidebarRef.current) {
           const elements = sidebarRef.current.querySelectorAll(
             'button, a, [tabindex]:not([tabindex="-1"])',
-          ) as NodeListOf<HTMLElement>;
+          );
           focusableElementsRef.current = Array.from(elements);
         }
       };

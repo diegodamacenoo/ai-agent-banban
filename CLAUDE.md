@@ -2,14 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-You're running on a WSL, white frontend and backend are running on Windows localhost (ip: 192.168.65.7)
-
 # 🚨 MANDATORY: Context Documentation First
 
 **BEFORE any implementation or analysis, you MUST:**
 
-1. **Read `context/README.md`** - Navigation and overview
-2. **Consume relevant context docs** based on task:
+1. **Read `context/README.md`** - Index with scenario-specific guidance and navigation
+2. **Follow the scenario-specific reading sequence** from the README index for your task type
+3. **Consume relevant context docs** based on task:
    - Getting Started: `context/01-getting-started/` (setup, troubleshooting)
    - Architecture: `context/02-architecture/` (overview, client-modules, patterns)
    - APIs/Integrations: `context/03-apis-integrations/` (APIs overview, webhooks)
@@ -32,6 +31,7 @@ You're running on a WSL, white frontend and backend are running on Windows local
 ## Commands
 
 - Always respond in brazilian portuguese
+- Stop saying I'm right all time. I'm not the owner of truth.
 
 ### Development Commands
 
@@ -93,6 +93,28 @@ You're running on a WSL, white frontend and backend are running on Windows local
 - `npx supabase status` - Status dos containers locais
 
 **Nota:** No ambiente Dev Container, comandos locais que dependem de Docker têm limitações de permissão. Use principalmente comandos remotos que funcionam perfeitamente com o projeto linkado.
+
+### MCP Tools (Model Context Protocol)
+
+#### Context7 MCP
+- **Uso**: Documentação e exemplos de código atualizados para bibliotecas
+- **Comandos**:
+  - `mcp__context7__resolve-library-id <library-name>` - Resolver ID da biblioteca
+  - `mcp__context7__get-library-docs <library-id>` - Obter documentação
+- **Exemplo**: Para Next.js, React, Tailwind, TypeScript, etc.
+- **Quando usar**: Antes de implementar features com bibliotecas externas
+
+#### Playwright MCP  
+- **Uso**: Automação de browser e testes E2E
+- **Comandos principais**:
+  - `mcp__playwright__browser_navigate <url>` - Navegar para URL
+  - `mcp__playwright__browser_snapshot` - Capturar estado da página
+  - `mcp__playwright__browser_click <element>` - Clicar em elemento
+  - `mcp__playwright__browser_type <text>` - Digitar texto
+  - `mcp__playwright__browser_take_screenshot` - Capturar screenshot
+- **Quando usar**: Testes de interface, automação de workflows, validação de features
+
+#### Supabase MCP
 
 # Operational Guidelines
 
@@ -189,6 +211,8 @@ You're running on a WSL, white frontend and backend are running on Windows local
 - Implement proper error boundaries for production stability
 - Brazilian Portuguese language support as default
 - Use Supabase MCP tool for database tasks
+- Use Context7 MCP tool for library documentation and code examples
+- Use Playwright MCP tool for browser automation and E2E testing
 - Prefer `npx supabase` commands over local Docker when in Dev Container
 - Use `npx supabase gen types typescript` to keep types updated
 - Use `npx supabase inspect db` commands for performance monitoring
@@ -240,7 +264,20 @@ You're running on a WSL, white frontend and backend are running on Windows local
 
 - **Unit tests**: Jest + React Testing Library
 - **Integration tests**: Multi-tenant isolation patterns
-- **E2E tests**: Critical user journeys
+- **E2E tests**: Critical user journeys com Playwright MCP
+
+#### MCP Integration Guidelines
+
+**Context7 MCP:**
+- Use antes de implementar novas features com bibliotecas
+- Consulte documentação atualizada para evitar APIs depreciadas
+- Obtenha exemplos de código para padrões atuais
+
+**Playwright MCP:**
+- Implemente testes E2E para fluxos críticos do sistema
+- Use `browser_snapshot` para verificar estado da UI
+- Combine com testes de módulos para validação completa
+- Configure testes de regressão para client customizations
 
 ### Development Guidelines
 
@@ -255,7 +292,7 @@ You're running on a WSL, white frontend and backend are running on Windows local
 #### Component Guidelines
 
 - Do not use modal component, use alert-dialog instead
-- Set icons as props, whenever available for a component
+- **Set icons as props**: Use `icon={IconComponent}` prop instead of child elements like `<Icon className="mr-2 h-4 w-4" />`. Components like Button, Badge, DropdownMenuItem, etc. support icon props for consistent styling and positioning.
 
 #### Development Rules
 

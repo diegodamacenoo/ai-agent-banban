@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string
+          query?: string
+          variables?: Json
+          extensions?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       _backup_alert_digest: {
@@ -744,7 +769,22 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "alert_thresholds_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "alert_thresholds_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       api_key_usage_logs: {
         Row: {
@@ -797,6 +837,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_key_usage_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -860,6 +907,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "api_keys_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       audit_logs: {
@@ -902,7 +956,15 @@ export type Database = {
           resource_type?: string | null
           user_agent?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_user_id_fkey"
+            columns: ["actor_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       base_modules: {
         Row: {
@@ -914,6 +976,7 @@ export type Database = {
           deleted_at: string | null
           dependencies: string | null
           description: string | null
+          exclusive_tenant_id: string | null
           icon: string | null
           id: string
           is_active: boolean | null
@@ -936,6 +999,7 @@ export type Database = {
           deleted_at?: string | null
           dependencies?: string | null
           description?: string | null
+          exclusive_tenant_id?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
@@ -958,6 +1022,7 @@ export type Database = {
           deleted_at?: string | null
           dependencies?: string | null
           description?: string | null
+          exclusive_tenant_id?: string | null
           icon?: string | null
           id?: string
           is_active?: boolean | null
@@ -971,7 +1036,22 @@ export type Database = {
           updated_at?: string | null
           version?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "base_modules_exclusive_tenant_id_fkey"
+            columns: ["exclusive_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "base_modules_exclusive_tenant_id_fkey"
+            columns: ["exclusive_tenant_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+        ]
       }
       business_entities: {
         Row: {
@@ -1033,6 +1113,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_entities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       business_relationships: {
@@ -1085,6 +1172,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_relationships_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
           {
             foreignKeyName: "fk_source_entity"
@@ -1152,6 +1246,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "business_transaction_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
             foreignKeyName: "business_transaction_items_transaction_id_fkey"
             columns: ["transaction_id"]
             isOneToOne: false
@@ -1217,6 +1318,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "business_transactions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       custom_modules: {
@@ -1266,6 +1374,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_modules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -1749,6 +1864,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_tenant_modules_organizations"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       login_attempt_history: {
@@ -1785,7 +1907,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "login_attempt_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       metrics_cache: {
         Row: {
@@ -1892,6 +2022,27 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "module_approval_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "module_approval_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "module_approval_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       module_backups: {
@@ -1932,6 +2083,13 @@ export type Database = {
           size_bytes?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "module_backups_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
           {
             foreignKeyName: "module_backups_implementation_id_fkey"
             columns: ["implementation_id"]
@@ -2011,6 +2169,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "module_deployments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       module_file_audit: {
@@ -2066,6 +2231,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_file_audit_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2342,6 +2514,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "organization_modules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       organizations: {
@@ -2530,11 +2709,25 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "profiles_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2682,6 +2875,20 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "rls_audit_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "rls_audit_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       secrets: {
@@ -2718,7 +2925,22 @@ export type Database = {
           updated_by?: string | null
           value?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "secrets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "secrets_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       security_alert_settings: {
         Row: {
@@ -2748,7 +2970,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_settings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       tenant_business_entities: {
         Row: {
@@ -2788,6 +3018,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tenant_business_entities_organization_id"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2829,6 +3066,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tenant_business_relationships_organization_id"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -2873,6 +3117,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_tenant_business_transactions_organization_id"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3020,6 +3271,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tenant_module_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       tenant_module_settings: {
@@ -3089,7 +3347,15 @@ export type Database = {
             | Database["public"]["Enums"]["tenant_operational_status"]
             | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tenant_module_status_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       tenant_snapshots: {
         Row: {
@@ -3129,6 +3395,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tenant_snapshots_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
           },
         ]
       }
@@ -3173,6 +3446,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_consents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "user_consents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
           },
         ]
       }
@@ -3225,7 +3512,15 @@ export type Database = {
           status?: Database["public"]["Enums"]["export_status_enum"] | null
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_data_exports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_deletion_requests: {
         Row: {
@@ -3270,7 +3565,15 @@ export type Database = {
           user_id?: string | null
           verification_token?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_deletion_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_invites: {
         Row: {
@@ -3314,6 +3617,20 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_invites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "user_invites_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       user_known_devices: {
@@ -3347,7 +3664,15 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_known_devices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_login_history: {
         Row: {
@@ -3374,34 +3699,133 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_login_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_session_blocks: {
+        Row: {
+          blocked_until: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          blocked_until: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          blocked_until?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_session_blocks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_session_blocks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       user_sessions: {
         Row: {
           created_at: string | null
+          device_info: Json | null
+          expires_at: string | null
+          geo_location: Json | null
           id: string
           ip: unknown | null
+          is_active: boolean | null
+          last_activity: string | null
+          login_method: string | null
+          organization_id: string | null
+          security_flags: Json | null
+          session_type: string | null
           updated_at: string | null
           user_agent: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
-          id: string
+          device_info?: Json | null
+          expires_at?: string | null
+          geo_location?: Json | null
+          id?: string
           ip?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          login_method?: string | null
+          organization_id?: string | null
+          security_flags?: Json | null
+          session_type?: string | null
           updated_at?: string | null
           user_agent?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          device_info?: Json | null
+          expires_at?: string | null
+          geo_location?: Json | null
           id?: string
           ip?: unknown | null
+          is_active?: boolean | null
+          last_activity?: string | null
+          login_method?: string | null
+          organization_id?: string | null
+          security_flags?: Json | null
+          session_type?: string | null
           updated_at?: string | null
           user_agent?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sessions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       webhook_logs: {
         Row: {
@@ -3581,7 +4005,41 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_tenant_modules_organizations"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
+      }
+      user_profile_cache: {
+        Row: {
+          activity_level: string | null
+          client_type: string | null
+          computed_status: string | null
+          email: string | null
+          email_confirmed_at: string | null
+          first_name: string | null
+          full_name: string | null
+          is_setup_complete: boolean | null
+          last_modified: string | null
+          last_name: string | null
+          last_sign_in_at: string | null
+          organization_id: string | null
+          organization_name: string | null
+          organization_slug: string | null
+          organization_status: string | null
+          profile_created_at: string | null
+          profile_updated_at: string | null
+          role: Database["public"]["Enums"]["role_enum"] | null
+          tenant_type: Database["public"]["Enums"]["tenant_type"] | null
+          user_created_at: string | null
+          user_id: string | null
+          user_status: Database["public"]["Enums"]["user_status_enum"] | null
+        }
+        Relationships: []
       }
       v_active_tenant_assignments: {
         Row: {
@@ -3646,6 +4104,13 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tenant_module_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
       v_modules_with_implementations: {
@@ -3698,10 +4163,21 @@ export type Database = {
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tenant_module_assignments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "user_profile_cache"
+            referencedColumns: ["organization_id"]
+          },
         ]
       }
     }
     Functions: {
+      admin_delete_user_sessions: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       archive_organization_module: {
         Args: {
           p_module_id: string
@@ -3713,6 +4189,22 @@ export type Database = {
       auto_upgrade_tenant_modules: {
         Args: { p_tenant_id?: string; p_module_id?: string }
         Returns: Json
+      }
+      batch_cleanup_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          operation: string
+          affected_count: number
+          details: Json
+        }[]
+      }
+      block_user_sessions: {
+        Args: {
+          target_user_id: string
+          block_minutes?: number
+          block_reason?: string
+        }
+        Returns: boolean
       }
       can_access_audit_logs: {
         Args: Record<PropertyKey, never>
@@ -3749,9 +4241,17 @@ export type Database = {
           has_permission: boolean
         }[]
       }
+      cleanup_expired_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       cleanup_old_api_key_logs: {
         Args: { days_to_keep?: number }
         Returns: number
+      }
+      cleanup_old_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       configure_organization_business_domain: {
         Args: { org_id: string; business_domain: string; config?: Json }
@@ -3779,6 +4279,19 @@ export type Database = {
         }
         Returns: string
       }
+      create_user_session: {
+        Args: {
+          p_user_id: string
+          p_user_agent?: string
+          p_ip?: unknown
+          p_device_info?: Json
+          p_geo_location?: Json
+          p_session_type?: string
+          p_login_method?: string
+          p_expires_hours?: number
+        }
+        Returns: string
+      }
       current_user_organization_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -3798,9 +4311,58 @@ export type Database = {
         Args: { p_instance_id: string }
         Returns: boolean
       }
+      detect_suspicious_sessions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          session_id: string
+          user_id: string
+          user_email: string
+          suspicion_reasons: Json
+          risk_level: string
+        }[]
+      }
+      end_all_user_sessions: {
+        Args: { p_user_id: string; p_except_session_id?: string }
+        Returns: number
+      }
+      end_user_session: {
+        Args: { p_session_id: string }
+        Returns: boolean
+      }
+      end_user_session_complete: {
+        Args: { p_session_id: string }
+        Returns: boolean
+      }
+      fix_orphaned_users: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          action: string
+          user_id: string
+          user_email: string
+          result: string
+        }[]
+      }
       generate_slug: {
         Args: { input_name: string }
         Returns: string
+      }
+      get_active_sessions_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_active_sessions: number
+          sessions_last_hour: number
+          sessions_last_day: number
+          unique_users_active: number
+          top_devices: Json
+        }[]
+      }
+      get_cache_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          metric: string
+          value: number
+          description: string
+        }[]
       }
       get_complete_schema: {
         Args: Record<PropertyKey, never>
@@ -3932,6 +4494,18 @@ export type Database = {
         Args: { org_id?: string }
         Returns: Json
       }
+      get_organization_active_sessions: {
+        Args: { org_id: string }
+        Returns: {
+          session_id: string
+          user_id: string
+          user_email: string
+          device_info: Json
+          last_activity: string
+          geo_location: Json
+          session_type: string
+        }[]
+      }
       get_organization_modules: {
         Args: { org_id: string }
         Returns: {
@@ -3967,9 +4541,37 @@ export type Database = {
           custom_config: Json
         }[]
       }
+      get_organization_session_stats: {
+        Args: { p_org_id: string }
+        Returns: {
+          metric: string
+          value: number
+          description: string
+        }[]
+      }
+      get_organization_users_cached: {
+        Args: { org_slug: string }
+        Returns: {
+          user_id: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["role_enum"]
+          user_status: Database["public"]["Enums"]["user_status_enum"]
+          activity_level: string
+          last_sign_in_at: string
+        }[]
+      }
       get_product_by_id: {
         Args: { p_organization_id: string; p_product_id: string }
         Returns: Json
+      }
+      get_recent_user_blocks: {
+        Args: { minutes_ago?: number; limit_count?: number }
+        Returns: {
+          user_id: string
+          blocked_until: string
+          created_at: string
+        }[]
       }
       get_rls_audit_logs: {
         Args: {
@@ -4008,6 +4610,15 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_session_analytics: {
+        Args: { p_org_id: string; p_days_back?: number }
+        Returns: {
+          metric_name: string
+          metric_value: number
+          metric_trend: string
+          metric_details: Json
+        }[]
+      }
       get_supplier_by_id: {
         Args: { p_organization_id: string; p_supplier_id: string }
         Returns: Json
@@ -4044,6 +4655,23 @@ export type Database = {
           permissions: string[]
         }[]
       }
+      get_user_active_sessions: {
+        Args: { p_user_id: string }
+        Returns: {
+          session_id: string
+          created_at: string
+          last_activity: string
+          ip: unknown
+          device_info: Json
+          geo_location: Json
+          session_type: string
+          login_method: string
+        }[]
+      }
+      get_user_block_remaining_time: {
+        Args: { check_user_id: string }
+        Returns: number
+      }
       get_user_organization_id: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -4079,6 +4707,10 @@ export type Database = {
           base_config: Json
           custom_config: Json
         }[]
+      }
+      get_user_with_profile_cached: {
+        Args: { input_user_id?: string }
+        Returns: unknown[]
       }
       get_visible_modules_for_tenant: {
         Args: { p_tenant_id: string }
@@ -4145,6 +4777,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_user_session_blocked: {
+        Args: { check_user_id: string }
+        Returns: boolean
+      }
       log_rls_operation: {
         Args: {
           p_operation_type: Database["public"]["Enums"]["rls_operation_type"]
@@ -4177,6 +4813,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      monitor_login_security: {
+        Args: { p_user_id: string }
+        Returns: {
+          alert_type: string
+          severity: string
+          message: string
+          recommendations: Json
+        }[]
+      }
+      prepare_session_webhook_data: {
+        Args: { p_session_id: string }
+        Returns: Json
+      }
       provision_tenant_module: {
         Args: {
           p_tenant_id: string
@@ -4205,9 +4854,25 @@ export type Database = {
         Args: { session_id: string }
         Returns: Json
       }
+      scheduled_session_maintenance: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          job_name: string
+          execution_time: string
+          job_results: Json
+        }[]
+      }
       seed_default_modules_for_empty_organizations: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      session_heartbeat: {
+        Args: { p_user_id: string; p_additional_data?: Json }
+        Returns: {
+          session_id: string
+          updated: boolean
+          created_new: boolean
+        }[]
       }
       set_config: {
         Args: { key: string; value: string }
@@ -4216,6 +4881,10 @@ export type Database = {
       supabase_admin_revoke_session: {
         Args: { session_id: string }
         Returns: undefined
+      }
+      update_session_activity: {
+        Args: { p_session_id: string; p_new_activity?: string }
+        Returns: boolean
       }
       upsert_widget_instance: {
         Args: {
@@ -4236,6 +4905,14 @@ export type Database = {
       user_has_module_access: {
         Args: { module_slug: string; org_id?: string }
         Returns: boolean
+      }
+      validate_auth_profile_consistency: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          check_type: string
+          issue_count: number
+          details: Json
+        }[]
       }
       validate_entity_data: {
         Args: { p_entity_type: string; p_data: Json }
@@ -4637,6 +5314,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       api_key_permission: [

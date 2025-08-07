@@ -133,11 +133,12 @@ export default async function DynamicModulePage({
       loadingMethod: 'dynamic'
     });
 
-    // Criar componente dinâmico baseado no component_path do banco
+    // Criar componente dinâmico usando APENAS component_path (estrutura unificada)
     const DynamicComponent = createDynamicLazyComponent(
       implementation.component_path,
       moduleSlug,
       implementation.implementation_key
+      // route_pattern não é mais necessário - component_path é absoluto
     );
 
     return (

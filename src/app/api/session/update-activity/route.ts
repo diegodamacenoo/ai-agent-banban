@@ -78,7 +78,9 @@ export async function POST(request: NextRequest) {
         expires_at: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(), // 8 horas
         device_info: {},
         geo_location: {},
-        security_flags: {}
+        security_flags: {},
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
       const { data: newSession, error: insertError } = await supabase

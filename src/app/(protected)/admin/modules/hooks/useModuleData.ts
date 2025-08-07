@@ -184,11 +184,11 @@ export function useModuleData(): UseModuleDataReturn {
       setLoading(false);
       setLoadingStats(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     loadData();
-  }, []); // Removed loadData from dependencies to prevent infinite re-renders
+  }, [loadData]);
 
   const handleUpdateConfig = useCallback(async (
     tenantId: string, 
@@ -245,6 +245,7 @@ export function useModuleData(): UseModuleDataReturn {
 }
 
 export function useModuleStats() {
+  const { toast } = useToast();
   const [stats, setStats] = useState<ModuleStats | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -268,11 +269,11 @@ export function useModuleStats() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     refresh();
-  }, []); // Removed refresh from dependencies to prevent infinite re-renders
+  }, [refresh]);
 
   return { stats, loading, refresh };
 }

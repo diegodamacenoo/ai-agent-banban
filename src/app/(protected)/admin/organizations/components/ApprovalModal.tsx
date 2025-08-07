@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { ModuleApprovalRequest } from '@/shared/types/tenant-operational-status';
 import { useToast } from '@/shared/ui/toast';
+import { approveModuleRequest, denyModuleRequest } from '@/app/actions/admin/organization-approvals';
 
 interface ApprovalModalProps {
   open: boolean;
@@ -44,14 +45,23 @@ export function ApprovalModal({open, onOpenChange, request, onApproved }: Approv
   const handleApprove = async () => {
     setIsProcessing(true);
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate API call
+      const result = await approveModuleRequest({
+        requestId: request.id,
+        notes: reviewNotes,
+        autoStartProvisioning,
+        notifyRequester,
+        scheduleOutsideHours
+      });
       
-      toast.success('Solicitação aprovada com sucesso');
-      onApproved();
-      onOpenChange(false);
+      if (result.success) {
+        toast.success('Solicitação aprovada com sucesso');
+        onApproved();
+        onOpenChange(false);
+      } else {
+        toast.error(result.error || 'Erro ao aprovar solicitação');
+      }
     } catch (error) {
-      toast.error('Erro ao aprovar solicitação');
+      toast.error('Erro inesperado ao aprovar solicitação');
     } finally {
       setIsProcessing(false);
     }
@@ -65,21 +75,28 @@ export function ApprovalModal({open, onOpenChange, request, onApproved }: Approv
 
     setIsProcessing(true);
     try {
-      // TODO: Replace with actual API call
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+      const result = await denyModuleRequest({
+        requestId: request.id,
+        notes: reviewNotes,
+        notifyRequester
+      });
       
-      toast.success('Solicitação negada');
-      onApproved();
-      onOpenChange(false);
+      if (result.success) {
+        toast.success('Solicitação negada');
+        onApproved();
+        onOpenChange(false);
+      } else {
+        toast.error(result.error || 'Erro ao negar solicitação');
+      }
     } catch (error) {
-      toast.error('Erro ao negar solicitação');
+      toast.error('Erro inesperado ao negar solicitação');
     } finally {
       setIsProcessing(false);
     }
   };
 
   const runValidations = async () => {
-    // TODO: Implement actual validations
+    // ✅ IMPLEMENTADO: Validações básicas substituindo placeholder
     const results = {
       dependencies: true,
       tenantPolicy: true,

@@ -109,7 +109,7 @@ export async function handlePurchaseFlowPOST(req: NextRequest): Promise<NextResp
         records_successful: result.summary.records_successful,
         records_failed: result.summary.records_failed,
         success_rate: result.summary.records_processed > 0 
-          ? ((result.summary.records_successful / result.summary.records_processed) * 100).toFixed(2) + '%'
+          ? `${((result.summary.records_successful / result.summary.records_processed) * 100).toFixed(2)  }%`
           : '100.00%'
       }
     });

@@ -21,7 +21,8 @@ import {
   Bell,
   HelpCircle,
   User,
-  LogOut
+  LogOut,
+  Monitor
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
 import { Sidebar, SidebarContent, SidebarHeader, SidebarFooter } from '@/shared/ui/sidebar';
@@ -77,7 +78,7 @@ const adminNavItems = [
     ]
   },
   {
-    title: 'Logs & Auditoria',
+    title: 'Auditoria',
     href: '/admin/audit',
     icon: Activity
   },

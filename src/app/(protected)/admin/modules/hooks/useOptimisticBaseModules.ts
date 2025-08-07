@@ -28,7 +28,6 @@ export function useOptimisticBaseModules({
 
   // Sincronizar com initialBaseModules quando mudar
   useEffect(() => {
-    console.log('🔄 useOptimisticBaseModules: initialBaseModules mudou:', initialBaseModules.length);
     setBaseBaseModules(initialBaseModules);
   }, [initialBaseModules]);
 
@@ -36,16 +35,12 @@ export function useOptimisticBaseModules({
   const optimisticBaseModules = useMemo(() => {
     let result = [...baseModules];
     
-    console.log('🔄 useOptimisticBaseModules: Recalculando lista otimística');
-    console.log('🔄 baseModules originais:', baseModules.length);
-    console.log('🔄 operações otimísticas pendentes:', optimisticOperations.size);
 
     // Aplicar operações otimísticas em ordem cronológica
     const sortedOperations = Array.from(optimisticOperations.values())
       .sort((a, b) => a.timestamp - b.timestamp);
 
     for (const operation of sortedOperations) {
-      console.log('🔄 Aplicando operação otimística:', operation.type, operation.data?.name || operation.moduleId);
       
       switch (operation.type) {
         case 'update':
@@ -58,7 +53,6 @@ export function useOptimisticBaseModules({
         case 'create':
           if (operation.data) {
             result = [...result, operation.data];
-            console.log('✅ Módulo adicionado otimisticamente:', operation.data.name);
           }
           break;
         case 'soft_delete':
@@ -96,7 +90,6 @@ export function useOptimisticBaseModules({
       }
     }
 
-    console.log('🔄 Lista otimística final:', result.length, 'módulos');
     return result;
   }, [baseModules, optimisticOperations]);
 
@@ -119,7 +112,6 @@ export function useOptimisticBaseModules({
     setOptimisticOperations(prev => new Map(prev).set(operationId, operation));
     setPendingOperations(prev => new Set(prev).add(operationId));
 
-    console.log(`🚀 Operação otimística ${type} criada:`, operationId, data?.name || moduleId);
     
     return operationId;
   }, []);
@@ -131,9 +123,7 @@ export function useOptimisticBaseModules({
 
   // Create otimístico de módulo base
   const optimisticCreate = useCallback((newModule: BaseModule): string => {
-    console.log('🚀 optimisticCreate chamado para:', newModule.name);
     const operationId = createOptimisticOperation('create', newModule);
-    console.log('🚀 operationId gerado:', operationId);
     return operationId;
   }, [createOptimisticOperation]);
 
@@ -210,7 +200,6 @@ export function useOptimisticBaseModules({
       return newSet;
     });
 
-    console.log(`✅ Operação ${operation.type} confirmada:`, operationId);
   }, [optimisticOperations]);
 
   // Reverter operação (em caso de erro)
@@ -240,13 +229,11 @@ export function useOptimisticBaseModules({
     // Callback de erro
     onError?.(message, operation);
 
-    console.log(`❌ Operação ${operation.type} revertida:`, operationId, errorMessage);
   }, [optimisticOperations, toast, onError]);
 
   // Sincronizar com dados do servidor
   const syncWithServer = useCallback((serverData: BaseModule[]) => {
     setBaseBaseModules(serverData);
-    console.log('🔄 Base modules sincronizados com servidor:', serverData.length);
   }, []);
 
   // Atualizar dados base (usado pelo componente pai)

@@ -384,7 +384,7 @@ export function WidgetList({
           className="w-full mt-2"
           onClick={onShowMore}
         >
-          Ver {hasMore ? `mais ${items.length - maxItems!}` : 'todos'}
+          Ver {hasMore ? `mais ${items.length - maxItems}` : 'todos'}
         </Button>
       )}
     </div>

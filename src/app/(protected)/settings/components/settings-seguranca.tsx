@@ -6,6 +6,7 @@ import { Button } from "@/shared/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/ui/table";
 import { LogOutIcon, LoaderCircleIcon } from "lucide-react";
 import { SkeletonSessionTable } from "@/shared/ui/skeleton-loader";
+import { toast } from "@/shared/ui/toast/use-toast";
 // Actions
 import { getUserSessions, terminateSession, terminateAllOtherSessions } from "@/app/actions/auth/sessions";
 import { useRouter } from "next/navigation";

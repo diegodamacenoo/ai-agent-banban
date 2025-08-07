@@ -294,7 +294,8 @@ export function logModuleOperation(
   module: string, 
   details?: any
 ): void {
-  if (process.env.NODE_ENV === 'development') {
-    console.debug(`[MODULES] ${operation}: ${tenant}/${module}`, details);
-  }
+  // Logs suprimidos para limpar terminal - reativar se necessário para debug
+  // if (process.env.NODE_ENV === 'development') {
+  //   console.debug(`[MODULES] ${operation}: ${tenant}/${module}`, details);
+  // }
 }

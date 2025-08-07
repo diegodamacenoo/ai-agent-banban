@@ -135,7 +135,6 @@ export async function getAllUsers() {
         last_name,
         role,
         status,
-        last_sign_in_at,
         created_at,
         job_title,
         phone,
@@ -158,12 +157,34 @@ export async function getAllUsers() {
       return { error: 'Falha ao carregar emails dos usuários.' };
     }
 
-    // Mapear emails para os perfis
+    // Mapear emails e dados de autenticação para os perfis
     const usersWithEmail = profiles.map(profile => {
       const user = users.users.find(u => u.id === profile.id);
+      
+      // Mapear roles para o formato esperado pelo frontend
+      let mappedRole: 'admin' | 'manager' | 'user' = 'user';
+      if (profile.role === 'master_admin' || profile.role === 'organization_admin') {
+        mappedRole = 'admin';
+      } else if (profile.role === 'editor') {
+        mappedRole = 'manager';
+      }
+      
       return {
-        ...profile,
-        email: user?.email || 'Email não encontrado'
+        id: profile.id,
+        email: user?.email || 'Email não encontrado',
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        full_name: `${profile.first_name || ''} ${profile.last_name || ''}`.trim(),
+        role: mappedRole,
+        original_role: profile.role, // Manter role original para referência
+        organization_id: profile.organizations?.id || '',
+        organization_name: profile.organizations?.company_trading_name || 'Sem organização',
+        is_active: profile.status === 'ACTIVE',
+        status: profile.status,
+        last_sign_in_at: user?.last_sign_in_at || profile.created_at,
+        created_at: profile.created_at,
+        phone: profile.phone,
+        job_title: profile.job_title
       };
     });
 
@@ -198,8 +219,10 @@ export async function getUserStats() {
       active: profiles.filter(p => p.status === 'ACTIVE').length,
       inactive: profiles.filter(p => p.status === 'INACTIVE').length,
       pending: profiles.filter(p => p.status === 'PENDING').length,
-  deleted: profiles.filter(p => p.status === 'DELETED').length,
+      deleted: profiles.filter(p => p.status === 'DELETED').length,
       admins: profiles.filter(p => p.role === 'master_admin' || p.role === 'organization_admin').length,
+      managers: profiles.filter(p => p.role === 'editor').length,
+      regular: profiles.filter(p => p.role === 'reader' || p.role === 'visitor').length,
       recent: profiles.filter(p => new Date(p.created_at) > oneWeekAgo).length
     };
 

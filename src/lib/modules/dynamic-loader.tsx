@@ -7,6 +7,7 @@
 
 import { ComponentType, lazy } from 'react';
 import { conditionalDebugLogSync } from '@/shared/utils/conditional-debug-sync';
+import { UNIFIED_COMPONENTS_REGISTRY } from '@/core/modules/components-registry';
 
 // Interface padrão que todas as implementações devem seguir
 export interface ModuleImplementationProps {
@@ -26,8 +27,13 @@ export type ModuleImplementationComponent = ComponentType<ModuleImplementationPr
 // Cache de componentes carregados para performance
 const componentCache = new Map<string, ModuleImplementationComponent>();
 
+// Limpar cache na inicialização para desenvolvimento
+if (process.env.NODE_ENV === 'development') {
+  componentCache.clear();
+}
+
 // Lista de implementações conhecidas para fallback
-const KNOWN_IMPLEMENTATIONS: Record<string, string> = {
+const KNOWN_IMPLEMENTATIONS: Record<string, string | (() => Promise<any>)> = {
   // Performance
   'StandardPerformanceImplementation': './performance/implementations/StandardPerformanceImplementation',
   'BanbanPerformanceImplementation': './performance/implementations/BanbanPerformanceImplementation', 
@@ -41,9 +47,10 @@ const KNOWN_IMPLEMENTATIONS: Record<string, string> = {
   'StandardInsightsImplementation': './insights/implementations/StandardInsightsImplementation',
   'BanbanInsightsImplementation': './insights/implementations/BanbanInsightsImplementation',
   
-  // Alerts
-  'StandardAlertsImplementation': './alerts/implementations/StandardAlertsImplementation',
-  'BanbanAlertsImplementation': './alerts/implementations/BanbanAlertsImplementation',
+  // Alerts - USANDO IMPORT DINÂMICO ABSOLUTO
+  'StandardAlertsImplementation': () => import('@/app/(protected)/[slug]/(modules)/alerts/implementations/StandardAlertsImplementation'),
+  'BanbanAlertsImplementation': () => import('@/app/(protected)/[slug]/(modules)/alerts/implementations/BanbanAlertsImplementation'),
+  'EnterpriseAlertsImplementation': () => import('@/app/(protected)/[slug]/(modules)/alerts/implementations/EnterpriseAlertsImplementation'),
   
   // Inventory
   'StandardInventoryImplementation': './inventory/implementations/StandardInventoryImplementation',
@@ -51,20 +58,25 @@ const KNOWN_IMPLEMENTATIONS: Record<string, string> = {
 };
 
 /**
- * Carrega uma implementação de módulo dinamicamente
+ * Carrega uma implementação de módulo dinamicamente - ESTRUTURA UNIFICADA
  * 
- * @param componentPath - Caminho do componente no banco de dados
- * @param moduleSlug - Slug do módulo (para fallback)
- * @param implementationKey - Chave da implementação (para fallback)
+ * Agora usa APENAS o component_path do banco de dados (path absoluto)
+ * Elimina os 5 fallbacks complexos em favor de uma única fonte de verdade
+ * 
+ * @param componentPath - Caminho absoluto do componente (@/core/modules/...)
+ * @param moduleSlug - Slug do módulo (para debug/cache)
+ * @param implementationKey - Chave da implementação (para debug/cache)
+ * @param routePattern - Não mais usado (mantido para compatibilidade)
  * @returns Promise<ModuleImplementationComponent>
  */
 export async function loadModuleImplementation(
   componentPath: string,
   moduleSlug: string,
-  implementationKey: string = 'standard'
+  implementationKey: string = 'standard',
+  routePattern?: string | null
 ): Promise<ModuleImplementationComponent> {
   
-  const cacheKey = `${moduleSlug}:${implementationKey}:${componentPath}`;
+  const cacheKey = `${componentPath}:${moduleSlug}:${implementationKey}`;
   
   // Verificar cache primeiro
   if (componentCache.has(cacheKey)) {
@@ -73,153 +85,79 @@ export async function loadModuleImplementation(
     return cached;
   }
 
+  // ESTRATÉGIA UNIFICADA: Usar APENAS o component_path do banco de dados
   try {
-    // Tentar carregar pelo component_path do banco
+    if (!componentPath?.trim()) {
+      throw new Error(`Component path vazio para módulo ${moduleSlug}`);
+    }
+
     const component = await loadByComponentPath(componentPath);
     if (component) {
       componentCache.set(cacheKey, component);
-      conditionalDebugLogSync('[DynamicLoader] Loaded via component_path', { componentPath });
+      conditionalDebugLogSync('[DynamicLoader] Loaded via unified structure', { 
+        componentPath,
+        moduleSlug,
+        implementationKey
+      });
       return component;
     }
-  } catch (error) {
-    console.warn(`[DynamicLoader] Failed to load via component_path: ${componentPath}`, error);
-  }
 
-  try {
-    // Fallback 1: Tentar por implementação conhecida
-    const component = await loadByImplementationKey(moduleSlug, implementationKey);
-    if (component) {
-      componentCache.set(cacheKey, component);
-      conditionalDebugLogSync('[DynamicLoader] Loaded via fallback implementation', { moduleSlug, implementationKey });
-      return component;
-    }
+    throw new Error(`Falhou ao carregar component do path: ${componentPath}`);
+    
   } catch (error) {
-    console.warn(`[DynamicLoader] Failed to load via implementation key: ${moduleSlug}/${implementationKey}`, error);
+    console.error(`[DynamicLoader] Failed to load component: ${componentPath}`, error);
+    
+    // Único fallback: componente de erro
+    const errorComponent = createErrorComponent(moduleSlug, implementationKey, componentPath);
+    componentCache.set(cacheKey, errorComponent);
+    return errorComponent;
   }
-
-  try {
-    // Fallback 1.5: Tentar normalizar implementation_key (ex: 'standard-home' -> 'standard')
-    const normalizedKey = implementationKey.split('-')[0];
-    if (normalizedKey !== implementationKey) {
-      const component = await loadByImplementationKey(moduleSlug, normalizedKey);
-      if (component) {
-        componentCache.set(cacheKey, component);
-        conditionalDebugLogSync('[DynamicLoader] Loaded via normalized implementation', { moduleSlug, normalizedKey });
-        return component;
-      }
-    }
-  } catch (error) {
-    console.warn(`[DynamicLoader] Failed to load via normalized key: ${moduleSlug}/${implementationKey.split('-')[0]}`, error);
-  }
-
-  // Fallback 2: Carregar implementação padrão do módulo
-  try {
-    const component = await loadByImplementationKey(moduleSlug, 'standard');
-    if (component) {
-      componentCache.set(cacheKey, component);
-      conditionalDebugLogSync('[DynamicLoader] Loaded via standard fallback', { moduleSlug });
-      return component;
-    }
-  } catch (error) {
-    console.warn(`[DynamicLoader] Failed to load standard implementation: ${moduleSlug}/standard`, error);
-  }
-
-  // Fallback 3: Componente de erro genérico
-  console.error(`[DynamicLoader] All loading methods failed for: ${cacheKey}`);
-  conditionalDebugLogSync('[DynamicLoader] Debug info', {
-    moduleSlug,
-    implementationKey,
-    originalComponentPath: componentPath,
-    suggestedFix: `Corrija o component_path no banco para: /implementations/Standard${moduleSlug.charAt(0).toUpperCase() + moduleSlug.slice(1)}Implementation`
-  });
-  
-  const errorComponent = createErrorComponent(moduleSlug, implementationKey, componentPath);
-  componentCache.set(cacheKey, errorComponent);
-  return errorComponent;
 }
 
 /**
- * Tentar carregar componente pelo component_path do banco
+ * Carregar componente pelo component_path absoluto - ESTRUTURA UNIFICADA
+ * Usa Components Registry para garantir resolução em build time
  */
 async function loadByComponentPath(componentPath: string): Promise<ModuleImplementationComponent | null> {
   if (!componentPath) return null;
   
-  // Limpar path absoluto inválido (ex: "/standard" -> "standard")
-  let cleanPath = componentPath.replace(/^\/+/, '');
-  
-  // Normalizar o path para relativo
-  let normalizedPath = cleanPath.startsWith('./') ? cleanPath : `./${cleanPath}`;
-  
-  // Se não termina com extensão, assumir que é um diretório com index
-  if (!normalizedPath.includes('.') && !normalizedPath.endsWith('/')) {
-    normalizedPath = `${normalizedPath}/index`;
-  }
-  
+  // NOVA ABORDAGEM: Usar Components Registry para resolver imports
   try {
-    // Dynamic import do componente
-    const module = await import(/* webpackChunkName: "dynamic-module" */ normalizedPath);
-    
-    // Verificar se tem export default
-    if (module.default) {
-      return module.default as ModuleImplementationComponent;
+    conditionalDebugLogSync('[DynamicLoader] Using Components Registry', { 
+      componentPath,
+      isRegistered: !!UNIFIED_COMPONENTS_REGISTRY[componentPath]
+    });
+
+    // Primeiro, tentar carregar via registry
+    if (UNIFIED_COMPONENTS_REGISTRY[componentPath]) {
+      const loader = UNIFIED_COMPONENTS_REGISTRY[componentPath];
+      const module = await loader();
+      
+      if (module.default) {
+        conditionalDebugLogSync('[DynamicLoader] Component loaded via registry', { 
+          componentPath
+        });
+        return module.default as ModuleImplementationComponent;
+      }
     }
-    
-    // Verificar se tem named export com nome do componente
-    const componentName = getComponentNameFromPath(componentPath);
-    if (module[componentName]) {
-      return module[componentName] as ModuleImplementationComponent;
-    }
+
+    // Se não estiver no registry, não tentar dynamic import
+    // (evita erros de build em produção)
+    console.warn(`[DynamicLoader] Component não encontrado no registry: ${componentPath}`);
+    console.warn(`[DynamicLoader] Disponíveis:`, Object.keys(UNIFIED_COMPONENTS_REGISTRY));
     
     return null;
   } catch (error) {
-    conditionalDebugLogSync('[DynamicLoader] Import failed for path', { normalizedPath, error: error.message });
+    conditionalDebugLogSync('[DynamicLoader] All import methods failed', { 
+      componentPath,
+      error: error.message
+    });
     return null;
   }
 }
 
-/**
- * Fallback: carregar por implementação conhecida
- */
-async function loadByImplementationKey(
-  moduleSlug: string, 
-  implementationKey: string
-): Promise<ModuleImplementationComponent | null> {
-  
-  // Gerar nome do componente baseado no módulo e implementação
-  const componentName = generateComponentName(moduleSlug, implementationKey);
-  
-  // Verificar se temos mapeamento conhecido
-  const knownPath = KNOWN_IMPLEMENTATIONS[componentName];
-  if (knownPath) {
-    try {
-      const module = await import(/* webpackChunkName: "known-module" */ knownPath);
-      return module.default || module[componentName] || null;
-    } catch (error) {
-      conditionalDebugLogSync('[DynamicLoader] Known implementation failed', { knownPath, error: error.message });
-    }
-  }
-  
-  // Tentar path convencional
-  const conventionalPath = `./${moduleSlug}/implementations/${componentName}`;
-  try {
-    const module = await import(/* webpackChunkName: "conventional-module" */ conventionalPath);
-    return module.default || module[componentName] || null;
-  } catch (error) {
-    conditionalDebugLogSync('[DynamicLoader] Conventional path failed', { conventionalPath, error: error.message });
-    return null;
-  }
-}
-
-/**
- * Gerar nome de componente baseado no módulo e implementação
- */
-function generateComponentName(moduleSlug: string, implementationKey: string): string {
-  const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
-  const moduleCapitalized = capitalize(moduleSlug);
-  const implementationCapitalized = capitalize(implementationKey);
-  
-  return `${implementationCapitalized}${moduleCapitalized}Implementation`;
-}
+// ESTRUTURA UNIFICADA: Funções de fallback removidas
+// Agora usa exclusivamente component_path do banco de dados
 
 /**
  * Extrair nome do componente do component_path
@@ -240,32 +178,41 @@ function getComponentNameFromPath(componentPath: string): string {
 }
 
 /**
- * Criar componente de erro para quando nada funciona
+ * Criar componente de erro para estrutura unificada
  */
 function createErrorComponent(
   moduleSlug: string, 
   implementationKey: string, 
   componentPath: string
 ): ModuleImplementationComponent {
-  return function ModuleNotFoundError({ params }: ModuleImplementationProps) {
+  return function UnifiedModuleError({ params }: ModuleImplementationProps) {
     return (
       <div className="flex items-center justify-center min-h-96">
-        <div className="text-center max-w-md">
-          <div className="text-6xl mb-4">⚠️</div>
+        <div className="text-center max-w-lg">
+          <div className="text-6xl mb-4">🔧</div>
           <h2 className="text-xl font-semibold text-red-600 mb-2">
-            Implementação não encontrada
+            Componente não encontrado
           </h2>
           <p className="text-gray-600 mb-4">
-            Não foi possível carregar a implementação do módulo.
+            O component_path especificado no banco de dados não foi encontrado.
           </p>
-          <div className="bg-gray-100 p-3 rounded text-sm text-left mb-4">
-            <strong>Detalhes:</strong><br />
-            Módulo: {moduleSlug}<br />
-            Implementação: {implementationKey}<br />
-            Path: {componentPath || 'não especificado'}
+          <div className="bg-red-50 border border-red-200 p-4 rounded text-sm text-left mb-4">
+            <strong>Path configurado:</strong><br />
+            <code className="bg-red-100 px-2 py-1 rounded">{componentPath || 'não especificado'}</code>
+            
+            <div className="mt-3">
+              <strong>Módulo:</strong> {moduleSlug}<br />
+              <strong>Implementação:</strong> {implementationKey}
+            </div>
+          </div>
+          <div className="bg-blue-50 border border-blue-200 p-3 rounded text-sm mb-4">
+            <strong>📋 Para corrigir:</strong><br />
+            1. Verifique se o arquivo existe no path especificado<br />
+            2. Confirme que tem export default ou named export<br />
+            3. Use path absoluto: <code>@/core/modules/[namespace]/implementations/[Component]</code>
           </div>
           <div className="text-sm text-gray-500">
-            Recarregue a página para tentar novamente
+            Estrutura Unificada - Uma fonte de verdade (database)
           </div>
         </div>
       </div>
@@ -279,10 +226,11 @@ function createErrorComponent(
 export function createDynamicLazyComponent(
   componentPath: string,
   moduleSlug: string,
-  implementationKey: string = 'standard'
+  implementationKey: string = 'standard',
+  routePattern?: string | null
 ): ComponentType<ModuleImplementationProps> {
   return lazy(async () => {
-    const Component = await loadModuleImplementation(componentPath, moduleSlug, implementationKey);
+    const Component = await loadModuleImplementation(componentPath, moduleSlug, implementationKey, routePattern);
     return { default: Component };
   });
 }

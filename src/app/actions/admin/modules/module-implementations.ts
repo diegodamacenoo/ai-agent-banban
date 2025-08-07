@@ -1,12 +1,14 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import {
   ActionResult,
   ModuleImplementation,
   CreateModuleImplementationInput,
   UpdateModuleImplementationInput,
+  CreateModuleImplementationSchema,
+  UpdateModuleImplementationSchema,
 } from './schemas';
 import { verifyAdminAccess } from './utils';
 import { trackServerCall } from './call-tracker';
@@ -35,8 +37,6 @@ export async function getModuleImplementations(
     search?: string;
     audience?: 'generic' | 'client-specific' | 'enterprise';
     complexity?: 'basic' | 'standard' | 'advanced' | 'enterprise';
-    includeArchived?: boolean;
-    includeDeleted?: boolean;
     includeArchivedModules?: boolean;
     includeDeletedModules?: boolean;
     page?: number;
@@ -66,7 +66,23 @@ export async function getModuleImplementations(
       let query = supabase
         .from('module_implementations')
         .select(`
-          *,
+          id,
+          base_module_id,
+          implementation_key,
+          name,
+          description,
+          version,
+          component_type,
+          template_type,
+          component_path,
+          audience,
+          complexity,
+          priority,
+          status,
+          is_default,
+          is_active,
+          created_at,
+          updated_at,
           base_module:base_modules (
             id,
             name,
@@ -94,13 +110,7 @@ export async function getModuleImplementations(
         query = query.eq('complexity', filters.complexity);
       }
 
-      // Filtrar por archived_at e deleted_at das implementações
-      if (!filters.includeArchived) {
-        query = query.is('archived_at', null);
-      }
-      if (!filters.includeDeleted) {
-        query = query.is('deleted_at', null);
-      }
+      // Implementações não têm soft delete - sempre retornar todas as ativas
 
       // Filtrar por status do módulo base pai
       if (!filters.includeArchivedModules) {
@@ -190,22 +200,30 @@ async function generateComponentFromTemplate(
  */
 export async function createModuleImplementation(input: CreateModuleImplementationInput): Promise<ActionResult<ModuleImplementation>> {
   try {
+    console.debug('🔥 createModuleImplementation iniciado com input:', input);
+    
     // Verificar modo de manutenção
     const { inMaintenance, message } = await checkMaintenanceMode();
     if (inMaintenance) {
+      console.debug('🔥 Sistema em manutenção');
       return { success: false, error: message || 'Sistema em manutenção' };
     }
 
     // Verificar autenticação e permissões
+    console.debug('🔥 Verificando autenticação...');
     const { isAuthenticated, isAdmin, user } = await verifyAdminAccess();
     
     if (!isAuthenticated) {
+      console.debug('🔥 Usuário não autenticado');
       return { success: false, error: 'Usuário não autenticado' };
     }
     
     if (!isAdmin) {
+      console.debug('🔥 Usuário não é admin');
       return { success: false, error: 'Acesso negado. Apenas administradores podem criar implementações' };
     }
+    
+    console.debug('🔥 Autenticação OK, usuário:', user?.id);
 
     // Verificar se criação de novos módulos requer aprovação
     const requireApproval = await getConfigValue('requireApprovalForNewModules');
@@ -221,28 +239,38 @@ export async function createModuleImplementation(input: CreateModuleImplementati
     await conditionalDebugLog('createModuleImplementation iniciado', { input, userId: user?.id });
 
     // Validar entrada
-    const { CreateModuleImplementationSchema } = await import('./schemas');
+    console.debug('🔥 Validando entrada...');
     const validation = CreateModuleImplementationSchema.safeParse(input);
     if (!validation.success) {
+      console.debug('🔥 Erro de validação:', validation.error.issues);
       return { 
         success: false, 
         error: `Dados inválidos: ${validation.error.issues.map(i => i.message).join(', ')}` 
       };
     }
 
+    console.debug('🔥 Validação OK');
     const data = validation.data;
     const supabase = await createSupabaseServerClient();
 
     // Verificar se o base_module_id existe
-    const { data: baseModule } = await supabase
+    console.debug('🔥 Verificando se base_module_id existe:', data.base_module_id);
+    const { data: baseModule, error: baseModuleError } = await supabase
       .from('base_modules')
       .select('id')
       .eq('id', data.base_module_id)
       .single();
 
+    if (baseModuleError) {
+      console.debug('🔥 Erro ao buscar base module:', baseModuleError);
+    }
+
     if (!baseModule) {
+      console.debug('🔥 Módulo base não encontrado');
       return { success: false, error: 'Módulo base não encontrado' };
     }
+    
+    console.debug('🔥 Base module encontrado:', baseModule);
 
     // Verificar se já existe uma implementação com a mesma chave para o mesmo módulo base
     const { data: existingImpl } = await supabase
@@ -348,8 +376,9 @@ export async function createModuleImplementation(input: CreateModuleImplementati
     };
 
   } catch (error) {
-    console.error('Erro em createModuleImplementation:', error);
-    return { success: false, error: 'Erro interno do servidor' };
+    console.error('🔥 Erro em createModuleImplementation:', error);
+    console.error('🔥 Stack trace:', error instanceof Error ? error.stack : 'No stack');
+    return { success: false, error: 'Erro interno ao criar implementação' };
   }
 }
 
@@ -370,7 +399,6 @@ export async function updateModuleImplementation(input: UpdateModuleImplementati
     }
 
     // Validar entrada
-    const { UpdateModuleImplementationSchema } = await import('./schemas');
     const validation = UpdateModuleImplementationSchema.safeParse(input);
     if (!validation.success) {
       return { 
@@ -385,7 +413,18 @@ export async function updateModuleImplementation(input: UpdateModuleImplementati
     // Verificar se implementação existe
     const { data: existingImpl } = await supabase
       .from('module_implementations')
-      .select('*')
+      .select(`
+        id,
+        base_module_id,
+        implementation_key,
+        name,
+        description,
+        version,
+        is_default,
+        is_active,
+        archived_at,
+        deleted_at
+      `)
       .eq('id', id)
       .single();
 
@@ -774,10 +813,7 @@ export async function purgeModuleImplementation(implementationId: string): Promi
 }
 
 /**
- * Remover uma implementação de módulo (arquivar ou soft delete).
- * - Se a implementação não está arquivada: define `archived_at`
- * - Se a implementação já está arquivada: define `deleted_at` (soft delete)
- * Permite limpeza progressiva de implementações de módulos arquivados.
+ * Excluir implementação de módulo permanentemente (hard delete)
  */
 export async function deleteImplementation(implementationId: string): Promise<ActionResult> {
   try {
@@ -795,7 +831,7 @@ export async function deleteImplementation(implementationId: string): Promise<Ac
     // Verificar se a implementação existe
     const { data: existingImpl, error: fetchError } = await supabase
       .from('module_implementations')
-      .select('id, name, archived_at, deleted_at')
+      .select('id, name')
       .eq('id', implementationId)
       .single();
 
@@ -803,53 +839,44 @@ export async function deleteImplementation(implementationId: string): Promise<Ac
       return { success: false, error: 'Implementação não encontrada.' };
     }
 
-    if (existingImpl.deleted_at) {
-      return { success: false, error: 'Implementação já está excluída.' };
+    // Verificar se há assignments usando esta implementação
+    const { count: assignCount } = await supabase
+      .from('tenant_module_assignments')
+      .select('id', { count: 'exact' })
+      .eq('implementation_id', implementationId);
+
+    if (assignCount && assignCount > 0) {
+      return { 
+        success: false, 
+        error: `Não é possível excluir a implementação. Existem ${assignCount} assignments usando-a. Remova-os primeiro.` 
+      };
     }
 
-    let updateData: any = {};
-    let actionDescription = '';
-
-    if (existingImpl.archived_at) {
-      // Se já está arquivada, fazer soft delete
-      updateData.deleted_at = new Date().toISOString();
-      actionDescription = 'soft-deletar';
-    } else {
-      // Se não está arquivada, apenas arquivar
-      updateData.archived_at = new Date().toISOString();
-      actionDescription = 'arquivar';
-    }
-
-    // Aplicar a ação apropriada
-    const { error: updateError } = await supabase
+    // Excluir implementação permanentemente (hard delete)
+    const { error: deleteError } = await supabase
       .from('module_implementations')
-      .update(updateData)
+      .delete()
       .eq('id', implementationId);
 
-    if (updateError) {
-      console.error(`Erro ao ${actionDescription} implementação:`, updateError);
-      return { success: false, error: `Falha ao ${actionDescription} a implementação.` };
+    if (deleteError) {
+      console.error('Erro ao excluir implementação:', deleteError);
+      return { success: false, error: 'Erro interno ao excluir implementação.' };
     }
 
     revalidateImplementationsPaths();
 
     await supabase.from('audit_logs').insert({
       user_id: user!.id,
-      action: existingImpl.archived_at ? 'delete_module_implementation' : 'archive_module_implementation',
+      action: 'delete_module_implementation',
       resource_type: 'module_implementation',
       resource_id: implementationId,
       details: { 
         implementation_name: existingImpl.name,
-        was_already_archived: !!existingImpl.archived_at,
-        action_performed: existingImpl.archived_at ? 'soft_delete' : 'archive'
+        action_performed: 'hard_delete'
       },
     });
 
-    const successMessage = existingImpl.archived_at 
-      ? 'Implementação excluída com sucesso.' 
-      : 'Implementação arquivada com sucesso.';
-
-    return { success: true, message: successMessage };
+    return { success: true, message: 'Implementação excluída com sucesso.' };
   } catch (error) {
     console.error('Erro inesperado em deleteImplementation:', error);
     return { success: false, error: 'Ocorreu um erro inesperado.' };

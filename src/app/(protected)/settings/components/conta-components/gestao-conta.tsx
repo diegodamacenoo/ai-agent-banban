@@ -8,16 +8,14 @@ import {
 } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/shared/ui/dialog";
 import {
     Select,
     SelectContent,
@@ -189,28 +187,28 @@ export default function GestaoConta() {
                             Congele seu acesso e pause atividades, preservando seus dados para reativaÃ§Ã£o futura.
                         </p>
                     </div>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
+                    <Dialog>
+                        <DialogTrigger asChild>
                             <Button variant="outline" size="sm" className="gap-2" disabled={!!deletionRequest}>
                                 <ArchiveIcon className="w-4 h-4" /> Desativar Conta
                             </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Desativar Conta Temporariamente?</AlertDialogTitle>
-                                <AlertDialogDescription>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Desativar Conta Temporariamente?</DialogTitle>
+                                <DialogDescription>
                                     Sua conta serÃ¡ congelada e vocÃª perderÃ¡ o acesso temporariamente. Todas as suas configuraÃ§Ãµes e histÃ³rico de aÃ§Ãµes serÃ£o preservados.
                                     VocÃª poderÃ¡ reativar sua conta a qualquer momento fazendo login novamente. Deseja continuar?
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleDesativarConta} disabled={isDeactivating}>
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button variant="outline">Cancelar</Button variant="outline">
+                                <Button onClick={handleDesativarConta} disabled={isDeactivating}>
                                     {isDeactivating ? 'Desativando...' : 'Sim, Desativar'}
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
                 </div>
                 
                 <Separator className="my-6"/>
@@ -255,21 +253,21 @@ export default function GestaoConta() {
                                     Esta aÃ§Ã£o iniciarÃ¡ um processo irreversÃ­vel que removerÃ¡ todas as suas configuraÃ§Ãµes e dados apÃ³s 7 dias.
                                 </p>
                             </div>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
+                            <Dialog>
+                                <DialogTrigger asChild>
                                     <Button variant="destructive" size="sm" className="gap-2">
                                         <Trash2Icon className="w-4 h-4" /> Excluir Conta
                                     </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>VocÃª tem CERTEZA?</AlertDialogTitle>
-                                        <AlertDialogDescription className="space-y-3">
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>VocÃª tem CERTEZA?</DialogTitle>
+                                        <DialogDescription className="space-y-3">
                                             <p>A exclusÃ£o da sua conta Ã© uma aÃ§Ã£o <strong>permanente e irreversÃ­vel</strong>.</p>
                                             <p>Todos os seus dados pessoais, configuraÃ§Ãµes, histÃ³rico de atividades e qualquer conteÃºdo associado Ã  sua conta serÃ£o excluÃ­dos apÃ³s um perÃ­odo de carÃªncia de 7 dias. ApÃ³s a exclusÃ£o, nÃ£o serÃ¡ possÃ­vel recuperar sua conta ou seus dados.</p>
                                             <p>Para prosseguir, digite sua senha atual e confirme. Um email de verificaÃ§Ã£o serÃ¡ enviado para finalizar o processo.</p>
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
+                                        </DialogDescription>
+                                    </DialogHeader>
                                     <div className="space-y-2 py-2">
                                         <Label htmlFor="senha-confirmacao-excluir" className="text-sm font-medium">
                                             Digite sua senha para confirmar:
@@ -282,18 +280,18 @@ export default function GestaoConta() {
                                             onChange={(e) => setSenhaConfirmacao(e.target.value)}
                                         />
                                     </div>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel onClick={() => setSenhaConfirmacao("")}>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction 
+                                    <DialogFooter>
+                                        <Button variant="outline" onClick={() => setSenhaConfirmacao("")}>Cancelar</Button variant="outline">
+                                        <Button 
                                             onClick={handleExcluirConta} 
                                             disabled={!senhaConfirmacao.trim() || isDeleting} 
                                             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                         >
                                             {isDeleting ? 'Processando...' : 'Confirmar ExclusÃ£o'}
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 )}

@@ -36,7 +36,7 @@ export class ModuleConfigurationService {
     organizationId: string
   ): Promise<ModuleConfiguration[]> {
     try {
-      console.debug(`[ModuleConfigurationService] Carregando módulos para organização: ${organizationId}`);
+      // Log removido para limpar terminal
 
       // Usar a nova função consolidada de visibilidade
       const { data: modules, error } = await supabase
@@ -44,8 +44,7 @@ export class ModuleConfigurationService {
           p_tenant_id: organizationId
         });
 
-      console.debug(`[ModuleConfigurationService] Query executada. Error:`, error);
-      console.debug(`[ModuleConfigurationService] Raw modules:`, modules?.length || 0);
+      // Logs removidos para limpar terminal - apenas manter em caso de erro
 
       if (error) {
         console.error('[ModuleConfigurationService] Erro ao consultar função de visibilidade:', error);
@@ -53,7 +52,7 @@ export class ModuleConfigurationService {
       }
 
       if (!modules || modules.length === 0) {
-        console.debug('[ModuleConfigurationService] Nenhum módulo encontrado para esta organização');
+        // Log removido - módulo vazio é situação normal
         return [];
       }
 
@@ -98,7 +97,7 @@ export class ModuleConfigurationService {
         };
       });
 
-      console.debug(`[ModuleConfigurationService] ${configurations.length} módulos carregados com a nova arquitetura`);
+      // Log removido para limpar terminal
       return configurations;
 
     } catch (error) {
@@ -116,7 +115,7 @@ export class ModuleConfigurationService {
     moduleSlug: string
   ): Promise<ModuleConfiguration | null> {
     try {
-      console.debug(`[ModuleConfigurationService] Buscando módulo "${moduleSlug}" para org: ${organizationId}`);
+      // Log removido para limpar terminal
 
       // Usar a função consolidada para buscar o módulo específico
       const { data: modules, error } = await supabase
@@ -135,7 +134,7 @@ export class ModuleConfigurationService {
       );
 
       if (!module) {
-        console.debug(`[ModuleConfigurationService] Módulo "${moduleSlug}" não encontrado ou sem acesso para a organização.`);
+        // Log removido para limpar terminal
         return null;
       }
 
@@ -175,7 +174,7 @@ export class ModuleConfigurationService {
         },
       };
 
-      console.debug(`[ModuleConfigurationService] Módulo "${moduleSlug}" encontrado com a nova arquitetura`);
+      // Log removido para limpar terminal
       return configuration;
 
     } catch (error) {

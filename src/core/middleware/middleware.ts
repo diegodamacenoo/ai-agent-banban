@@ -2,8 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/core/supabase/middleware';
 // Importamos createServerClient diretamente do @supabase/ssr para configurar um cliente localmente no middleware
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { createLogger } from '@/shared/utils/logger';
-import { DEBUG_MODULES } from '@/shared/utils/debug-config';
+import { conditionalDebugLogSync } from '@/shared/utils/conditional-debug-sync';
 import { addTenantHeaders, shouldRedirectToTenant, extractTenantSlug } from '@/shared/utils/tenant-middleware';
 import { withRateLimit, getClientIP } from '@/core/api/rate-limiter';
 import { corsMiddleware, applyCorsHeaders } from '@/features/security/cors';
@@ -14,8 +13,6 @@ import { createSupabaseServerClient } from '@/core/supabase/server';
 import { moduleRoutingMiddleware } from './module-routing';
 import { trackUserSession } from './session-tracking';
 
-// Criar logger para o middleware
-const logger = createLogger(DEBUG_MODULES.AUTH);
 
 interface ProfileWithOrganization {
   role: string;
@@ -48,6 +45,8 @@ const publicRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  conditionalDebugLogSync('Middleware executado', { pathname });
 
   // Rota para ignorar o middleware de autenticação e lógica de tenant
   const ignoredPaths = [
@@ -102,7 +101,99 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
+    // Verificar se há bloqueios muito recentes que podem indicar sessão recém-encerrada
+    try {
+      const { data: recentBlocks } = await supabase
+        .rpc('get_recent_user_blocks', { 
+          minutes_ago: 5,
+          limit_count: 1 
+        });
+      
+      if (recentBlocks && recentBlocks.length > 0) {
+        const mostRecentBlock = recentBlocks[0];
+        const blockAge = Date.now() - new Date(mostRecentBlock.created_at).getTime();
+        
+        // Se o bloqueio foi criado há menos de 2 minutos, assumir que é sessão encerrada
+        if (blockAge <= 2 * 60 * 1000) {
+          const blockedUntil = new Date(mostRecentBlock.blocked_until);
+          const now = new Date();
+          const timeRemaining = Math.max(0, Math.ceil((blockedUntil.getTime() - now.getTime()) / 1000));
+          
+          const loginUrl = new URL('/login', request.url);
+          loginUrl.searchParams.set('reason', 'session_terminated');
+          if (timeRemaining > 0) {
+            loginUrl.searchParams.set('blocked_until', timeRemaining.toString());
+          }
+          
+          return applySecurityHeaders(request, NextResponse.redirect(loginUrl));
+        }
+      }
+    } catch (error) {
+      // Continuar com redirecionamento normal em caso de erro
+    }
+    
     return applySecurityHeaders(request, NextResponse.redirect(new URL('/login', request.url)));
+  }
+
+
+  // Verificar se o usuário está bloqueado por encerramento de sessão (exceto na página de login e auth)
+  const isLoginPage = request.nextUrl.pathname.startsWith('/login') || 
+                     request.nextUrl.pathname.startsWith('/auth');
+  
+  if (!isLoginPage) {
+    try {
+      const { data: isBlocked } = await supabase
+        .rpc('is_user_session_blocked', { check_user_id: user.id });
+      
+      if (isBlocked) {
+        // Buscar informações detalhadas do bloqueio para calcular tempo restante
+        const { data: blockInfo } = await supabase
+          .from('user_session_blocks')
+          .select('blocked_until')
+          .eq('user_id', user.id)
+          .gte('blocked_until', new Date().toISOString())
+          .single();
+        
+        // Desativar todas as sessões ativas do usuário
+        await supabase
+          .from('user_sessions')
+          .update({ 
+            is_active: false,
+            updated_at: new Date().toISOString(),
+            security_flags: {
+              ended_at: new Date().toISOString(),
+              ended_reason: 'blocked_user_access_attempt'
+            }
+          })
+          .eq('user_id', user.id);
+        
+        // Invalidar JWT via admin API
+        try {
+          await supabase.auth.admin.signOut(user.id, 'global');
+        } catch (signOutError) {
+          // Continuar se falhar
+        }
+        
+        // Calcular tempo restante em segundos
+        let timeRemaining = 0;
+        if (blockInfo?.blocked_until) {
+          const blockedUntil = new Date(blockInfo.blocked_until);
+          const now = new Date();
+          timeRemaining = Math.max(0, Math.ceil((blockedUntil.getTime() - now.getTime()) / 1000));
+        }
+        
+        // Adicionar parâmetros para garantir que o toast seja exibido
+        const loginUrl = new URL('/login', request.url);
+        loginUrl.searchParams.set('reason', 'session_terminated');
+        if (timeRemaining > 0) {
+          loginUrl.searchParams.set('blocked_until', timeRemaining.toString());
+        }
+        
+        return applySecurityHeaders(request, NextResponse.redirect(loginUrl));
+      }
+    } catch (error) {
+      // Continuar sem bloquear em caso de erro na verificação
+    }
   }
 
   // Buscar perfil do usuário com organização
@@ -179,7 +270,7 @@ export async function middleware(request: NextRequest) {
     if (legacyRoutes[currentPath]) {
       const newPath = `/${organizationSlug}${legacyRoutes[currentPath]}`;
       const newUrl = new URL(newPath, request.url);
-      console.debug(`🔄 Legacy route redirect: ${currentPath} → ${newPath}`);
+      conditionalDebugLogSync('Legacy route redirect', { currentPath, newPath });
       return applySecurityHeaders(request, NextResponse.redirect(newUrl));
     }
   }

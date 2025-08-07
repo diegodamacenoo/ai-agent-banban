@@ -43,7 +43,7 @@ export default async function UniversalPage({ params, searchParams }: UniversalP
 
   // Filtrar requisições .well-known do Chrome DevTools silenciosamente
   if (slug.startsWith('.well-known') || path.some(segment => segment?.startsWith('.well-known'))) {
-    console.debug(`🤖 Ignorando requisição .well-known: /${slug}${path.length ? '/' + path.join('/') : ''}`);
+    console.debug(`🤖 Ignorando requisição .well-known: /${slug}${path.length ? `/${  path.join('/')}` : ''}`);
     return notFound();
   }
 

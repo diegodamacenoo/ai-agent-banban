@@ -156,7 +156,7 @@ const dropdownMenuItemVariants = cva(
     variants: {
       variant: {
         default:
-          "hover:bg-[hsl(var(--secondary))] hover:text-[hsl(var(--accent-foreground))] focus:bg-[hsl(var(--secondary))] focus:text-[hsl(var(--accent-foreground))] active:bg-[hsl(var(--secondary))] active:text-[hsl(var(--accent-foreground))]",
+          "hover:bg-[hsl(var(--highlight))] hover:text-[hsl(var(--accent-foreground))] focus:bg-[hsl(var(--secondary))] focus:text-[hsl(var(--accent-foreground))] active:bg-[hsl(var(--secondary))] active:text-[hsl(var(--accent-foreground))]",
         destructive:
           "text-[hsl(var(--primary))] hover:bg-[hsl(var(--light-destructive))] focus:bg-[hsl(var(--light-destructive))] active:bg-[hsl(var(--light-destructive))]",
         warning:

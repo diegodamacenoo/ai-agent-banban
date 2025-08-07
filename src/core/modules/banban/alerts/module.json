@@ -1,0 +1,356 @@
+{
+  "$schema": "../../templates/schemas/core_module_manifest.schema.json",
+  "id": "banban-alerts",
+  "name": "BanBan Alerts System",
+  "version": "2.0.0",
+  "category": "custom",
+  "vendor": "Axon Development Team",
+  "client_id": "banban",
+  "description": "Sistema inteligente de alertas para o cliente BanBan Fashion, especializado em detectar oportunidades e problemas críticos no varejo de calçados e moda. Processa dados em tempo real via webhooks do ERP e gera alertas proativos baseados em thresholds específicos do negócio.",
+  "keywords": ["alerts", "notifications", "fashion", "retail", "monitoring", "thresholds", "proactive"],
+  "license": "Proprietary",
+  "pricing": {
+    "tier": "premium",
+    "model": "subscription",
+    "base_cost": 299.99,
+    "currency": "BRL",
+    "billing_cycle": "monthly"
+  },
+  "compatibility": {
+    "min_node_version": "18.0.0",
+    "supported_platforms": ["web", "mobile"],
+    "dependencies": {
+      "fastify": "^4.0.0",
+      "zod": "^3.22.0",
+      "date-fns": "^2.30.0"
+    }
+  },
+  "features": [
+    {
+      "id": "real_time_alerts",
+      "name": "Alertas em Tempo Real",
+      "description": "Processamento e geração de alertas em tempo real baseados em eventos do ERP",
+      "enabled": true
+    },
+    {
+      "id": "smart_thresholds",
+      "name": "Thresholds Inteligentes",
+      "description": "Sistema de limites configuráveis específicos para varejo de moda",
+      "enabled": true
+    },
+    {
+      "id": "priority_classification",
+      "name": "Classificação de Prioridade",
+      "description": "Sistema de priorização automática com 4 níveis (crítico, atenção, moderado, oportunidade)",
+      "enabled": true
+    },
+    {
+      "id": "multi_channel_delivery",
+      "name": "Entrega Multi-Canal",
+      "description": "Envio de alertas via email, SMS, push notifications e dashboard",
+      "enabled": true
+    },
+    {
+      "id": "alert_aggregation",
+      "name": "Agregação de Alertas",
+      "description": "Agrupamento inteligente para evitar spam de notificações",
+      "enabled": true
+    },
+    {
+      "id": "escalation_rules",
+      "name": "Regras de Escalação",
+      "description": "Sistema automático de escalação baseado em tempo e prioridade",
+      "enabled": true
+    },
+    {
+      "id": "alert_analytics",
+      "name": "Analytics de Alertas",
+      "description": "Análise de padrões e efetividade dos alertas gerados",
+      "enabled": true
+    },
+    {
+      "id": "custom_rules_engine",
+      "name": "Engine de Regras Customizadas",
+      "description": "Sistema flexível para criação de regras específicas do negócio",
+      "enabled": true
+    }
+  ],
+  "business_rules": {
+    "alert_types": [
+      {
+        "type": "STOCK_CRITICAL",
+        "threshold": 5,
+        "priority": "critical",
+        "auto_escalate": true
+      },
+      {
+        "type": "STOCK_LOW",
+        "threshold": 10,
+        "priority": "attention",
+        "auto_escalate": false
+      },
+      {
+        "type": "MARGIN_LOW",
+        "threshold": 0.31,
+        "priority": "moderate",
+        "auto_escalate": false
+      },
+      {
+        "type": "SLOW_MOVING",
+        "threshold": 30,
+        "priority": "attention",
+        "auto_escalate": false
+      },
+      {
+        "type": "OVERSTOCK",
+        "threshold": 500,
+        "priority": "moderate",
+        "auto_escalate": false
+      },
+      {
+        "type": "SEASONAL_OPPORTUNITY",
+        "threshold": 0.8,
+        "priority": "opportunity",
+        "auto_escalate": false
+      }
+    ],
+    "escalation_rules": {
+      "critical": {
+        "immediate": true,
+        "escalate_after_minutes": 15,
+        "max_escalations": 3
+      },
+      "attention": {
+        "immediate": false,
+        "escalate_after_minutes": 60,
+        "max_escalations": 2
+      },
+      "moderate": {
+        "immediate": false,
+        "escalate_after_minutes": 240,
+        "max_escalations": 1
+      },
+      "opportunity": {
+        "immediate": false,
+        "escalate_after_minutes": 1440,
+        "max_escalations": 0
+      }
+    }
+  },
+  "performance_metrics": {
+    "target_response_time": "< 500ms",
+    "target_throughput": "1000 alerts/min",
+    "target_availability": "99.9%",
+    "alert_delivery_sla": "< 30s",
+    "false_positive_rate": "< 5%"
+  },
+  "api": {
+    "version": "v2",
+    "base_path": "/api/modules/banban/alerts",
+    "endpoints": [
+      {
+        "path": "/",
+        "method": "GET",
+        "description": "Listar alertas ativos com filtros",
+        "auth_required": true
+      },
+      {
+        "path": "/",
+        "method": "POST",
+        "description": "Criar alerta manual",
+        "auth_required": true
+      },
+      {
+        "path": "/{id}",
+        "method": "GET",
+        "description": "Obter detalhes de um alerta específico",
+        "auth_required": true
+      },
+      {
+        "path": "/{id}/acknowledge",
+        "method": "POST",
+        "description": "Marcar alerta como reconhecido",
+        "auth_required": true
+      },
+      {
+        "path": "/{id}/resolve",
+        "method": "POST",
+        "description": "Resolver/fechar alerta",
+        "auth_required": true
+      },
+      {
+        "path": "/rules",
+        "method": "GET",
+        "description": "Listar regras de alertas configuradas",
+        "auth_required": true
+      },
+      {
+        "path": "/rules",
+        "method": "POST",
+        "description": "Criar nova regra de alerta",
+        "auth_required": true
+      },
+      {
+        "path": "/rules/{id}",
+        "method": "PUT",
+        "description": "Atualizar regra de alerta",
+        "auth_required": true
+      },
+      {
+        "path": "/thresholds",
+        "method": "GET",
+        "description": "Obter thresholds configurados",
+        "auth_required": true
+      },
+      {
+        "path": "/thresholds",
+        "method": "PUT",
+        "description": "Atualizar thresholds",
+        "auth_required": true
+      },
+      {
+        "path": "/analytics",
+        "method": "GET",
+        "description": "Obter analytics de alertas",
+        "auth_required": true
+      },
+      {
+        "path": "/health",
+        "method": "GET",
+        "description": "Health check do sistema de alertas",
+        "auth_required": false
+      }
+    ]
+  },
+  "database": {
+    "tables": [
+      {
+        "name": "tenant_alerts",
+        "description": "Tabela principal de alertas gerados",
+        "estimated_rows": 50000
+      },
+      {
+        "name": "tenant_alert_rules",
+        "description": "Regras configuradas para geração de alertas",
+        "estimated_rows": 100
+      },
+      {
+        "name": "tenant_alert_thresholds",
+        "description": "Thresholds configuráveis por tenant",
+        "estimated_rows": 50
+      },
+      {
+        "name": "tenant_alert_deliveries",
+        "description": "Log de entregas de alertas",
+        "estimated_rows": 100000
+      },
+      {
+        "name": "tenant_alert_escalations",
+        "description": "Histórico de escalações de alertas",
+        "estimated_rows": 10000
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "name": "alert_processor",
+      "description": "Processamento contínuo de alertas em tempo real",
+      "schedule": "continuous",
+      "timeout": 30000
+    },
+    {
+      "name": "escalation_manager",
+      "description": "Gerenciamento de escalações automáticas",
+      "schedule": "*/5 * * * *",
+      "timeout": 60000
+    },
+    {
+      "name": "alert_cleanup",
+      "description": "Limpeza de alertas resolvidos antigos",
+      "schedule": "0 2 * * *",
+      "timeout": 300000
+    },
+    {
+      "name": "analytics_aggregator",
+      "description": "Agregação de métricas de alertas",
+      "schedule": "0 */6 * * *",
+      "timeout": 180000
+    }
+  ],
+  "monitoring": {
+    "metrics": [
+      {
+        "name": "alerts_generated_total",
+        "type": "counter",
+        "description": "Total de alertas gerados"
+      },
+      {
+        "name": "alerts_by_priority",
+        "type": "gauge",
+        "description": "Alertas ativos por nível de prioridade"
+      },
+      {
+        "name": "alert_processing_duration",
+        "type": "histogram",
+        "description": "Tempo de processamento de alertas"
+      },
+      {
+        "name": "alert_delivery_success_rate",
+        "type": "gauge",
+        "description": "Taxa de sucesso na entrega de alertas"
+      }
+    ],
+    "alerts": [
+      {
+        "name": "high_alert_volume",
+        "condition": "alerts_generated_total > 1000/hour",
+        "severity": "warning"
+      },
+      {
+        "name": "alert_processing_slow",
+        "condition": "alert_processing_duration > 5s",
+        "severity": "critical"
+      },
+      {
+        "name": "delivery_failure_rate_high",
+        "condition": "alert_delivery_success_rate < 0.95",
+        "severity": "critical"
+      }
+    ]
+  },
+  "integrations": {
+    "edge_functions": [
+      "webhook-sales-flow",
+      "webhook-purchase-flow",
+      "webhook-inventory-flow",
+      "webhook-transfer-flow"
+    ],
+    "external_services": [
+      "email_service",
+      "sms_service",
+      "push_notification_service"
+    ],
+    "internal_modules": [
+      "banban-insights",
+      "banban-performance",
+      "banban-inventory",
+      "banban-data-processing"
+    ]
+  },
+  "security": {
+    "data_classification": "internal",
+    "encryption_required": true,
+    "audit_logging": true,
+    "access_control": "rbac"
+  },
+  "deployment": {
+    "strategy": "rolling",
+    "health_check_path": "/health",
+    "readiness_probe": "/ready",
+    "resource_requirements": {
+      "cpu": "500m",
+      "memory": "512Mi",
+      "storage": "2Gi"
+    }
+  }
+}

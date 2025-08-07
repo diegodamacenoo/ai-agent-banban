@@ -3,10 +3,10 @@ import { cookies } from 'next/headers';
 import { createSupabaseServerClient } from './server';
 import { createServerClient as _createServerClient, type CookieOptions } from '@supabase/ssr';
 
-// Renomeando para evitar conflito com a funÃ§Ã£o exportada
+// Renomeando para evitar conflito com a função exportada
 const createServerClient = _createServerClient;
 
-// Valida se as variÃ¡veis de ambiente necessÃ¡rias estÃ£o definidas
+// Valida se as variáveis de ambiente necessárias estão definidas
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -19,7 +19,7 @@ if (!supabaseServiceRoleKey) {
 }
 
 /**
- * Verifica se o usuÃ¡rio atual tem permissÃµes de master admin
+ * Verifica se o usuário atual tem permissões de master admin
  */
 async function verifyMasterAdminPermissions(): Promise<{ authorized: boolean; userId?: string }> {
   try {
@@ -31,7 +31,7 @@ async function verifyMasterAdminPermissions(): Promise<{ authorized: boolean; us
       return { authorized: false };
     }
 
-    // 1) Verificar role no JWT primeiro (mais performÃ¡tico)
+    // 1) Verificar role no JWT primeiro (mais performático)
     const roleFromJWT = user.app_metadata?.user_role;
     if (roleFromJWT === 'master_admin') {
       return { authorized: true, userId: user.id };
@@ -45,7 +45,7 @@ async function verifyMasterAdminPermissions(): Promise<{ authorized: boolean; us
       .single();
 
     if (profileError) {
-      // Importa a funÃ§Ã£o mesmo estando abaixo no arquivo, pois jÃ¡ estarÃ¡ inicializada em tempo de execuÃ§Ã£o
+      // Importa a função mesmo estando abaixo no arquivo, pois já estará inicializada em tempo de execução
       const adminSupabase = createUnsafeSupabaseAdminClient();
       const adminResult = await adminSupabase
         .from('profiles')
@@ -57,25 +57,25 @@ async function verifyMasterAdminPermissions(): Promise<{ authorized: boolean; us
     }
 
     if (profileError || !profile) {
-      console.warn('NÃ£o foi possÃ­vel obter role do usuÃ¡rio na tabela profiles:', profileError?.message);
+      console.warn('Não foi possível obter role do usuário na tabela profiles:', profileError?.message);
       return { authorized: false };
     }
 
     return { authorized: profile.role === 'master_admin', userId: user.id };
   } catch (error) {
-    console.error('Erro ao verificar permissÃµes admin:', error);
+    console.error('Erro ao verificar permissões admin:', error);
     return { authorized: false };
   }
 }
 
 /**
- * Cria um cliente Supabase com privilÃ©gios de administrador APENAS para operaÃ§Ãµes especÃ­ficas.
- * Este cliente deve ser usado APENAS para operaÃ§Ãµes que realmente precisam ignorar RLS.
+ * Cria um cliente Supabase com privilégios de administrador APENAS para operações específicas.
+ * Este cliente deve ser usado APENAS para operações que realmente precisam ignorar RLS.
  * 
- * IMPORTANTE: Este cliente verifica automaticamente se o usuÃ¡rio tem permissÃµes de master_admin.
+ * IMPORTANTE: Este cliente verifica automaticamente se o usuário tem permissões de master_admin.
  */
 export const createSupabaseAdminClient = async () => {
-  // Verificar permissÃµes antes de criar o cliente
+  // Verificar permissões antes de criar o cliente
   const { authorized, userId } = await verifyMasterAdminPermissions();
   
   if (!authorized) {
@@ -86,7 +86,7 @@ export const createSupabaseAdminClient = async () => {
     throw new Error('Missing Supabase environment variables');
   }
 
-  console.debug(`Cliente admin autorizado para usuÃ¡rio: ${userId}`);
+  console.debug(`Cliente admin autorizado para usuário: ${userId}`);
 
   return createClient(supabaseUrl, supabaseServiceRoleKey, {
     auth: {
@@ -97,8 +97,8 @@ export const createSupabaseAdminClient = async () => {
 };
 
 /**
- * Cliente admin "unsafe" - usado apenas para operaÃ§Ãµes muito especÃ­ficas
- * onde a verificaÃ§Ã£o de permissÃ£o jÃ¡ foi feita externamente.
+ * Cliente admin "unsafe" - usado apenas para operações muito específicas
+ * onde a verificação de permissão já foi feita externamente.
  * 
  * âš ï¸ NUNCA use este cliente diretamente nas server actions!
  */
@@ -120,11 +120,11 @@ export const createUnsafeSupabaseAdminClient = () => {
 };
 
 /**
- * OperaÃ§Ãµes especÃ­ficas que realmente precisam de privilÃ©gios admin
+ * Operações específicas que realmente precisam de privilégios admin
  */
 export const SecureAdminOperations = {
   /**
-   * Lista usuÃ¡rios com verificaÃ§Ã£o de permissÃ£o
+   * Lista usuários com verificação de permissão
    */
   async getAllUsers() {
     const { authorized } = await verifyMasterAdminPermissions();
@@ -171,7 +171,7 @@ export const SecureAdminOperations = {
             last_sign_in_at: authUser.user?.last_sign_in_at || null
           };
         } catch (error) {
-          console.warn(`Erro ao buscar dados do auth para usuÃ¡rio ${profile.id}:`, error);
+          console.warn(`Erro ao buscar dados do auth para usuário ${profile.id}:`, error);
           return {
             ...profile,
             email: null,
@@ -185,7 +185,7 @@ export const SecureAdminOperations = {
   },
 
   /**
-   * Cria usuÃ¡rio via Auth Admin API (requer service role)
+   * Cria usuário via Auth Admin API (requer service role)
    */
   async inviteUser(email: string, userData: any) {
     const { authorized } = await verifyMasterAdminPermissions();
@@ -201,7 +201,7 @@ export const SecureAdminOperations = {
   },
 
   /**
-   * Remove usuÃ¡rio via Auth Admin API (requer service role)
+   * Remove usuário via Auth Admin API (requer service role)
    */
   async deleteUser(userId: string) {
     const { authorized } = await verifyMasterAdminPermissions();

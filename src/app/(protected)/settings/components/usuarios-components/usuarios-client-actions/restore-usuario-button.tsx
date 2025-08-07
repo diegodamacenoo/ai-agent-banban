@@ -3,16 +3,14 @@
 import { RotateCcwIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -72,9 +70,9 @@ export default function RestoreUsuarioButton({ userId, userName, onSuccess }: Re
   return (
     <TooltipProvider>
       <Tooltip>
-        <AlertDialog>
+        <Dialog>
           <TooltipTrigger asChild>
-            <AlertDialogTrigger asChild>
+            <DialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
@@ -84,33 +82,33 @@ export default function RestoreUsuarioButton({ userId, userName, onSuccess }: Re
                 <RotateCcwIcon className="h-4 w-4" />
                 <span className="sr-only">Restaurar usuÃ¡rio {userName}</span>
               </Button>
-            </AlertDialogTrigger>
+            </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
             <p>Restaurar usuÃ¡rio</p>
           </TooltipContent>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Restaurar usuÃ¡rio</AlertDialogTitle>
-              <AlertDialogDescription>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Restaurar usuÃ¡rio</DialogTitle>
+              <DialogDescription>
                 Tem certeza de que deseja restaurar <strong>{userName}</strong>?
                 <br />
                 <br />
                 O usuÃ¡rio serÃ¡ movido de volta para a lista de usuÃ¡rios ativos.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline">Cancelar</Button variant="outline">
+              <Button
                 onClick={handleRestore}
                 disabled={isLoading}
                 className="bg-green-600 hover:bg-green-700"
               >
                 {isLoading ? "Restaurando..." : "Restaurar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Tooltip>
     </TooltipProvider>
   );

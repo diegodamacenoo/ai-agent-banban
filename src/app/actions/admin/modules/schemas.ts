@@ -4,16 +4,17 @@ import { z } from 'zod';
 // TIPOS E SCHEMAS DE VALIDAÇÃO
 // ================================================
 
-// Schema para criação de módulo base
-export const CreateBaseModuleSchema = z.object({
+// Schema base para módulo base (sem validações cross-field)
+const BaseModuleSchemaCore = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').max(100, 'Nome muito longo'),
   slug: z.string().regex(/^[a-z0-9-]+$/, 'Slug deve conter apenas letras minúsculas, números e hífen'),
   description: z.string().min(10, 'Descrição deve ter pelo menos 10 caracteres').max(500, 'Descrição muito longa'),
   category: z.string().min(2, 'Categoria é obrigatória'),
   icon: z.string().min(2, 'Ícone é obrigatório'),
-  route_pattern: z.string().min(1, 'Padrão de rota é obrigatório'),
+  route_pattern: z.string().optional().default(''),
   permissions_required: z.array(z.string()).optional().default([]),
   supports_multi_tenant: z.boolean().default(true),
+  exclusive_tenant_id: z.string().uuid('ID do tenant deve ser um UUID válido').optional().nullable(),
   config_schema: z.record(z.any()).optional().default({}),
   dependencies: z.array(z.string()).optional().default([]),
   version: z.string().default('1.0.0'),
@@ -22,13 +23,29 @@ export const CreateBaseModuleSchema = z.object({
   is_active: z.boolean().default(true),
 });
 
+// Schema para criação de módulo base (com validações cross-field)
+export const CreateBaseModuleSchema = BaseModuleSchemaCore.refine((data) => {
+  // Validação: se supports_multi_tenant = false, deve ter exclusive_tenant_id
+  if (data.supports_multi_tenant === false && !data.exclusive_tenant_id) {
+    return false;
+  }
+  // Validação: se supports_multi_tenant = true, exclusive_tenant_id deve ser null
+  if (data.supports_multi_tenant === true && data.exclusive_tenant_id) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Módulos single-tenant devem ter um tenant exclusivo definido",
+  path: ["exclusive_tenant_id"]
+});
+
 // Schema para atualização de módulo base
-export const UpdateBaseModuleSchema = CreateBaseModuleSchema.partial().extend({
+export const UpdateBaseModuleSchema = BaseModuleSchemaCore.partial().extend({
   id: z.string().uuid('ID deve ser um UUID válido'),
 });
 
 // Schema para formulário de edição (sem ID)
-export const UpdateBaseModuleFormSchema = CreateBaseModuleSchema.partial().transform(data => ({
+export const UpdateBaseModuleFormSchema = BaseModuleSchemaCore.partial().transform(data => ({
   ...data,
   dependencies: data.dependencies || [],
   tags: data.tags || [],
@@ -58,6 +75,7 @@ export interface BaseModule {
   route_pattern: string;
   permissions_required: string[];
   supports_multi_tenant: boolean;
+  exclusive_tenant_id: string | null;
   config_schema: Record<string, any>;
   dependencies: string[];
   version: string;
@@ -83,7 +101,6 @@ export const CreateModuleImplementationSchema = z.object({
   template_type: z.string().nullable().optional(),
   template_config: z.record(z.any()).optional().default({}),
   component_path: z.string().optional(), // Para component_type = 'file'
-  dependencies: z.array(z.string()).optional().default([]),
   config_schema_override: z.record(z.any()).optional(),
   audience: z.enum(['generic', 'client-specific', 'enterprise']).default('generic'),
   complexity: z.enum(['basic', 'standard', 'advanced', 'enterprise']).default('standard'),
@@ -110,7 +127,6 @@ export interface ModuleImplementation {
   template_type?: string;
   template_config: Record<string, any>;
   component_path?: string;
-  dependencies: string[];
   config_schema_override?: Record<string, any>;
   audience: 'generic' | 'client-specific' | 'enterprise';
   complexity: 'basic' | 'standard' | 'advanced' | 'enterprise';

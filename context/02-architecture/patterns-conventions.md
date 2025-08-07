@@ -43,6 +43,32 @@
 - **Loading States**: `<Skeleton />` components + `<Suspense>` boundaries
 - **Forms**: React Hook Form + Zod + Server Actions integration
 
+### User-Friendly Data Display
+- **Role Mapping**: Convert database roles to friendly names (eg. `master_admin` → `"Administrador Master"`)
+- **Security Alerts**: Translate technical codes to readable text (eg. `unusual_hours` → `"Horário incomum"`)
+- **IP Formatting**: Format localhost addresses (eg. `::1` → `"Localhost"`, geolocation → `"Desenvolvimento local"`)
+- **Consistent Pattern**: Use mapping objects with fallback to original value
+
+```typescript
+// Pattern for user-friendly mappings
+const formatRole = (role: string) => {
+  const roleMap: Record<string, string> = {
+    'master_admin': 'Administrador Master',
+    'admin': 'Administrador',
+    'user': 'Usuário'
+  };
+  return roleMap[role] || role; // Fallback to original
+};
+
+// Dialog pattern - always wrap cancel buttons
+<DialogFooter>
+  <DialogClose asChild>
+    <Button variant="outline">Cancelar</Button>
+  </DialogClose>
+  <Button onClick={handleAction}>Confirmar</Button>
+</DialogFooter>
+```
+
 ### Performance & Optimization
 - **Caching**: Next.js `revalidate` + React `cache()` for data fetching
 - **Lazy Loading**: `dynamic()` imports + automatic App Router code splitting
@@ -70,8 +96,10 @@
 - **Tabs Component**: Declarative `items` prop, `TabsContent` as siblings
 
 ### Dialog & Component Rules
+- **Dialog Preference**: Use `@/shared/ui/dialog` instead of `alert-dialog` for consistency
+- **Dialog Close**: Wrap cancel buttons with `<DialogClose asChild>` for proper functionality
 - **Dialog Integration**: `onSelect={(e) => e.preventDefault()}` + `onSuccess` callbacks
-- **Components**: Use `alert-dialog` (not modal), icons as props
+- **Components**: Icons as props, avoid modal component (use alert-dialog only when necessary)
 - **State Management**: Optimistic updates + progressive operations for soft delete
 
 ### Database & Performance 

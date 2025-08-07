@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Progress } from '@/shared/ui/progress';
@@ -29,9 +29,9 @@ export function ModuleAdoptionStatsWidget() {
     // Auto-refresh every 10 minutes
     const interval = setInterval(fetchAdoptionStats, 10 * 60 * 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchAdoptionStats]); // ✅ Includes dependency used inside the callback
 
-  const fetchAdoptionStats = async () => {
+  const fetchAdoptionStats = useCallback(async () => {
     try {
       // TODO: Replace with actual API call
       const mockStats: AdoptionStats = {
@@ -54,7 +54,7 @@ export function ModuleAdoptionStatsWidget() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // ✅ No dependencies needed - only uses state setters
 
   const getTrendIcon = (trend: AdoptionStats['trend']) => {
     switch (trend) {

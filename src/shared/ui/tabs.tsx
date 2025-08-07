@@ -17,7 +17,7 @@ const tabsVariants = cva(
       },
       size: {
         sm: "h-9 p-1",
-        default: "h-10 p-1.5",
+        default: "h-14 p-1.5",
         lg: "h-12 p-2",
       },
     },
@@ -34,15 +34,15 @@ const tabTriggerVariants = cva(
     variants: {
       variant: {
         default:
-          "text-muted-foreground hover:text-foreground data-[state=active]:text-primary-foreground",
+          "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] data-[state=active]:text-[hsl(var(--foreground))]",
         ghost:
-          "text-muted-foreground hover:text-foreground hover:bg-accent data-[state=active]:text-primary-foreground data-[state=active]:bg-transparent",
+          "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] data-[state=active]:text-[hsl(var(--foreground))] data-[state=active]:bg-transparent",
         underline:
-          "text-muted-foreground hover:text-foreground data-[state=active]:text-accent-foreground rounded-none",
+          "text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] data-[state=active]:text-[hsl(var(--foreground))] rounded-none",
       },
       size: {
         sm: "px-2.5 py-1 text-xs",
-        default: "px-3 py-1.5 text-sm",
+        default: "px-4 py-3 text-sm",
         lg: "px-4 py-2 text-base",
       },
     },
@@ -79,7 +79,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
       defaultValue,
       value,
       onValueChange,
-      indicatorColor = "hsl(var(--accent))",
+      indicatorColor = "hsl(var(--[hsl(var(--accent))]))",
       ...props
     },
     ref,
@@ -172,7 +172,7 @@ const Tabs = React.forwardRef<HTMLDivElement, TabsProps>(
               }}
               className={cn(
                 tabTriggerVariants({ variant, size }),
-                "relative z-20 text-muted-foreground data-[state=active]:text-accent-foreground gap-2",
+                "relative z-20 text-[hsl(var(--foreground-unactive))] data-[state=active]:text-[hsl(var(--foreground))] gap-2",
               )}
               data-state={isActive ? "active" : "inactive"}
               onClick={() => handleTabClick(item.id)}

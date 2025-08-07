@@ -208,8 +208,8 @@ export function DeleteBaseModuleDialog({module, onSuccess, onOptimisticDelete, o
             onClick={handleDelete}
             disabled={!canDelete || isDeleting}
             variant="destructive"
+            leftIcon={isDeleting ? <Loader2 className="animate-spin" /> : undefined}
           >
-            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isDeleting ? 'Excluindo...' : 'Excluir Módulo'}
           </Button>
         </DialogFooter>

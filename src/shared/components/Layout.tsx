@@ -14,6 +14,7 @@ interface LayoutContextProps {
   loading: boolean;
   error: string | null;
   onRetry?: () => void;
+  width?: 'fluid' | 'container';
 }
 
 interface LayoutProps {
@@ -78,7 +79,7 @@ function ErrorState({ error, onRetry }: { error: string; onRetry?: () => void })
 
 // Header Components
 const Title = ({ children }: { children: ReactNode }) => {
-  return <h1 className="text-xl font-medium text-[hsl(var(--foreground))]">{children}</h1>;
+  return <div className="text-2xl font-medium text-[hsl(var(--foreground))]">{children}</div>;
 };
 
 const Description = ({ children }: { children: ReactNode }) => {
@@ -90,23 +91,33 @@ const Actions = ({ children }: { children: ReactNode }) => {
 };
 
 const Header = ({ children, className = '' }: { children: ReactNode; className?: string }) => {
-  const { loading } = useLayoutContext();
+  const { loading, width } = useLayoutContext();
   
   if (loading) {
-    return (
-      <header className={`flex items-center justify-between h-[40px] px-4 border-b border-[hsl(var(--border))] ${className}`}>
+    const headerContent = (
+      <>
         <div className="h-6 bg-zinc-200 rounded animate-pulse w-48"></div>
         <div className="flex gap-3">
           <div className="h-10 bg-zinc-200 rounded animate-pulse w-24"></div>
           <div className="h-10 bg-zinc-200 rounded animate-pulse w-24"></div>
+        </div>
+      </>
+    );
+
+    return (
+      <header className={`w-full border-b border-[hsl(var(--border))] ${className}`}>
+        <div className={`flex items-center justify-between min-h-[150px] px-4 py-3 ${width === 'container' ? 'max-w-[80%] mx-auto' : ''}`}>
+          {headerContent}
         </div>
       </header>
     );
   }
 
   return (
-    <header className={`flex items-center justify-between h-[60px] ${className}`}>
-      {children}
+    <header className={`w-full border-b border-[hsl(var(--border))] ${className}`}>
+      <div className={`flex items-center justify-between min-h-[150px] px-4 py-3 ${width === 'container' ? 'max-w-[80%] mx-auto w-full' : ''}`}>
+        {children}
+      </div>
     </header>
   );
 };
@@ -121,18 +132,26 @@ const Content = ({ children, className = '' }: { children: ReactNode; className?
 };
 
 const Body = ({ children, className = '' }: { children: ReactNode; className?: string }) => {
-  const { loading, error, onRetry } = useLayoutContext();
+  const { loading, error, onRetry, width } = useLayoutContext();
+
+  const bodyContent = loading ? (
+    <LoadingOverlay />
+  ) : error ? (
+    <ErrorState error={error} onRetry={onRetry} />
+  ) : (
+    <div className="flex divide-x divide-zinc-200">
+      {children}
+    </div>
+  );
 
   return (
-    <div className={`flex-1 flex flex-col ${className}`}>
-      {loading ? (
-        <LoadingOverlay />
-      ) : error ? (
-        <ErrorState error={error} onRetry={onRetry} />
-      ) : (
-        <div className="flex divide-x divide-zinc-200">
-          {children}
+    <div className={`flex-1 flex flex-col w-full ${className}`}>
+      {width === 'container' ? (
+        <div className="max-w-[80%] mx-auto w-full px-4 flex-1 flex flex-col">
+          {bodyContent}
         </div>
+      ) : (
+        bodyContent
       )}
     </div>
   );
@@ -144,32 +163,16 @@ const Body = ({ children, className = '' }: { children: ReactNode; className?: s
 
 const LayoutRoot = React.forwardRef<HTMLDivElement, LayoutProps>(
   ({ children, loading = false, error = null, onRetry, className = '', width = 'fluid' }, ref) => {
-    const contextValue = { loading, error, onRetry };
-
-    const containerClass = width === 'container' 
-      ? 'flex flex-col h-full w-full items-center' 
-      : 'flex flex-col h-full';
+    const contextValue = { loading, error, onRetry, width };
 
     return (
       <LayoutContext.Provider value={contextValue}>
-        {width === 'container' ? (
-          <div className={containerClass}>
-            <div 
-              ref={ref} 
-              className={`flex flex-col h-full py-6 ${className}`}
-              style={{ width: '80%' }}
-            >
-              {children}
-            </div>
-          </div>
-        ) : (
-          <div 
-            ref={ref} 
-            className={`flex flex-col h-full ${className}`}
-          >
-            {children}
-          </div>
-        )}
+        <div 
+          ref={ref} 
+          className={`flex flex-col h-full w-full pb-6 ${className}`}
+        >
+          {children}
+        </div>
       </LayoutContext.Provider>
     );
   }

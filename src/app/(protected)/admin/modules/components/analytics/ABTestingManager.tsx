@@ -11,7 +11,7 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
@@ -189,7 +189,7 @@ export const ABTestingManager: React.FC<ABTestingManagerProps> = ({ className })
   });
 
   // Carregar experimentos
-  const loadExperiments = async () => {
+  const loadExperiments = useCallback(async () => {
     setLoading(true);
     try {
       // Simulação de dados - em produção viria da API
@@ -433,7 +433,7 @@ export const ABTestingManager: React.FC<ABTestingManagerProps> = ({ className })
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // ✅ No dependencies needed - only uses state setters
 
   // Filtrar experimentos
   const filteredExperiments = experiments.filter(exp => {
@@ -651,7 +651,7 @@ export const ABTestingManager: React.FC<ABTestingManagerProps> = ({ className })
   // Carregar dados na inicialização
   useEffect(() => {
     loadExperiments();
-  }, []);
+  }, [loadExperiments]); // ✅ Includes dependency used inside the callback
 
   return (
     <div className={`space-y-4 ${className}`}>

@@ -29,6 +29,11 @@ interface BaseModule {
   id: string;
   name: string;
   category: string;
+  supports_multi_tenant: boolean;
+  exclusive_tenant_id: string | null;
+  is_active: boolean;
+  archived_at: string | null;
+  deleted_at: string | null;
 }
 
 interface ModuleImplementation {
@@ -204,8 +209,20 @@ export function NewAssignmentDialog({initialTenantId,
   const availableModules = useMemo(() => 
     (baseModules || [])
       .filter(bm => bm.is_active && !bm.archived_at && !bm.deleted_at)
-      .filter(bm => !existingAssignments.includes(bm.id)),
-    [baseModules, existingAssignments]
+      .filter(bm => !existingAssignments.includes(bm.id))
+      .filter(bm => {
+        // Módulos multi-tenant estão sempre disponíveis
+        if (bm.supports_multi_tenant) return true;
+        
+        // Módulos single-tenant só estão disponíveis para o tenant exclusivo
+        if (!bm.supports_multi_tenant && bm.exclusive_tenant_id) {
+          return bm.exclusive_tenant_id === selectedTenantId;
+        }
+        
+        // Módulos single-tenant sem exclusive_tenant_id (inconsistência) - não mostrar
+        return false;
+      }),
+    [baseModules, existingAssignments, selectedTenantId]
   );
 
   const availableImplementations = useMemo(() => {
@@ -304,6 +321,9 @@ export function NewAssignmentDialog({initialTenantId,
                     availableModules.map(module => (
                       <SelectItem key={module.id} value={module.id}>
                         {module.name} ({module.category})
+                        {!module.supports_multi_tenant && module.exclusive_tenant_id && (
+                          <span className="ml-2 text-xs text-blue-600 font-medium">• EXCLUSIVO</span>
+                        )}
                       </SelectItem>
                     ))
                   )}

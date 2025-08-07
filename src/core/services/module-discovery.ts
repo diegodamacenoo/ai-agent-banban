@@ -101,8 +101,11 @@ export class ModuleDiscoveryService {
       const entries = await fs.readdir(this.modulesBasePath, { withFileTypes: true });
       
       for (const entry of entries) {
-        if (entry.isDirectory() && !['standard', 'registry', 'template'].includes(entry.name)) {
+        // Ignorar diretórios especiais do sistema e diretórios de apoio
+        const systemDirectories = ['standard', 'registry', 'template', '__tests__', 'types', 'services'];
+        if (entry.isDirectory() && !systemDirectories.includes(entry.name)) {
           try {
+            await conditionalDebugLog(`Descobrindo cliente automaticamente: ${entry.name}`);
             const clientModules = await this.scanClientModules(entry.name);
             modules.push(...clientModules);
           } catch (clientError) {

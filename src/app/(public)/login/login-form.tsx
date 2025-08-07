@@ -1,8 +1,8 @@
-'use client';
-import * as React from "react"
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button, buttonVariants } from "@/shared/ui/button"
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { buttonVariants } from "@/shared/ui/button"
 import {
   Card,
   CardContent,
@@ -11,128 +11,124 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card"
-import { Input } from "@/shared/ui/input"
-import { Label } from "@/shared/ui/label"
 import Link from "next/link"
-import clsx from 'clsx';
-import { createBrowserClient } from '@supabase/ssr';
-import { safeLogger } from '@/features/security/safe-logger';
-import { signInWithPassword } from '@/app/actions/auth/login';
+import clsx from 'clsx'
+import { useToast } from '@/shared/ui/toast'
+import { AlertTriangle } from 'lucide-react'
 
-// Função client-side para gerar fingerprint do dispositivo
-function generateClientDeviceFingerprint(): string {
-  const userAgent = navigator.userAgent || '';
-  const language = navigator.language || '';
-  const platform = navigator.platform || '';
-  const cookieEnabled = navigator.cookieEnabled ? 'true' : 'false';
-  const screenResolution = `${screen.width}x${screen.height}`;
-  const timezoneOffset = new Date().getTimezoneOffset().toString();
+import { signInWithPassword } from '@/app/actions/auth/login'
+import { useLoginCountdown } from '@/hooks/useLoginCountdown'
+import { useLoginBlockValidation } from '@/hooks/useLoginBlockValidation'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { useBlockedUserCountdown } from '@/components/auth/blocked-user-countdown'
 
-  // Combinar dados do cliente para criar fingerprint
-  const fingerprintData = [
-    userAgent,
-    language,
-    platform,
-    cookieEnabled,
-    screenResolution,
-    timezoneOffset
-  ].join('|');
+import { CountdownCard } from '@/components/auth/countdown-card'
+import { LoginFormFields } from '@/components/auth/login-form-fields'
+import { LoginSubmitButton } from '@/components/auth/login-submit-button'
 
-  // Usar uma função de hash simples (em produção, use crypto.subtle.digest se disponível)
-  let hash = 0;
-  for (let i = 0; i < fingerprintData.length; i++) {
-    const char = fingerprintData.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash; // Convert to 32bit integer
-  }
-  return Math.abs(hash).toString(16);
-}
-
-// Página de login do sistema
+/**
+ * Componente de formulário de login
+ * Gerencia autenticação com validação de bloqueios e countdown
+ */
 export default function LoginForm() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
+  const { toast } = useToast()
+  
+  // Hooks customizados para funcionalidades específicas
+  const { countdown, isBlocked, formatCountdown } = useLoginCountdown()
+  const { validateUserBlock } = useLoginBlockValidation()
+  const { currentUserId } = useCurrentUser()
+  const { isBlocked: isBlockedByCountdown } = useBlockedUserCountdown(currentUserId || '')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
+    e.preventDefault()
 
-    const formData = new FormData(e.currentTarget);
-    const email = formData.get('email') as string;
-    const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget)
+    const email = formData.get('email') as string
+    const password = formData.get('password') as string
+
+    setIsLoading(true)
+    setError(null)
 
     try {
+      // Verificar se usuário está bloqueado antes do login
+      const blockValidation = await validateUserBlock(email)
+      
+      if (blockValidation.isBlocked) {
+        setIsLoading(false)
+        return
+      }
+
+      // Verificar countdown local (fallback)
+      if (isBlocked) {
+        toast.warning("Login Temporariamente Bloqueado", {
+          description: `Aguarde ${formatCountdown(countdown!)} para tentar fazer login novamente.`,
+          duration: 5000,
+          icon: <AlertTriangle className="h-4 w-4" />
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // Realizar login
       const { success, error, redirect } = await signInWithPassword({
         email,
         password
-      });
+      })
 
       if (!success) {
-        setError(error || 'Erro ao realizar login');
-        return;
+        setError(error || 'Erro ao realizar login')
+        return
       }
 
-      // Redirecionar para a rota apropriada
+      // Redirecionar se sucesso
       if (redirect) {
-        router.push(redirect);
-        router.refresh();
+        router.push(redirect)
+        router.refresh()
       }
     } catch (err) {
-      setError('Ocorreu um erro ao tentar fazer login');
+      setError('Ocorreu um erro ao tentar fazer login')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
+
+  const finalIsBlocked = isBlocked || isBlockedByCountdown
 
   return (
     <Card className="w-[350px]">
       <CardHeader>
-        <CardTitle>Login</CardTitle>
-        <CardDescription>Entre com suas credenciais para acessar o sistema.</CardDescription>
+        <CardTitle className="font-medium text-xl">Login</CardTitle>
+        <CardDescription>Entre com suas credenciais.</CardDescription>
       </CardHeader>
+      
       <CardContent>
+        {/* Card de countdown se bloqueado */}
+        {countdown !== null && countdown > 0 && (
+          <CountdownCard countdown={countdown} formatCountdown={formatCountdown} />
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="bg-red-50 text-red-500 p-3 rounded">
               {error}
             </div>
           )}
-          
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="seu@email.com"
-              required
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Senha</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              placeholder="********"
-              required
-            />
-          </div>
+          <LoginFormFields isBlocked={finalIsBlocked} />
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? 'Entrando...' : 'Entrar'}
-          </Button>
+          <LoginSubmitButton
+            isLoading={isLoading}
+            isBlocked={finalIsBlocked}
+            countdown={countdown}
+            formatCountdown={formatCountdown}
+          />
         </form>
       </CardContent>
+      
       <CardFooter className="flex flex-col items-start gap-2 pt-2">
-        {/* Link para recuperação de senha */}
         <Link
           href="/login/forgot-password"
           className={clsx(
@@ -145,4 +141,4 @@ export default function LoginForm() {
       </CardFooter>
     </Card>
   )
-} 
+}

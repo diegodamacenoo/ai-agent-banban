@@ -80,9 +80,22 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT:Refreshing the session also make sure the JWT is refreshed effectively.
+  // IMPORTANT: Refreshing the session also make sure the JWT is refreshed effectively.
   // It must be awaited although it does not return anything.
-  await supabase.auth.getUser();
+  // Usar try/catch para evitar que erros em uma aba afetem outras
+  try {
+    await supabase.auth.getUser();
+  } catch (error: any) {
+    // Ignorar erros de refresh token já usado (comum com múltiplas abas)
+    if (error?.message?.includes('refresh_token_already_used') || 
+        error?.message?.includes('refresh_token_not_found')) {
+      // Tudo bem, outra aba já fez o refresh
+      console.debug('Token já foi atualizado por outra aba');
+    } else {
+      // Para outros erros, apenas log sem quebrar o fluxo
+      console.debug('Erro no middleware de sessão:', error?.message);
+    }
+  }
 
   return response;
 } 

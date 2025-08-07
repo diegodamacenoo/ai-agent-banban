@@ -1,6 +1,6 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { verifyAdminAccess } from './utils';
 import { conditionalAuditLog, conditionalDebugLog, getConfigValue } from './system-config-utils';
@@ -96,7 +96,15 @@ export async function createModuleBackup(input: CreateBackupInput): Promise<Acti
         // Backup completo - implementação + configurações + assignments
         const { data: assignments } = await supabase
           .from('tenant_module_assignments')
-          .select('*')
+          .select(`
+            id,
+            tenant_id,
+            base_module_id,
+            implementation_id,
+            custom_config,
+            is_active,
+            assigned_at
+          `)
           .eq('implementation_id', input.implementation_id);
 
         backupData = {
@@ -246,7 +254,15 @@ export async function listModuleBackups(
 
     let query = supabase
       .from('module_backups')
-      .select('*')
+      .select(`
+        id,
+        implementation_id,
+        backup_type,
+        backup_data,
+        notes,
+        created_at,
+        created_by
+      `)
       .eq('implementation_id', implementation_id)
       .order('created_at', { ascending: false });
 
@@ -295,7 +311,14 @@ export async function restoreModuleBackup(input: RestoreBackupInput): Promise<Ac
     // Buscar dados do backup
     const { data: backup, error: backupError } = await supabase
       .from('module_backups')
-      .select('*')
+      .select(`
+        id,
+        implementation_id,
+        backup_type,
+        backup_data,
+        notes,
+        created_at
+      `)
       .eq('id', input.backup_id)
       .single();
 

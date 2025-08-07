@@ -278,7 +278,7 @@ export function useOptimisticAssignments({initialAssignments,
     const groups = new Map<string, TenantGroup>();
 
     assignments.forEach(assignment => {
-      if (!assignment || !assignment.tenant_id) return;
+      if (!assignment?.tenant_id) return;
 
       const key = assignment.tenant_id;
       if (!groups.has(key)) {

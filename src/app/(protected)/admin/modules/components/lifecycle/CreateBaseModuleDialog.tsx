@@ -203,8 +203,8 @@ export function CreateBaseModuleDialog({
             console.log('✅ MODO OTIMÍSTICO: Confirmado pelo servidor:', operationId);
             
             // Toast de sucesso apenas após confirmação
-            toast.success(`O módulo base "${data.name}" foi criado e está disponível para implementações.`, {
-              title: 'Módulo criado com sucesso!',
+            toast.success('Módulo criado com sucesso!', {
+              description: `O módulo base "${data.name}" foi criado e está disponível para implementações.`
             });
           } else {
             // Reverter operação otimística
@@ -224,24 +224,24 @@ export function CreateBaseModuleDialog({
         const result = await createBaseModule(data);
 
         if (result.success) {
-          toast.success(`O módulo base "${data.name}" foi criado e está disponível para implementações.`, {
-            title: 'Módulo criado com sucesso!',
+          toast.success('Módulo criado com sucesso!', {
+            description: `O módulo base "${data.name}" foi criado e está disponível para implementações.`
           });
 
           form.reset();
           setOpen(false);
           onSuccess?.();
         } else {
-          toast.error(result.error || 'Ocorreu um erro inesperado.', {
-            title: 'Erro ao criar módulo',
+          toast.error('Erro ao criar módulo', {
+            description: result.error || 'Ocorreu um erro inesperado.'
           });
         }
       }
 
     } catch (error) {
       console.debug('Erro geral ao criar módulo base:', error);
-      toast.error('Ocorreu um erro inesperado. Tente novamente.', {
-        title: 'Erro ao criar módulo',
+      toast.error('Erro ao criar módulo', {
+        description: 'Ocorreu um erro inesperado. Tente novamente.'
       });
     } finally {
       setIsSubmitting(false);
@@ -314,7 +314,7 @@ export function CreateBaseModuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex align-left gap-2 pt-1">
-                      Identificador *
+                      Identificador (Slug) *
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -322,13 +322,25 @@ export function CreateBaseModuleDialog({
                           </TooltipTrigger>
                           <TooltipContent side="left">
                             <p className="max-w-xs">
-                              Identificador único interno usado no código e banco de dados.
+                              <strong>Identificador técnico único</strong> usado internamente pelo sistema.
+                              <br /><br />
+                              <strong>Função:</strong>
                               <br />
-                              • Formato: apenas letras minúsculas, números e hífen
+                              • Identifica o módulo no código e banco de dados
+                              <br />
+                              • Usado para buscar implementações específicas
+                              <br />
+                              • Base para auto-resolução de componentes
+                              <br /><br />
+                              <strong>Regras:</strong>
+                              <br />
+                              • Apenas letras minúsculas, números e hífen
                               <br />
                               • Não pode ser alterado após criação
                               <br />
-                              • Exemplo: "performance-analytics"
+                              • Deve ser único no sistema
+                              <br /><br />
+                              <strong>Exemplo:</strong> "alerts", "performance-analytics"
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -435,7 +447,7 @@ export function CreateBaseModuleDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex align-left gap-2 pt-1">
-                      URL de Acesso *
+                      Padrão de Rota (Route Pattern)
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -443,13 +455,27 @@ export function CreateBaseModuleDialog({
                           </TooltipTrigger>
                           <TooltipContent side="right">
                             <p className="max-w-xs">
-                              Como o módulo aparecerá na URL do navegador dos usuários.
+                              <strong>Define como o módulo aparece na URL</strong> e influencia a resolução de componentes.
+                              <br /><br />
+                              <strong>Função:</strong>
                               <br />
-                              • Pode incluir barras para hierarquia
+                              • Determina a URL: /&#123;tenant&#125;/<strong>&#123;route-pattern&#125;</strong>
                               <br />
-                              • Pode ser alterado posteriormente
+                              • Usado como namespace para buscar componentes
                               <br />
-                              • Exemplo: "/performance" ou "/vendas/analytics"
+                              • Tem prioridade sobre o slug na auto-resolução
+                              <br /><br />
+                              <strong>Comportamento:</strong>
+                              <br />
+                              • Se definido: busca em <code>/&#123;route_pattern&#125;/implementations/</code>
+                              <br />
+                              • Se vazio: usa o slug como fallback
+                              <br /><br />
+                              <strong>Exemplos:</strong>
+                              <br />
+                              • "alerts" → /banban-fashion/alerts
+                              <br />
+                              • "vendas/relatorios" → /banban-fashion/vendas/relatorios
                             </p>
                           </TooltipContent>
                         </Tooltip>
@@ -556,8 +582,11 @@ export function CreateBaseModuleDialog({
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                leftIcon={isSubmitting ? <Loader2 className="animate-spin" /> : undefined}
+              >
                 Criar Módulo Base
               </Button>
             </div>

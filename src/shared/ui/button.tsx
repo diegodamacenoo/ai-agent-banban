@@ -17,9 +17,9 @@ const buttonVariants = cva(
         outline:
           "bg-transparent border border-[hsl(var(--border))] text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus-visible:ring-[hsl(var(--ring))] shadow-sm/2",
         secondary:
-          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--secondary))] hover:brightness-95 focus-visible:ring-[hsl(var(--ring))]",
+          "bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] hover:bg-[hsl(var(--highlight))] focus-visible:ring-[hsl(var(--ring))]",
         ghost:
-          "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] focus-visible:ring-[hsl(var(--ring))]",
+          "text-[hsl(var(--foreground))] hover:bg-[hsl(var(--highlight))] hover:text-[hsl(var(--accent-foreground))] focus-visible:ring-[hsl(var(--ring))]",
         link: 
           "text-[hsl(var(--text-link))] underline-offset-4 hover:underline focus-visible:ring-[hsl(var(--ring))]",
         success:

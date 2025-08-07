@@ -143,11 +143,8 @@ export class ModuleMetadataService {
     const results: ModuleMetadata[] = [];
 
     try {
-      // Diretórios base para módulos
-      const moduleBases = [
-        'src/core/modules/banban',
-        'src/core/modules/standard'
-      ];
+      // Descobrir dinamicamente diretórios de clientes
+      const moduleBases = await this.discoverModuleDirectories();
 
       for (const baseDir of moduleBases) {
         try {
@@ -205,40 +202,95 @@ export class ModuleMetadataService {
   }
 
   /**
+   * Descobre dinamicamente os diretórios de módulos
+   */
+  private async discoverModuleDirectories(): Promise<string[]> {
+    const basePath = 'src/core/modules';
+    const directories: string[] = [];
+
+    try {
+      const entries = await fs.readdir(basePath, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          // Ignorar diretórios especiais do sistema
+          const systemDirectories = ['registry', 'template', '__tests__', 'types', 'services', 'loader'];
+          if (!systemDirectories.includes(entry.name)) {
+            directories.push(`${basePath}/${entry.name}`);
+            await conditionalDebugLog(`Descoberto diretório de módulos: ${entry.name}`);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Erro ao descobrir diretórios de módulos, usando padrão:', error);
+      // Fallback para estrutura mínima
+      directories.push('src/core/modules/standard');
+    }
+
+    return directories;
+  }
+
+  /**
    * Gera ID do módulo baseado no nome e localização
    */
   private generateModuleId(folderName: string, baseDir: string): string {
-    if (baseDir.includes('banban')) {
-      return `banban-${folderName}`;
+    // Extrair nome do cliente do caminho base
+    const pathParts = baseDir.split('/');
+    const clientName = pathParts[pathParts.length - 1];
+    
+    if (clientName === 'standard') {
+      return folderName;
     }
-    return folderName;
+    
+    return `${clientName}-${folderName}`;
   }
 
   /**
    * Detecta tipo do módulo baseado no caminho
    */
   private detectModuleType(moduleId: string, modulePath: string): 'custom' | 'standard' {
-    if (modulePath.includes('banban') || moduleId.startsWith('banban-')) {
-      return 'custom';
+    // Se o caminho contém 'standard', é módulo padrão
+    if (modulePath.includes('/standard/')) {
+      return 'standard';
     }
-    return 'standard';
+    
+    // Se o moduleId não tem prefixo (não contém '-'), é provavelmente standard
+    if (!moduleId.includes('-')) {
+      return 'standard';
+    }
+    
+    // Qualquer outro caso é considerado custom
+    return 'custom';
   }
 
   /**
-   * Descobre caminho de um módulo pelo ID
+   * Descobre caminho de um módulo pelo ID dinamicamente
    */
   private async discoverModulePath(moduleId: string): Promise<string | null> {
-    const possiblePaths = [
-      // Módulos banban
-      `src/core/modules/banban/${moduleId.replace('banban-', '')}`,
-      // Módulos padrão
-      `src/core/modules/standard/${moduleId}`
-    ];
+    // Descobrir todos os diretórios de módulos
+    const moduleDirectories = await this.discoverModuleDirectories();
+    
+    for (const baseDir of moduleDirectories) {
+      let possiblePath: string;
+      
+      if (baseDir.includes('standard')) {
+        // Para módulos standard, usar o ID completo
+        possiblePath = `${baseDir}/${moduleId}`;
+      } else {
+        // Para módulos custom, remover prefixo do cliente
+        const clientName = baseDir.split('/').pop();
+        if (moduleId.startsWith(`${clientName}-`)) {
+          const moduleNameWithoutPrefix = moduleId.replace(`${clientName}-`, '');
+          possiblePath = `${baseDir}/${moduleNameWithoutPrefix}`;
+        } else {
+          possiblePath = `${baseDir}/${moduleId}`;
+        }
+      }
 
-    for (const possiblePath of possiblePaths) {
       try {
         const configPath = path.join(possiblePath, 'module.json');
         await fs.access(configPath);
+        await conditionalDebugLog(`Encontrado módulo em: ${possiblePath}`);
         return possiblePath;
       } catch {
         // Continuar tentando outros caminhos
@@ -249,11 +301,19 @@ export class ModuleMetadataService {
   }
 
   /**
-   * Formata nome de módulo como fallback
+   * Formata nome de módulo como fallback dinamicamente
    */
   private formatModuleName(moduleId: string): string {
+    // Se tem prefixo de cliente, formatar adequadamente
+    if (moduleId.includes('-')) {
+      const [clientPrefix, ...moduleNameParts] = moduleId.split('-');
+      const clientFormatted = clientPrefix.toUpperCase();
+      const moduleFormatted = moduleNameParts.join(' ');
+      return `${clientFormatted} ${moduleFormatted.replace(/\b\w/g, (l) => l.toUpperCase())}`;
+    }
+    
+    // Módulo sem prefixo, apenas formatar
     return moduleId
-      .replace(/^banban-/, 'BanBan ')
       .replace(/-/g, ' ')
       .replace(/\b\w/g, (l) => l.toUpperCase());
   }

@@ -249,34 +249,89 @@ export async function terminateAllOtherSessions(): Promise<{success: boolean, er
       return { success: false, error: 'Usuário não autenticado' };
     }
     
-    // Buscar a sessão atual para comparação
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (!currentUser) {
-      return { success: false, error: 'Usuário não autenticado' };
+    // Buscar todas as sessões do usuário
+    const { data: sessions, error: sessionsError } = await supabase
+      .from('user_sessions')
+      .select('id, created_at, updated_at')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('updated_at', { ascending: false });
+    
+    if (sessionsError) {
+      console.error('Erro ao buscar sessões:', sessionsError);
+      return { success: false, error: 'Não foi possível buscar as sessões' };
+    }
+
+    if (!sessions || sessions.length === 0) {
+      return { success: false, error: 'Nenhuma sessão ativa encontrada' };
     }
     
-    // Buscar todas as sessões do usuário
-    const { data: sessions } = await supabase
-      .from('user_sessions')
-      .select('id')
-      .eq('user_id', user.id);
+    // A primeira sessão (mais recente) é considerada a atual
+    // Encerrar todas as outras sessões
+    const currentSessionId = sessions[0]?.id;
+    const otherSessions = sessions.filter(session => session.id !== currentSessionId);
     
-    if (!sessions) {
-      return { success: false, error: 'Não foi possível buscar as sessões' };
+    if (otherSessions.length === 0) {
+      return { success: true }; // Não há outras sessões para encerrar
     }
     
     // Encerrar cada sessão exceto a atual
-    for (const session of sessions) {
-      if (session.id !== currentUser.id) {
-        await terminateSession({ sessionId: session.id });
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (const session of otherSessions) {
+      try {
+        const result = await terminateSession({ sessionId: session.id });
+        if (result.success) {
+          successCount++;
+        } else {
+          errorCount++;
+          console.error(`Erro ao encerrar sessão ${session.id}:`, result.error);
+        }
+      } catch (error) {
+        errorCount++;
+        console.error(`Erro inesperado ao encerrar sessão ${session.id}:`, error);
       }
     }
     
+    // Registrar log de auditoria para operação em lote
+    try {
+      const { ipAddress, userAgent } = await captureHeaders();
+      await createAuditLog({
+        actor_user_id: user.id,
+        action_type: AUDIT_ACTION_TYPES.SESSION_TERMINATED,
+        resource_type: AUDIT_RESOURCE_TYPES.SESSION,
+        resource_id: `batch_${Date.now()}`,
+        details: {
+          session_type: 'bulk_termination',
+          method: 'terminate_all_others',
+          total_sessions: otherSessions.length,
+          success_count: successCount,
+          error_count: errorCount
+        }
+      });
+    } catch (auditError) {
+      console.error('Erro ao registrar log de auditoria:', auditError);
+    }
+    
     revalidatePath('/settings');
-    return { success: true };
+    
+    if (errorCount === 0) {
+      return { success: true };
+    } else if (successCount > 0) {
+      return { 
+        success: true, 
+        error: `${successCount} sessões encerradas com sucesso, ${errorCount} falharam` 
+      };
+    } else {
+      return { 
+        success: false, 
+        error: `Falha ao encerrar todas as ${errorCount} sessões` 
+      };
+    }
   } catch (error: any) {
-    console.error('Erro ao encerrar todas as sessões:', error);
-    return { success: false, error: 'Erro ao encerrar todas as sessões' };
+    console.error('Erro inesperado ao encerrar todas as sessões:', error);
+    return { success: false, error: 'Erro inesperado ao encerrar todas as sessões' };
   }
 }
 

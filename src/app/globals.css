@@ -4,7 +4,7 @@
 
 /* Toast button customization - Sonner 2.0.6 compatible */
 /* Universal button selector with maximum specificity */
-[data-sonner-toaster] button,
+/* [data-sonner-toaster] button,
 [data-sonner-toaster] * button,
 ol[data-sonner-toaster] button,
 ol[data-sonner-toaster] * button,
@@ -35,14 +35,14 @@ li[data-sonner-toast] button,
 }
 
 /* Action button (primary) - target any button that's not a cancel */
-[data-sonner-toaster] button:not([data-cancel]):not([data-close-button]),
+/* [data-sonner-toaster] button:not([data-cancel]):not([data-close-button]),
 ol[data-sonner-toaster] button:not([data-cancel]):not([data-close-button]),
 li[data-sonner-toast] button:not([data-cancel]):not([data-close-button]),
 [data-sonner-toast] button:not([data-cancel]):not([data-close-button]),
 .sonner-toast button:not([data-cancel]):not([data-close-button]),
 [data-toast-root] button:not([data-cancel]):not([data-close-button]) {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
+  background-color: var(--primary)) !important;
+  color: var(--primary-foreground)) !important;
   box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
 }
 
@@ -51,19 +51,19 @@ ol[data-sonner-toaster] button:not([data-cancel]):not([data-close-button]):hover
 li[data-sonner-toast] button:not([data-cancel]):not([data-close-button]):hover,
 [data-sonner-toast] button:not([data-cancel]):not([data-close-button]):hover,
 .sonner-toast button:not([data-cancel]):not([data-close-button]):hover {
-  background-color: hsl(var(--primary-hover)) !important;
-}
+  background-color: var(--primary-hover)) !important;
+} */
 
 /* Cancel button (secondary) */
-[data-sonner-toaster] button[data-cancel],
+/* [data-sonner-toaster] button[data-cancel],
 ol[data-sonner-toaster] button[data-cancel],
 li[data-sonner-toast] button[data-cancel],
 [data-sonner-toast] button[data-cancel],
 .sonner-toast button[data-cancel],
 [data-toast-root] button[data-cancel] {
-  background-color: hsl(var(--secondary)) !important;
-  color: hsl(var(--secondary-foreground)) !important;
-  border: 1px solid hsl(var(--border)) !important;
+  background-color: var(--secondary)) !important;
+  color: var(--secondary-foreground)) !important;
+  border: 1px solid var(--border)) !important;
 }
 
 [data-sonner-toaster] button[data-cancel]:hover,
@@ -72,10 +72,10 @@ li[data-sonner-toast] button[data-cancel]:hover,
 [data-sonner-toast] button[data-cancel]:hover,
 .sonner-toast button[data-cancel]:hover {
   filter: brightness(0.95) !important;
-}
+} */
 
 /* Close button should remain small */
-[data-sonner-toaster] button[data-close-button],
+/* [data-sonner-toaster] button[data-close-button],
 [data-sonner-toast] button[data-close-button] {
   all: unset !important;
   cursor: pointer !important;
@@ -84,7 +84,7 @@ li[data-sonner-toast] button[data-cancel]:hover,
   width: auto !important;
   height: auto !important;
   min-width: auto !important;
-}
+}  */
 
 
 /* React Grid Layout CSS */
@@ -93,41 +93,42 @@ li[data-sonner-toast] button[data-cancel]:hover,
 @layer base {
   :root {
     /* Usando cores nativas do Tailwind diretamente */
-    --background: var(--color-alabaster-50);
-    --foreground: var(--color-alabaster-900);
+    --background: var(--color-usuku-50);
+    --foreground: var(--color-usuku-800);
+    --foreground-unactive: var(--color-usuku-600);
 
-    --card: var(--color-alabaster-25);
-    --card-foreground: var(--color-alabaster-900);
+    --card: var(--color-usuku-25);
+    --card-foreground: var(--color-usuku-800);
 
-    --highlight: var(--color-blue-50);
-    --highlight-overlay: var(--color-blue-100);
-    --highlight-overlay-hover: var(--color-blue-200);
-    --highlight-foreground: var(--color-blue-500);
+    --highlight: var(--color-green-50);
+    --highlight-overlay: var(--color-green-100);
+    --highlight-overlay-hover: var(--color-green-200);
+    --highlight-foreground: var(--color-green-800);
 
-    --popover: var(--color-alabaster-50);
-    --popover-foreground: var(--color-alabaster-900);
+    --popover: var(--color-usuku-50);
+    --popover-foreground: var(--color-usuku-800);
 
-    --primary: var(--color-alabaster-800);
-    --primary-hover: var(--color-blue-600);
-    --primary-foreground: var(--color-alabaster-50);
+    --primary: var(--color-usuku-800);
+    --primary-hover: var(--color-yanagi-600);
+    --primary-foreground: var(--color-usuku-50);
 
-    --secondary: var(--color-alabaster-50);
-    --secondary-foreground: var(--color-alabaster-800);
+    --secondary: var(--color-usuku-50);
+    --secondary-foreground: var(--color-usuku-800);
 
-    --muted: var(--color-alabaster-50);
-    --muted-foreground: var(--color-alabaster-400);
+    --muted: var(--color-usuku-50);
+    --muted-foreground: var(--color-usuku-400);
 
-    --accent: var(--color-alabaster-100);
-    --accent-foreground: var(--color-alabaster-900);
+    --accent: var(--color-green-50);
+    --accent-foreground: var(--color-green-800);
 
     --destructive: var(--color-red-500);
-    --destructive-foreground: var(--color-alabaster-50);
+    --destructive-foreground: var(--color-usuku-50);
     --destructive-hover: var(--color-red-600);
     --text-descructive: var(--color-red-700);
 
     --success: var(--color-green-500);
     --success-hover: var(--color-green-600);
-    --success-foreground: var(--color-alabaster-50);
+    --success-foreground: var(--color-usuku-50);
     --text-success: var(--color-green-500);
 
     --light-success: var(--color-green-100);
@@ -136,7 +137,7 @@ li[data-sonner-toast] button[data-cancel]:hover,
 
     --warning: var(--color-yellow-500);
     --warning-hover: var(--color-yellow-600);
-    --warning-foreground: var(--color-alabaster-50);
+    --warning-foreground: var(--color-usuku-50);
     --text-warning: var(--color-yellow-500);
 
     --info: var(--color-blue-500);
@@ -144,9 +145,9 @@ li[data-sonner-toast] button[data-cancel]:hover,
 
     --text-link: var(--color-blue-700);
 
-    --border: var(--color-alabaster-200);
-    --input: var(--color-alabaster-50);
-    --ring: var(--color-alabaster-500);
+    --border: var(--color-usuku-100);
+    --input: var(--color-usuku-50);
+    --ring: var(--color-usuku-500);
 
     --chart-1: var(--color-blue-500);
     --chart-2: var(--color-green-500);
@@ -154,53 +155,39 @@ li[data-sonner-toast] button[data-cancel]:hover,
     --chart-4: var(--purple-500);
     --chart-5: var(--pink-500);
 
-    --sidebar-background: var(--color-alabaster-100);
-    --sidebar-foreground: var(--color-alabaster-900);
-    --sidebar-border: var(--color-alabaster-100);
-    --sidebar-accent: var(--color-alabaster-200);
-    --sidebar-input: var(--color-alabaster-200);
+    --sidebar-background: var(--color-usuku-50);
+    --sidebar-foreground: var(--color-usuku-900);
+    --sidebar-border: var(--color-usuku-100);
+    --sidebar-accent: var(--color-usuku-200);
+    --sidebar-input: var(--color-usuku-200);
 
     --radius: 0.75rem;
     --card-radius: 1rem;
 
-    --color-alabaster-25: 60 7.7% 99.2%;
-    --color-alabaster-50: 60 7.7% 94.9%;
-    --color-alabaster-100: 72 9.8% 90%;
-    --color-alabaster-200: 66.7 8.4% 79%;
-    --color-alabaster-300: 69.2 8.3% 69.2%;
-    --color-alabaster-400: 70.6 8.1% 59%;
-    --color-alabaster-500: 69 8% 49%;
-    --color-alabaster-600: 67.5 7.8% 40%;
-    --color-alabaster-700: 69.2 8.5% 30%;
-    --color-alabaster-800: 67.5 7.8% 20%;
-    --color-alabaster-900: 72 9.8% 10%;
-    --color-alabaster-950: 90 7.7% 5.1%;
-
-    /* Cores nativas do Tailwind */
-    --zinc-0: 0 0% 98.8%;
-    --zinc-50: 0 0% 98%;
-    --zinc-100: 240 4.8% 95.9%;
-    --zinc-200: 240 5.9% 90%;
-    --zinc-300: 240 4.9% 83.9%;
-    --zinc-400: 240 5% 64.9%;
-    --zinc-500: 240 3.8% 46.1%;
-    --zinc-600: 240 5.2% 33.9%;
-    --zinc-700: 240 5.3% 26.1%;
-    --zinc-800: 240 3.7% 15.9%;
-    --zinc-900: 240 5.9% 10%;
+    --color-usuku-25: 0 0% 99.2%;
+    --color-usuku-50: 0 0% 96%;
+    --color-usuku-100: 180, 4%, 86%;
+    --color-usuku-200: 66.7 8.4% 82%;
+    --color-usuku-300: 180 1% 86%;
+    --color-usuku-400: 70.6 8.1% 59%;
+    --color-usuku-500: 240 0% 58%;
+    --color-usuku-600: 67.5 7.8% 40%;
+    --color-usuku-700: 69.2 8.5% 30%;
+    --color-usuku-800: 67.5 7.8% 20%;
+    --color-usuku-900: 72 9.8% 10%;
+    --color-usuku-950: 90 7.7% 5.1%;
 
     /* Blue colors */
-    --color-blue-50: 180 15.4% 94.9%;
-    --color-blue-100: 193.3 17.6% 90%;
-    --color-blue-200: 187.5 15.7% 83%;
-    --color-blue-300: 189.6 16.3% 70%;
-    --color-blue-400: 188.6 16.7% 59%;
-    --color-blue-500: 190 16.8% 49%;
-    --color-blue-600: 189.1 16.6% 39%;
-    --color-blue-700: 190 16.2% 29%;
-    --color-blue-800: 187.5 15.7% 20%;
-    --color-blue-900: 193.3 17.6% 10%;
-    --color-blue-950: 195 15.4% 5.1%;
+    --color-blue-50: 210, 93%, 95%;
+    --color-blue-100: 212, 94%, 87%;
+    --color-blue-200: 212, 94%, 79%;
+    --color-blue-300: 213, 93%, 72%;
+    --color-blue-400: 215, 92%, 67%;
+    --color-blue-500: 217, 89%, 64%;
+    --color-blue-600: 220, 75%, 60%;
+    --color-blue-700: 224, 60%, 55%;
+    --color-blue-800: 228, 49%, 51%;
+    --color-blue-900: 240, 45%, 43%;
 
     /* Red colors */
     --color-red-50: 8.6 77.8% 98.2%;
@@ -216,17 +203,16 @@ li[data-sonner-toast] button[data-cancel]:hover,
     --color-red-950: 10.8 90.7% 8.4%;
 
     /* Green colors */
-    --color-green-50: 120 42.9% 95.9%;
-    --color-green-100: 115.6 45.8% 88.4%;
-    --color-green-200: 113.7 29.7% 74.9%;
-    --color-green-300: 112.9 18.9% 64.7%;
-    --color-green-400: 113.8 12.6% 54.7%;
-    --color-green-500: 115 10.4% 45.1%;
-    --color-green-600: 113.7 10.4% 35.9%;
-    --color-green-700: 112 11.3% 26.1%;
-    --color-green-800: 114.5 12.1% 17.8%;
-    --color-green-900: 111.4 13.7% 10%;
-    --color-green-950: 120 16.1% 6.1%;
+    --color-green-50: 165, 7%, 93%;
+    --color-green-100: 165, 7%, 87%;
+    --color-green-200: 167, 7%, 82%;
+    --color-green-300: 169, 12%, 64%;
+    --color-green-400: 171, 12%, 56%;
+    --color-green-500: 196, 13%, 49%;
+    --color-green-600: 195, 13%, 43%;
+    --color-green-700: 196, 12%, 36%;
+    --color-green-800: 196, 10%, 29%;
+    --color-green-900: 193, 8%, 21%;
 
     /* Amber colors */
 
@@ -244,16 +230,17 @@ li[data-sonner-toast] button[data-cancel]:hover,
 
 
     /* Purple colors */
-    --purple-50: 270 100% 98%;
-    --purple-100: 269 100% 95%;
-    --purple-200: 269 100% 92%;
-    --purple-300: 269 97% 85%;
-    --purple-400: 270 95% 75%;
-    --purple-500: 271 91% 65%;
-    --purple-600: 271 81% 56%;
-    --purple-700: 272 72% 47%;
-    --purple-800: 273 67% 39%;
-    --purple-900: 274 66% 32%;
+  --color-yanagi-50: 93.3 36% 95.1%;
+  --color-yanagi-100: 90 32.1% 89%;
+  --color-yanagi-200: 90 23.6% 78.4%;
+  --color-yanagi-300: 90 31.1% 71%;
+  --color-yanagi-400: 89.5 34.4% 62.9%;
+  --color-yanagi-500: 90.3 39.7% 55.1%;
+  --color-yanagi-600: 89.7 44.8% 46.9%;
+  --color-yanagi-700: 90.3 50.8% 39%;
+  --color-yanagi-800: 90 58.2% 31%;
+  --color-yanagi-900: 90 64.4% 23.1%;
+  --color-yanagi-950: 90.4 73.2% 19%;
 
     /* Pink colors */
     --pink-50: 327 73% 97%;
@@ -498,8 +485,56 @@ li[data-sonner-toast] button[data-cancel]:hover,
   }
 }
 
+/* ===== WIZARD PERFORMANCE OPTIMIZATIONS ===== */
+@layer components {
+  .wizard-step-content {
+    @apply opacity-100;
+    transform: translateX(0);
+    transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  }
+  
+  .wizard-step-content.entering {
+    @apply opacity-0;
+    transform: translateX(10px);
+  }
+  
+  .wizard-step-content.exiting {
+    @apply opacity-0;
+    transform: translateX(-10px);
+  }
+  
+  /* Smooth scroll otimizado */
+  .dialog-scroll-area {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    will-change: scroll-position;
+  }
+  
+  /* Otimizações de hardware acceleration */
+  .hw-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+}
+
 /* Toast Animations */
 @layer utilities {
+  .animate-fadeIn {
+    animation: fadeIn 0.15s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Entrada dos toasts */
   @keyframes toast-slide-in-from-right {
     from {

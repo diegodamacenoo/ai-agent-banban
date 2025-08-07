@@ -8,16 +8,15 @@ import {
   DropdownMenuSeparator
 } from '@/shared/ui/dropdown-menu';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/shared/ui/alert-dialog';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/shared/ui/dialog';
 import {
   MoreHorizontal,
   Settings,
@@ -122,8 +121,8 @@ export function ModuleActionsMenu({module,
           >
             Restaurar Módulo
           </DropdownMenuItem>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <Dialog>
+            <DialogTrigger asChild>
               <DropdownMenuItem
                 variant="destructive"
                 icon={Trash2}
@@ -131,16 +130,16 @@ export function ModuleActionsMenu({module,
               >
                 Remover Registro
               </DropdownMenuItem>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-red-600">
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle className="text-red-600">
                   Tem certeza que deseja excluir este módulo permanentemente?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
+                </DialogTitle>
+                <DialogDescription>
                   Esta ação é irreversível e irá excluir permanentemente o módulo "{module.name}" do sistema.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
+                </DialogDescription>
+              </DialogHeader>
               <div className="space-y-3">
                 <div className="bg-red-50 border border-red-200 rounded-md p-3">
                   <p className="text-red-800 font-medium text-sm">
@@ -156,20 +155,22 @@ export function ModuleActionsMenu({module,
                   Esta ação não pode ser desfeita.
                 </p>
               </div>
-              <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeleting}>
-                  Cancelar
-                </AlertDialogCancel>
-                <AlertDialogAction
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline" disabled={isDeleting}>
+                    Cancelar
+                  </Button>
+                </DialogClose>
+                <Button
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className="bg-red-700 hover:bg-red-800"
                 >
                   {isDeleting ? "Removendo..." : "Remover Permanentemente"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -255,8 +256,8 @@ export function ModuleActionsMenu({module,
         </DropdownMenuItem>
 
         {!module.is_archived && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          <Dialog>
+            <DialogTrigger asChild>
               <DropdownMenuItem
                 icon={Archive}
                 variant="warning"
@@ -264,16 +265,16 @@ export function ModuleActionsMenu({module,
               >
                 Arquivar Módulo Core
               </DropdownMenuItem>
-            </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle className="text-amber-600">
+            </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-amber-600">
                 Arquivar Módulo Core
-              </AlertDialogTitle>
-              <AlertDialogDescription>
+              </DialogTitle>
+              <DialogDescription>
                 Tem certeza que deseja arquivar o módulo core "{module.name}"?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-3">
               <div className="bg-amber-50 border border-amber-200 rounded-md p-3">
                 <p className="text-amber-800 font-medium text-sm">
@@ -290,20 +291,22 @@ export function ModuleActionsMenu({module,
                 O módulo pode ser desarquivado posteriormente se necessário.
               </p>
             </div>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={isArchiving}>
-                Cancelar
-              </AlertDialogCancel>
-              <AlertDialogAction
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline" disabled={isArchiving}>
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button
                 onClick={handleArchive}
                 disabled={isArchiving}
                 className="bg-amber-600 hover:bg-amber-700"
               >
                 {isArchiving ? "Arquivando..." : "Arquivar Módulo Core"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-          </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+          </Dialog>
         )}
 
         {module.is_archived && (

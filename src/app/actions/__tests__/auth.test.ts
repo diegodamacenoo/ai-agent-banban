@@ -37,7 +37,7 @@ describe('Auth Server Actions', () => {
       // Mock implementation
       const mockChangePassword = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Senha atual Ã© obrigatÃ³ria',
+        error: 'Senha atual é obrigatória',
       });
 
       const result = await mockChangePassword({
@@ -47,13 +47,13 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('obrigatÃ³ria');
+      expect(result.error).toContain('obrigatória');
     });
 
     it('should require matching passwords', async () => {
       const mockChangePassword = jest.fn().mockResolvedValue({
         success: false,
-        error: 'As senhas nÃ£o coincidem',
+        error: 'As senhas não coincidem',
       });
 
       const result = await mockChangePassword({
@@ -63,7 +63,7 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('nÃ£o coincidem');
+      expect(result.error).toContain('não coincidem');
     });
   });
 
@@ -71,7 +71,7 @@ describe('Auth Server Actions', () => {
     it('should validate email format', async () => {
       const mockRequestReset = jest.fn().mockResolvedValue({
         success: false,
-        error: 'Email invÃ¡lido',
+        error: 'Email inválido',
       });
 
       const result = await mockRequestReset({
@@ -79,13 +79,13 @@ describe('Auth Server Actions', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('invÃ¡lido');
+      expect(result.error).toContain('inválido');
     });
 
     it('should handle valid email', async () => {
       const mockRequestReset = jest.fn().mockResolvedValue({
         success: true,
-        message: 'Email de recuperaÃ§Ã£o enviado',
+        message: 'Email de recuperação enviado',
       });
 
       const result = await mockRequestReset({
@@ -117,13 +117,49 @@ describe('Auth Server Actions', () => {
     it('should handle invalid session', async () => {
       const mockGetSession = jest.fn().mockResolvedValue({
         success: false,
-        error: 'SessÃ£o invÃ¡lida',
+        error: 'Sessão inválida',
       });
 
       const result = await mockGetSession();
 
       expect(result.success).toBe(false);
-      expect(result.error).toContain('invÃ¡lida');
+      expect(result.error).toContain('inválida');
+    });
+
+    it('should call signOut when user logs out', async () => {
+      const mockSignOut = jest.fn().mockResolvedValue({
+        error: null,
+      });
+      
+      const mockLogout = jest.fn().mockImplementation(async () => {
+        await mockSignOut();
+        return { success: true };
+      });
+
+      const result = await mockLogout();
+
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(result.success).toBe(true);
+    });
+
+    it('should handle signOut errors', async () => {
+      const mockSignOut = jest.fn().mockResolvedValue({
+        error: { message: 'Erro ao fazer logout' },
+      });
+      
+      const mockLogout = jest.fn().mockImplementation(async () => {
+        const { error } = await mockSignOut();
+        if (error) {
+          return { success: false, error: error.message };
+        }
+        return { success: true };
+      });
+
+      const result = await mockLogout();
+
+      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Erro ao fazer logout');
     });
   });
 }); 

@@ -1,12 +1,14 @@
 'use server';
 
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 import { revalidatePath } from 'next/cache';
 import {
   ActionResult,
   TenantModuleAssignment,
   CreateTenantAssignmentInput,
   UpdateTenantAssignmentInput,
+  CreateTenantAssignmentSchema,
+  UpdateTenantAssignmentSchema,
 } from './schemas';
 import { verifyAdminAccess, checkModuleDependenciesForTenant, notifyTenantModuleActivation } from './utils';
 import { trackServerCall } from './call-tracker';
@@ -176,7 +178,6 @@ export async function createTenantAssignment(input: CreateTenantAssignmentInput)
     }
 
     // Validar entrada
-    const { CreateTenantAssignmentSchema } = await import('./schemas');
     const validation = CreateTenantAssignmentSchema.safeParse(input);
     if (!validation.success) {
       return { 
@@ -206,12 +207,22 @@ export async function createTenantAssignment(input: CreateTenantAssignmentInput)
     // Verificar se módulo base existe
     const { data: baseModule } = await supabase
       .from('base_modules')
-      .select('id, name, dependencies')
+      .select('id, name, dependencies, supports_multi_tenant, exclusive_tenant_id')
       .eq('id', data.base_module_id)
       .single();
 
     if (!baseModule) {
       return { success: false, error: 'Módulo base não encontrado' };
+    }
+
+    // Validar módulos single-tenant (exclusive)
+    if (baseModule.supports_multi_tenant === false && baseModule.exclusive_tenant_id) {
+      if (baseModule.exclusive_tenant_id !== data.tenant_id) {
+        return { 
+          success: false, 
+          error: 'Este módulo é exclusivo de outro tenant e não pode ser atribuído a esta organização' 
+        };
+      }
     }
 
     // Verificar se implementação existe e está ativa
@@ -365,7 +376,6 @@ export async function updateTenantAssignment(input: UpdateTenantAssignmentInput)
     }
 
     // Validar entrada
-    const { UpdateTenantAssignmentSchema } = await import('./schemas');
     const validation = UpdateTenantAssignmentSchema.safeParse(input);
     if (!validation.success) {
       return { 
@@ -427,7 +437,7 @@ export async function updateTenantAssignment(input: UpdateTenantAssignmentInput)
         .eq('id', updateData.implementation_id)
         .single();
 
-      if (!implementation || !implementation.is_active || implementation.archived_at || implementation.deleted_at) {
+      if (!implementation?.is_active || implementation.archived_at || implementation.deleted_at) {
         return { success: false, error: 'Nova implementação não encontrada ou não está ativa' };
       }
       if (implementation.base_module_id !== currentBaseModuleId) {
@@ -609,6 +619,7 @@ export async function createSimpleTenantModuleAssignment(
     const baseModuleId = formData.get('baseModuleId') as string;
     const implementationId = formData.get('implementationId') as string;
     const customConfigStr = formData.get('customConfig') as string;
+    const createAsInactive = formData.get('createAsInactive') === 'true'; // Novo parâmetro
     
     await conditionalDebugLog('Dados do formulário', { tenantId, baseModuleId, implementationId, customConfigStr });
 
@@ -648,7 +659,7 @@ export async function createSimpleTenantModuleAssignment(
       base_module_id: baseModuleId,
       implementation_id: implementationId,
       custom_config: custom_config,
-      is_active: true, // Ativar por padrão
+      is_active: !createAsInactive, // Usar parâmetro para definir status (inativo se createAsInactive = true)
       assigned_by: user.id,
     };
     

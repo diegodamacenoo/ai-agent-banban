@@ -8,6 +8,8 @@ import { DynamicSidebarWrapper } from '@/shared/components/DynamicSidebar';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { migrateImplementationConfig, needsConfigMigration } from '@/shared/utils/module-mapping';
 import { getVisibleModulesForTenant } from '@/app/actions/admin/tenant-modules';
+import { useAuth } from '@/hooks/use-auth';
+import { initSessionManager } from '@/core/auth/session-manager';
 
 interface Organization {
   id?: string;
@@ -40,161 +42,99 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
   const params = useParams();
   const slug = params?.slug as string;
   
-  const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
+  // Usar o hook simples de autenticação
+  const { user, loading: authLoading, error: authError, isAuthenticated } = useAuth();
 
+  // Inicializar o gerenciador de sessão simples
   useEffect(() => {
-    checkAuth();
+    initSessionManager();
   }, []);
 
-  const checkAuth = async () => {
+  // Redirecionar se não autenticado
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      console.debug('Usuário não autenticado, redirecionando para login');
+      router.push('/login');
+    }
+  }, [authLoading, isAuthenticated, router]);
+
+  // Carregar dados do usuário quando autenticado
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && user) {
+      loadUserProfile();
+    }
+  }, [authLoading, isAuthenticated, user]);
+
+  const loadUserProfile = async () => {
     try {
-      console.debug('🔐 Iniciando verificação de autenticação...');
+      console.debug('📋 Carregando perfil do usuário:', user.id);
       const supabase = createSupabaseBrowserClient();
-      
-      console.debug('👤 Buscando usuário autenticado...');
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-      if (userError || !user) {
-        console.warn('Usuário não autenticado:', userError?.message);
-        setAuthStatus('unauthorized');
-        router.push('/login');
-        return;
-      }
-
-      // Primeiro buscar o perfil do usuário
-      console.debug('📋 Buscando perfil do usuário:', user.id);
+      // Buscar perfil do usuário
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('id, organization_id')
         .eq('id', user.id)
         .single();
-      console.debug('📋 Resultado do perfil:', { profile, profileError });
 
-      // Validações detalhadas do perfil
-      if (profileError) {
-        console.error('Erro ao buscar perfil:', profileError.message);
-        setAuthStatus('unauthorized');
+      if (profileError || !profile || !profile.organization_id) {
+        console.warn('Perfil inválido ou sem organização, redirecionando para setup');
         router.push('/setup-account');
         return;
       }
 
-      if (!profile) {
-        console.warn('Perfil não encontrado para o usuário:', user.id);
-        setAuthStatus('unauthorized');
-        router.push('/setup-account');
-        return;
-      }
-
-      if (!profile.organization_id) {
-        console.warn('Usuário sem organização vinculada');
-        setAuthStatus('unauthorized');
-        router.push('/setup-account');
-        return;
-      }
-
-      // Agora buscar a organização separadamente
-      console.debug('🏢 Buscando organização:', profile.organization_id);
+      // Buscar organização
       const { data: organization, error: orgError } = await supabase
         .from('organizations')
         .select('id, slug, client_type, implementation_config, company_trading_name, company_legal_name, is_implementation_complete')
         .eq('id', profile.organization_id)
         .single();
-      console.debug('🏢 Resultado da organização:', { organization, orgError });
 
-      // Verificar se a configuração precisa ser migrada (IDs incorretos)
-      if (organization && organization.implementation_config && needsConfigMigration(organization.implementation_config, organization.client_type)) {
-        console.debug('🔄 Migrando IDs de módulos para formato correto...');
-        const originalConfig = { ...organization.implementation_config };
-        organization.implementation_config = migrateImplementationConfig(organization.implementation_config, organization.client_type);
-        
-        console.debug('📋 Migração de módulos aplicada:', {
-          antes: originalConfig.subscribed_modules,
-          depois: organization.implementation_config.subscribed_modules
-        });
-      }
-
-      // Buscar módulos realmente visíveis da tabela tenant_module_assignments
-      let visibleModules: string[] = [];
-      if (organization?.id) {
-        const visibleModulesResult = await getVisibleModulesForTenant(organization.id);
-        if (visibleModulesResult.success && visibleModulesResult.data) {
-          visibleModules = visibleModulesResult.data;
-          console.debug('🔍 Módulos visíveis carregados:', visibleModules);
-        } else {
-          console.warn('⚠️ Erro ao carregar módulos visíveis:', visibleModulesResult.error);
-        }
-      }
-
-      console.debug('🔍 Organização carregada no tenant:', {
-        organization_id: profile.organization_id,
-        has_organization: !!organization,
-        has_implementation_config: !!organization?.implementation_config,
-        subscribed_modules_count: organization?.implementation_config?.subscribed_modules?.length || 0,
-        visible_modules_count: visibleModules.length,
-        error: orgError?.message
-      });
-
-      // Log específico para debug de módulos
-      if (visibleModules.length > 0) {
-        console.debug('✅ Módulos visíveis encontrados:', visibleModules);
-      } else {
-        console.warn('⚠️ Nenhum módulo visível para esta organização');
-      }
-
-      if (orgError) {
-        console.error('Erro ao buscar organização:', orgError.message);
-        setAuthStatus('unauthorized');
-        router.push('/setup-account');
-        return;
-      }
-
-      if (!organization) {
-        console.error('Organização não encontrada', {
-          organization_id: profile.organization_id
-        });
-        setAuthStatus('unauthorized');
-        router.push('/setup-account');
-        return;
-      }
-
-      if (!organization.slug) {
-        console.error('Organização sem slug definido', {
-          organization_id: profile.organization_id,
-          organization
-        });
-        setAuthStatus('unauthorized');
+      if (orgError || !organization || !organization.slug) {
+        console.warn('Organização inválida, redirecionando para setup');
         router.push('/setup-account');
         return;
       }
 
       // Verificar se o slug corresponde à organização do usuário
       if (slug !== organization.slug) {
-        console.warn('Slug não corresponde à organização do usuário, redirecionando...', {
-          currentSlug: slug,
-          organizationSlug: organization.slug
-        });
+        console.debug('Redirecionando para slug correto:', organization.slug);
         router.push(`/${organization.slug}`);
         return;
       }
 
-      // Adicionar os módulos visíveis à organização
-      const organizationWithVisibleModules = {
-        ...organization,
-        visible_modules: visibleModules
-      };
+      // Migrar configuração se necessário
+      if (organization.implementation_config && needsConfigMigration(organization.implementation_config, organization.client_type)) {
+        organization.implementation_config = migrateImplementationConfig(organization.implementation_config, organization.client_type);
+      }
 
-      setAuthStatus('authorized');
-      setUserProfile({ ...profile, organization: organizationWithVisibleModules });
+      // Buscar módulos visíveis
+      let visibleModules: string[] = [];
+      const visibleModulesResult = await getVisibleModulesForTenant(organization.id);
+      if (visibleModulesResult.success && visibleModulesResult.data) {
+        visibleModules = visibleModulesResult.data;
+      }
+
+      // Configurar perfil do usuário
+      setUserProfile({ 
+        ...profile, 
+        organization: {
+          ...organization,
+          visible_modules: visibleModules
+        }
+      });
+
+      console.debug('✅ Perfil carregado com sucesso');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
-      console.error('Erro ao verificar autenticação:', errorMessage);
-      setAuthStatus('unauthorized');
+      console.error('Erro ao carregar perfil:', err);
       router.push('/login');
     }
   };
 
-  if (authStatus === 'loading') {
+  // Estados de loading e erro
+  if (authLoading || (isAuthenticated && !userProfile)) {
     return (
       <div className="flex h-screen">
         <Skeleton className="w-64 h-full" />
@@ -208,14 +148,30 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
     );
   }
 
-  if (authStatus === 'unauthorized') {
+  // Se não autenticado, será redirecionado pelo useEffect
+  if (!isAuthenticated) {
     return null;
+  }
+
+  // Se autenticado mas não tem perfil carregado, mostrar loading
+  if (!userProfile) {
+    return (
+      <div className="flex h-screen">
+        <Skeleton className="w-64 h-full" />
+        <div className="flex-1">
+          <Skeleton className="h-16 w-full" />
+          <div className="p-4">
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
     <SidebarProvider>
       <DynamicSidebarWrapper 
-        organization={userProfile?.organization}
+        organization={userProfile.organization}
       />
       <SidebarInset>
         <main className="flex-1 overflow-y-auto">

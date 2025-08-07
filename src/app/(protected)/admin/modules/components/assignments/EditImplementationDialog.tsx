@@ -34,7 +34,13 @@ import {
 import { Switch } from '@/shared/ui/switch';
 import { Textarea } from '@/shared/ui/textarea';
 import { useToast } from '@/shared/ui/toast';
-import { Loader2, Edit } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/shared/ui/tooltip';
+import { Loader2, Edit, Info } from 'lucide-react';
 import { updateModuleImplementation } from '@/app/actions/admin/modules/module-implementations';
 import { UpdateModuleImplementationSchema, ModuleImplementation } from '@/app/actions/admin/modules/schemas';
 
@@ -218,12 +224,48 @@ export function EditImplementationDialog({implementation,
               name="component_path"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Caminho do Componente</FormLabel>
+                  <FormLabel className="flex items-center gap-2">
+                    Caminho do Componente
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-sm">
+                            <strong>Define como localizar o componente React</strong> desta implementação.
+                            <br /><br />
+                            <strong>Opções de Configuração:</strong>
+                            <br /><br />
+                            <strong>1. Nome do Componente (Recomendado):</strong>
+                            <br />
+                            • Digite apenas: <code>BanbanAlertsImplementation</code>
+                            <br />
+                            • Sistema usa mapeamento automático
+                            <br />
+                            • Mais confiável e mantível
+                            <br /><br />
+                            <strong>2. Path Relativo:</strong>
+                            <br />
+                            • Ex: <code>./alerts/implementations/BanbanAlerts</code>
+                            <br />
+                            • Relativo ao contexto atual
+                            <br /><br />
+                            <strong>3. Path Absoluto:</strong>
+                            <br />
+                            • Ex: <code>@/app/(protected)/[slug]/(modules)/alerts/implementations/BanbanAlerts</code>
+                            <br /><br />
+                            <strong>Auto-resolução:</strong> Se vazio, sistema tenta resolver automaticamente baseado no slug + implementation_key.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: /features/dashboard/StandardDashboard" {...field} />
+                    <Input placeholder="Ex: BanbanAlertsImplementation ou ./alerts/implementations/BanbanAlerts" {...field} />
                   </FormControl>
                   <FormDescription>
-                    O caminho para o componente React no código.
+                    <strong>Recomendado:</strong> Use apenas o nome do componente (ex: BanbanAlertsImplementation) para aproveitar o mapeamento automático do sistema.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

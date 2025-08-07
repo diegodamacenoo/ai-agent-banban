@@ -3,16 +3,14 @@
 import { XIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -68,9 +66,9 @@ export default function SoftDeleteUsuarioButton({
   return (
     <TooltipProvider>
       <Tooltip>
-        <AlertDialog>
+        <Dialog>
           <TooltipTrigger asChild>
-            <AlertDialogTrigger asChild>
+            <DialogTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
@@ -80,30 +78,30 @@ export default function SoftDeleteUsuarioButton({
                 <XIcon className="h-4 w-4" />
                 <span className="sr-only">Excluir usuÃ¡rio {userName}</span>
               </Button>
-            </AlertDialogTrigger>
+            </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent>
             <p>Desativar usuÃ¡rio</p>
           </TooltipContent>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Tem certeza de que deseja desativar {userName}?</AlertDialogTitle>
-              <AlertDialogDescription>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Tem certeza de que deseja desativar {userName}?</DialogTitle>
+              <DialogDescription>
                 O usuÃ¡rio serÃ¡ movido para a Ã¡rea de <span className="font-semibold">UsuÃ¡rios Desativados</span> e poderÃ¡ ser reativado posteriormente. <span className="font-semibold">Esta aÃ§Ã£o pode ser desfeita.</span>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline">Cancelar</Button variant="outline">
+              <Button
                 onClick={handleSoftDelete}
                 disabled={isLoading}
                 className="bg-red-600 hover:bg-red-700"
               >
                 {isLoading ? "Desativando..." : "Desativar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Tooltip>
     </TooltipProvider>
   );

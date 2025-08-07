@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
+import { Progress } from '@/shared/ui/progress'
 import { 
   Activity, 
   Users, 
@@ -16,7 +16,6 @@ import {
   TrendingUp,
   TrendingDown
 } from 'lucide-react'
-import { toast } from 'sonner'
 
 interface SessionMetric {
   metric_name: string
@@ -52,7 +51,6 @@ export function SessionMonitor({ organizationId, refreshInterval = 30000 }: Sess
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Erro ao buscar métricas:', error)
-      toast.error('Erro ao atualizar métricas')
     } finally {
       setLoading(false)
     }

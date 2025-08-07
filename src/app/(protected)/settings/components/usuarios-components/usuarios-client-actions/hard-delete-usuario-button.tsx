@@ -3,16 +3,14 @@
 import { TrashIcon } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/shared/ui/alert-dialog";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/shared/ui/dialog";
 import { useToast } from '@/shared/ui/toast';
 import { useState } from "react";
 
@@ -63,8 +61,8 @@ export default function HardDeleteUsuarioButton({
   };
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
+    <Dialog>
+      <DialogTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
@@ -74,14 +72,14 @@ export default function HardDeleteUsuarioButton({
           <TrashIcon className="h-4 w-4" />
           <span className="sr-only">Remover permanentemente {userName}</span>
         </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle className="text-red-600">Tem certeza que deseja excluir este usuÃ¡rio permanentemente?</AlertDialogTitle>
-          <AlertDialogDescription>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="text-red-600">Tem certeza que deseja excluir este usuÃ¡rio permanentemente?</DialogTitle>
+          <DialogDescription>
             Esta aÃ§Ã£o Ã© irreversÃ­vel e irÃ¡ excluir permanentemente todos os dados do usuÃ¡rio, remover a conta de acesso do sistema e tornar impossÃ­vel a recuperaÃ§Ã£o dos dados.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
+          </DialogDescription>
+        </DialogHeader>
         <div className="space-y-3">
           <div className="bg-red-50 border border-red-200 rounded-md p-3">
             <p className="text-red-800 font-medium text-sm">
@@ -97,17 +95,17 @@ export default function HardDeleteUsuarioButton({
             Esta aÃ§Ã£o nÃ£o pode ser desfeita.
           </p>
         </div>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction
+        <DialogFooter>
+          <Button variant="outline">Cancelar</Button>
+          <Button
             onClick={handleHardDelete}
             disabled={isLoading}
-            className="bg-red-700 hover:bg-red-800"
+            variant="destructive"
           >
             {isLoading ? "Removendo..." : "Remover Permanentemente"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 } 

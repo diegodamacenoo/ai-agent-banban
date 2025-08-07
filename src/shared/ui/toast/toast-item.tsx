@@ -191,11 +191,11 @@ export function ToastItem({ toast, onRemove }: ToastItemProps) {
 
       {/* Conteúdo */}
       <div className="flex-1 space-y-1">
-        <div className="font-semibold text-sm leading-tight">
+        <div className="font-medium text-sm">
           {toast.title}
         </div>
         {toast.description && (
-          <div className="text-sm opacity-90 leading-relaxed">
+          <div className="text-sm">
             {toast.description}
           </div>
         )}

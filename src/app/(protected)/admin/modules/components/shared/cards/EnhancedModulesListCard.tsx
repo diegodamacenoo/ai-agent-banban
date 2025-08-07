@@ -210,7 +210,7 @@ export function EnhancedModulesListCard() {
     // Filtro por health status (precisa ser adaptado para a nova estrutura)
     if (healthFilter.length > 0) {
       result = result.filter(module =>
-        module.organizations.some(org => healthFilter.includes(org.status as any))
+        module.organizations.some(org => healthFilter.includes(org.status))
       );
     }
 

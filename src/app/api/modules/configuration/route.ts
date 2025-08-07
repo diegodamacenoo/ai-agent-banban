@@ -4,7 +4,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { ModuleConfigurationService } from '@/core/modules/services/ModuleConfigurationService';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,6 +1,6 @@
 'use server';
 
-import { createSupabaseServerClient, createSupabaseAdminClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseAdminClient } from "@/core/supabase/server";
 import { revalidatePath } from "next/cache";
 import { conditionalAuditLog, checkMaintenanceMode } from './modules/system-config-utils';
 import { verifyAdminAccess } from './modules/utils';

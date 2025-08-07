@@ -1,15 +1,22 @@
+'use client';
+
 import { createBrowserClient } from '@supabase/ssr'
 import { createLogger } from '@/shared/utils/logger'
 import { DEBUG_MODULES } from '@/shared/utils/debug-config'
 
 const logger = createLogger(DEBUG_MODULES.AUTH)
 
+/**
+ * Gerenciador de sessão SIMPLES - cada aba é independente
+ * Sem coordenação entre abas, sem broadcast channels, sem complexidade
+ */
+
 // Configurações de timeout (em minutos)
 export const SESSION_TIMEOUT = {
   IDLE: 30,          // Timeout por inatividade
   ABSOLUTE: 480,     // Timeout absoluto (8 horas)
-  WARNING: 5,        // Aviso antes do timeout (5 minutos)
-  REFRESH: 25        // Intervalo de refresh do token (25 minutos) - reduzir conflitos
+  WARNING: 5,        // Aviso antes do timeout
+  REFRESH: 25        // Intervalo de refresh do token
 };
 
 interface SessionState {
@@ -23,10 +30,6 @@ let sessionState: SessionState = {
   sessionStart: Date.now(),
   warningShown: false
 };
-
-// Mutex para evitar múltiplos refreshes simultâneos
-let refreshInProgress = false;
-let refreshPromise: Promise<void> | null = null;
 
 /**
  * Atualiza o timestamp da última atividade
@@ -61,7 +64,7 @@ export async function checkSessionExpiration(): Promise<{
     return { expired: true, reason: 'absolute' };
   }
 
-  // Calcular tempo restante (o menor entre idle e absolute)
+  // Calcular tempo restante
   const idleRemaining = (SESSION_TIMEOUT.IDLE * 60 * 1000) - idleTime;
   const absoluteRemaining = (SESSION_TIMEOUT.ABSOLUTE * 60 * 1000) - sessionDuration;
   const timeRemaining = Math.min(idleRemaining, absoluteRemaining);
@@ -90,6 +93,49 @@ export async function shouldShowWarning(): Promise<boolean> {
 }
 
 /**
+ * Atualiza o token de autenticação
+ * SIMPLES: cada aba faz seu próprio refresh independentemente
+ */
+export async function refreshSession(): Promise<void> {
+  try {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    
+    logger.debug('Fazendo refresh da sessão...');
+    const { data, error } = await supabase.auth.refreshSession();
+    
+    if (error) {
+      // Se o token já foi usado por outra aba, tudo bem - ignorar
+      if (error.message.includes('refresh_token_already_used') || 
+          error.message.includes('refresh_token_not_found')) {
+        logger.debug('Token já foi atualizado (provavelmente por outra aba) - OK');
+        return;
+      }
+      
+      // Se não há sessão, também OK (usuário não está logado)
+      if (error.message.includes('Auth session missing') || 
+          error.message.includes('session_not_found')) {
+        logger.debug('Não há sessão ativa - OK');
+        return;
+      }
+      
+      logger.error('Erro ao fazer refresh da sessão:', error);
+      throw error;
+    }
+
+    if (data.session) {
+      sessionState.lastActivity = Date.now();
+      logger.debug('Sessão atualizada com sucesso');
+    }
+  } catch (error: any) {
+    logger.error('Erro ao atualizar token:', error);
+    throw error;
+  }
+}
+
+/**
  * Encerra a sessão atual
  */
 export async function terminateSession(reason: 'idle' | 'absolute' | 'user'): Promise<void> {
@@ -98,9 +144,10 @@ export async function terminateSession(reason: 'idle' | 'absolute' | 'user'): Pr
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
+    
     await supabase.auth.signOut();
     
-    // Limpar estado da sessão
+    // Resetar estado da sessão
     sessionState = {
       lastActivity: Date.now(),
       sessionStart: Date.now(),
@@ -115,91 +162,7 @@ export async function terminateSession(reason: 'idle' | 'absolute' | 'user'): Pr
 }
 
 /**
- * Atualiza o token de autenticação com mutex para evitar conflitos
- */
-export async function refreshSession(): Promise<void> {
-  // Se já existe um refresh em progresso, aguardar sua conclusão
-  if (refreshInProgress && refreshPromise) {
-    logger.debug('Refresh já em progresso, aguardando...');
-    return refreshPromise;
-  }
-
-  // Marcar refresh como em progresso
-  refreshInProgress = true;
-  
-  refreshPromise = (async () => {
-    try {
-      const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      )
-      
-      logger.debug('Iniciando refresh da sessão...');
-      const { data, error } = await supabase.auth.refreshSession();
-      
-      if (error) {
-        // Ignorar erros de token já usado ou não encontrado
-        if (error.message.includes('refresh_token_already_used') || 
-            error.message.includes('refresh_token_not_found')) {
-          logger.debug('Token já foi atualizado por outro processo');
-          return;
-        }
-        
-        logger.error('Erro ao atualizar sessão:', error);
-        throw error;
-      }
-
-      if (data.session) {
-        sessionState.lastActivity = Date.now();
-        logger.debug('Sessão atualizada com sucesso');
-      }
-    } catch (error) {
-      logger.error('Erro ao atualizar token:', error);
-      throw error;
-    } finally {
-      // Liberar mutex
-      refreshInProgress = false;
-      refreshPromise = null;
-    }
-  })();
-
-  return refreshPromise;
-}
-
-/**
- * Inicializa o gerenciador de sessão
- */
-export function initSessionManager() {
-  // Atualizar atividade em eventos do usuário
-  if (typeof window !== 'undefined') {
-    const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
-    events.forEach(event => {
-      window.addEventListener(event, updateLastActivity);
-    });
-
-    // Verificar expiração periodicamente
-    setInterval(async () => {
-      const { expired, reason } = await checkSessionExpiration();
-      if (expired) {
-        await terminateSession(reason!);
-        window.location.href = '/login?reason=session_expired';
-      }
-    }, 60 * 1000); // Verificar a cada minuto
-
-    // Atualizar token periodicamente
-    setInterval(async () => {
-      try {
-        await refreshSession();
-      } catch (error) {
-        logger.warn('Falha ao atualizar token:', error);
-      }
-    }, SESSION_TIMEOUT.REFRESH * 60 * 1000);
-  }
-}
-
-/**
- * Verifica o usuário atual usando getUser() para maior segurança
- * @returns Promise<{user: User | null, error: string | null}>
+ * Verifica o usuário atual
  */
 export async function getCurrentUser() {
   const supabase = createBrowserClient(
@@ -208,24 +171,75 @@ export async function getCurrentUser() {
   )
   
   try {
-    // Usar getUser() ao invés de getSession() para maior segurança
     const { data: { user }, error } = await supabase.auth.getUser();
     
     if (error) {
+      if (error.message.includes('Auth session missing') || error.message.includes('session_not_found')) {
+        logger.debug('Usuário não autenticado');
+        return { user: null, error: null };
+      }
+      
       logger.error('Erro ao verificar usuário:', error);
       return { user: null, error: error.message };
     }
 
-    if (!user) {
-      return { user: null, error: 'Usuário não autenticado' };
+    if (user) {
+      updateLastActivity();
     }
-
-    // Atualizar timestamp de atividade
-    updateLastActivity();
     
     return { user, error: null };
   } catch (error: any) {
     logger.error('Erro ao verificar usuário:', error);
     return { user: null, error: error.message };
   }
-} 
+}
+
+/**
+ * Inicializa o gerenciador de sessão
+ */
+export function initSessionManager() {
+  if (typeof window === 'undefined') return;
+
+  logger.debug('Inicializando gerenciador de sessão simples');
+
+  // Atualizar atividade em eventos do usuário
+  const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+  events.forEach(event => {
+    window.addEventListener(event, updateLastActivity);
+  });
+
+  // Verificar expiração periodicamente
+  setInterval(async () => {
+    try {
+      const { user, error } = await getCurrentUser();
+      
+      if (!user || error) {
+        logger.debug('Usuário não autenticado, pulando verificação');
+        return;
+      }
+
+      const { expired, reason } = await checkSessionExpiration();
+      if (expired) {
+        await terminateSession(reason!);
+        window.location.href = '/login?reason=session_expired';
+      }
+    } catch (error) {
+      logger.debug('Erro na verificação de sessão:', error);
+    }
+  }, 30000); // A cada 30 segundos
+
+  // Fazer refresh do token periodicamente
+  setInterval(async () => {
+    try {
+      const { user, error } = await getCurrentUser();
+      if (!user || error) {
+        logger.debug('Sem usuário autenticado, pulando refresh');
+        return;
+      }
+      
+      await refreshSession();
+    } catch (error) {
+      logger.debug('Falha ao atualizar token:', error);
+    }
+  }, SESSION_TIMEOUT.REFRESH * 60 * 1000);
+}

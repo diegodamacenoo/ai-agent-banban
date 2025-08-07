@@ -32,6 +32,7 @@ import { type TenantModuleAssignment } from '../hooks/useModuleData';
 import { useOptimisticImplementations } from '../hooks/useOptimisticImplementations';
 import { useOptimisticAssignments } from '../hooks/useOptimisticAssignments';
 import { useOptimisticBaseModules } from '../hooks/useOptimisticBaseModules';
+import { useModuleCreationDialog } from '../contexts/ModuleCreationDialogContext';
 
 // Components - Tables and Managers
 import { BaseModulesTable } from '../components/shared';
@@ -39,10 +40,12 @@ import { ImplementationsManager } from '../components/assignments/implementation
 import { TenantAssignmentsManager } from '../components/assignments/TenantAssignmentsManager';
 import { ModuleStatsWidget } from '../components/analytics/ModuleStatsWidget';
 
+import { ModuleCreationWizard } from '../development/components/ModuleCreationWizard';
+import { Dialog, DialogTrigger, DialogContent } from '@/shared/ui/dialog';
+
 // Components - Dialogs
 import { CreateImplementationDialog } from '../components/assignments/CreateImplementationDialog';
 import { NewAssignmentDialog } from '../components/assignments/NewAssignmentDialog';
-import { CreateBaseModuleDialog } from '../components/lifecycle/CreateBaseModuleDialog';
 
 // Components - Configuration
 import { ModuleSettingsFormContent } from '../components/configurations/ModuleSettingsFormContent';
@@ -88,15 +91,19 @@ export default function GestaoModulosPage() {
   const [showArchived, setShowArchived] = useState(false);
   const [showDeleted, setShowDeleted] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  
+  // Hook para dialog de criação de módulos
+  const { openDialog } = useModuleCreationDialog();
 
-  // Filtros específicos para implementações
+  // Filtros específicos para módulos base (dos implementações)
   const [includeArchivedModules, setIncludeArchivedModules] = useState(false);
   const [includeDeletedModules, setIncludeDeletedModules] = useState(false);
+  
+  // Implementações não usam mais soft delete - removido
 
   // Estado inicial dos dados
   const [initialBaseModules, setInitialBaseModules] = useState([]);
   const [initialImplementations, setInitialImplementations] = useState([]);
-  const [allImplementationsForCounting, setAllImplementationsForCounting] = useState([]); // Para contagem na tab Módulos Base
   const [initialAssignments, setInitialAssignments] = useState([]);
   const [organizations, setOrganizations] = useState([]);
   const [stats, setStats] = useState(null);
@@ -177,6 +184,8 @@ export default function GestaoModulosPage() {
     }
   });
 
+  // Refs únicos por instância para evitar conflitos entre abas
+  const hookId = useRef(`modules-${Math.random().toString(36).substring(2)}`);
   const loadingRef = useRef(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(false);
@@ -200,8 +209,8 @@ export default function GestaoModulosPage() {
       return;
     }
 
-    const callId = `LOAD_${Date.now()}`;
-    console.debug(`🚀 CLIENT: Starting loadData ${callId}`);
+    const callId = `LOAD_${Date.now()}_${hookId.current}`;
+    console.debug(`🚀 CLIENT: Starting loadData ${callId}`, { hookId: hookId.current });
 
     loadingRef.current = true;
     setModuleLoading(true);
@@ -213,19 +222,10 @@ export default function GestaoModulosPage() {
       const { getAllModulesWithOrganizationAssignments } = await import('@/app/actions/admin/modules/module-organization-data');
 
       // Carregar todos os dados em paralelo
-      const [modulesResult, statsResult, implementationsResult, allImplementationsResult, assignmentsResult, organizationsResult] = await Promise.all([
+      const [modulesResult, statsResult, implementationsResult, assignmentsResult, organizationsResult] = await Promise.all([
         getBaseModules({ includeArchived: true, includeDeleted: true }),
         getBaseModuleStats(),
         getModuleImplementations({
-          includeArchived: true,
-          includeDeleted: true,
-          includeArchivedModules: true,
-          includeDeletedModules: true
-        }),
-        // Carregar TODAS as implementações para contagem (sem limite)
-        getModuleImplementations({
-          includeArchived: true,
-          includeDeleted: true,
           includeArchivedModules: true,
           includeDeletedModules: true,
           limit: LOAD_MORE_LIMIT
@@ -271,13 +271,6 @@ export default function GestaoModulosPage() {
         });
       }
 
-      // Processar TODAS as implementações para contagem
-      if (allImplementationsResult.success) {
-        const allImplementationsData = allImplementationsResult.data?.implementations || [];
-        setAllImplementationsForCounting(allImplementationsData);
-      } else {
-        setAllImplementationsForCounting([]);
-      }
 
       if (assignmentsResult.success) {
         const assignmentsData = assignmentsResult.data?.assignments || [];
@@ -305,9 +298,8 @@ export default function GestaoModulosPage() {
       setModuleLoading(false);
       setIsInitialLoad(false);
       loadCompletedRef.current = true;
-      console.debug(`✅ CLIENT: Completed loadData ${callId}`);
     }
-  }, []); // Empty dependency array to prevent recreation
+  }, []); // ✅ No dependencies needed - only uses state setters and refs
 
   // Carregar dados na montagem
   useEffect(() => {
@@ -340,8 +332,6 @@ export default function GestaoModulosPage() {
 
       const nextPage = implementationsPagination.currentPage + 1;
       const result = await getModuleImplementations({
-        includeArchived: true,
-        includeDeleted: true,
         includeArchivedModules: true,
         includeDeletedModules: true,
         page: nextPage
@@ -422,9 +412,6 @@ export default function GestaoModulosPage() {
     return implementations.filter(impl => impl.base_module_id === baseModuleId);
   }, [implementations]);
 
-  const getImplementationsForModuleCounting = useCallback((baseModuleId: string) => {
-    return allImplementationsForCounting.filter(impl => impl.base_module_id === baseModuleId);
-  }, [allImplementationsForCounting]);
 
   const getAssignmentsForTenant = useCallback((tenantId: string) => {
     return assignments.filter(assignment => assignment.tenant_id === tenantId);
@@ -579,6 +566,13 @@ export default function GestaoModulosPage() {
             </Layout.Header.Description>
           </Layout.Header.Title>
           <Layout.Actions>
+            <Button 
+              variant="default"
+              leftIcon={<Plus className="h-4 w-4" />}
+              onClick={openDialog}
+            >
+              Criar Módulo
+            </Button>
             <Button 
               variant="secondary" 
               leftIcon={
@@ -832,30 +826,29 @@ export default function GestaoModulosPage() {
                   Gerencie os módulos base que servem como fundação para implementações específicas.
                 </CardDescription>
               </div>
-              <CreateBaseModuleDialog
-                onSuccess={handleBaseModuleChange}
-                onOptimisticCreate={handleOptimisticBaseModuleCreate}
-                onServerSuccess={handleBaseModuleServerOperationSuccess}
-                onServerError={handleBaseModuleServerOperationError}
-                trigger={
+              <Dialog>
+                <DialogTrigger asChild>
                   <Button 
                     variant="secondary" 
                     className="flex items-center gap-2" 
                     leftIcon={<Plus className="w-4 h-4" />}
                   >
-                    Novo Módulo Base
+                    Novo Módulo
                   </Button>
-                }
-              />
+                </DialogTrigger>
+                <DialogContent size="fullscreen">
+                  <ModuleCreationWizard />
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
             <BaseModulesTable
               baseModules={baseModules}
-              implementations={allImplementationsForCounting}
+              implementations={implementations}
               assignments={assignments}
               loading={false}
-              getImplementationsForModule={getImplementationsForModuleCounting}
+              getImplementationsForModule={getImplementationsForModule}
               getAssignmentsForModule={getAssignmentsForModule}
               onModuleChange={handleReload}
               showArchived={showArchived}

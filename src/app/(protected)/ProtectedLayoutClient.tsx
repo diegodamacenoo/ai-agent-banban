@@ -6,11 +6,7 @@ import { SessionTimeoutWarning } from "@/shared/ui/session-timeout-warning";
 import { initSessionManager } from "@/core/auth/session-manager";
 import { ModuleRegistryProvider } from '@/core/modules/registry/ModuleRegistryProvider';
 import { MaintenanceCheck } from '@/shared/components/MaintenanceCheck';
-
-// Inicializar gerenciador de sessão no lado do cliente
-if (typeof window !== 'undefined') {
-  initSessionManager();
-}
+import { useEffect } from 'react';
 
 export default function ProtectedLayoutClient({
   userData,
@@ -21,6 +17,13 @@ export default function ProtectedLayoutClient({
 }) {
   const pathname = usePathname();
   const isSetupPage = pathname.includes('/setup-account');
+
+  // Inicializar gerenciador de sessão no lado do cliente
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      initSessionManager();
+    }
+  }, []);
 
   // Se for a página de setup, renderiza um layout mínimo
   if (isSetupPage) {

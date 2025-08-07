@@ -167,7 +167,7 @@ export class ApiHandlers {
   static async getForecast(request: FastifyRequest, reply: FastifyReply) {
     try {
       const organizationId = (request as any).organizationId || 'default';
-      const months = parseInt((request.query as any)?.months) || 3;
+      const months = parseInt((request.query)?.months) || 3;
       const forecast = await AnalyticsService.getForecast(organizationId, months);
 
       const response: ApiResponse = {
@@ -193,7 +193,7 @@ export class ApiHandlers {
   static async getGrowthTrends(request: FastifyRequest, reply: FastifyReply) {
     try {
       const organizationId = (request as any).organizationId || 'default';
-      const period = (request.query as any)?.period || 'monthly';
+      const period = (request.query)?.period || 'monthly';
       const trends = await AnalyticsService.getGrowthTrends(organizationId, period);
 
       const response: ApiResponse = {

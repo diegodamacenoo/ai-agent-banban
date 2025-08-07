@@ -81,3 +81,22 @@ export function useToastContext() {
   }
   return context;
 }
+
+// Hook simplificado para uso comum
+export function useToast() {
+  const { addToast, updateToast, removeToast } = useToastContext();
+  
+  return {
+    toast: addToast,
+    success: (title: string, description?: string) => 
+      addToast({ title, description, variant: 'success' }),
+    error: (title: string, description?: string) => 
+      addToast({ title, description, variant: 'error' }),
+    warning: (title: string, description?: string) => 
+      addToast({ title, description, variant: 'warning' }),
+    info: (title: string, description?: string) => 
+      addToast({ title, description, variant: 'info' }),
+    update: updateToast,
+    dismiss: removeToast,
+  };
+}

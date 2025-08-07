@@ -1,16 +1,21 @@
 'use server';
 
+// External libraries
+import { z } from 'zod';
+import { revalidatePath } from 'next/cache';
+
+// Core services
 import { createSupabaseAdminClient } from '@/core/supabase/admin';
 import { createSupabaseServerClient } from '@/core/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { createAuditLog } from '@/features/security/audit-logger';
 import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { captureRequestInfo } from '@/core/auth/request-info';
-import { z } from 'zod';
 import { safeLogger } from '@/features/security/safe-logger';
+import { getUserProfile } from '@/shared/utils/supabase-helpers';
+
+// Types
 import type { Organization } from '@/core/contexts/OrganizationContext';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { getUserProfile } from '@/shared/utils/supabase-helpers';
 
 // Schema para validação de dados de organização
 const organizationSchema = z.object({
@@ -83,6 +88,11 @@ async function verifyMasterAdminAccess(): Promise<{ authorized: boolean; userId?
  */
 export async function getAllOrganizations() {
   try {
+    const { authorized } = await verifyMasterAdminAccess();
+    if (!authorized) {
+      return { error: 'Acesso negado.' };
+    }
+
     const supabase = await createSupabaseServerClient();
     const { data, error } = await supabase
       .from('organizations')
@@ -90,6 +100,7 @@ export async function getAllOrganizations() {
         id,
         company_legal_name,
         company_trading_name,
+        slug,
         client_type,
         custom_backend_url,
         is_implementation_complete,
@@ -103,24 +114,24 @@ export async function getAllOrganizations() {
 
     if (error) {
       safeLogger.error('Erro ao buscar organizações:', error);
-      return { error: 'Erro ao carregar dados.' };
+      return { success: false, error: 'Erro ao carregar dados.' };
     }
 
-    return { data };
+    return { success: true, data };
   } catch (e: any) {
     safeLogger.error('Erro inesperado em getAllOrganizations:', e);
-    return { error: e.message || 'Um erro inesperado ocorreu.' };
+    return { success: false, error: e.message || 'Um erro inesperado ocorreu.' };
   }
 }
 
 /**
  * Busca uma organização específica por ID
  */
-export async function getOrganizationById(id: string): Promise<{ data?: any; error?: string }> {
+export async function getOrganizationById(id: string): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
     const { authorized } = await verifyMasterAdminAccess();
     if (!authorized) {
-      return { error: 'Acesso negado.' };
+      return { success: false, error: 'Acesso negado.' };
     }
 
     const supabase = await createSupabaseServerClient();
@@ -171,13 +182,13 @@ export async function getOrganizationById(id: string): Promise<{ data?: any; err
 
     if (error) {
       console.error('Erro ao buscar organização:', error);
-      return { error: 'Organização não encontrada.' };
+      return { success: false, error: 'Organização não encontrada.' };
     }
 
-    return { data };
+    return { success: true, data };
   } catch (e: any) {
     console.error('Erro inesperado em getOrganizationById:', e);
-    return { error: 'Um erro inesperado ocorreu.' };
+    return { success: false, error: 'Um erro inesperado ocorreu.' };
   }
 }
 
@@ -200,10 +211,10 @@ export async function createOrganization(formData: z.infer<typeof organizationSc
       return { success: false, error: 'Acesso negado.' };
     }
 
-    // Usar cliente admin para inserção (garantir que funcione)
-    const adminSupabase = await createSupabaseAdminClient();
+    // Usar cliente autenticado (RLS aplicado automaticamente)
+    const supabase = await createSupabaseServerClient();
     
-    const { data: newOrganization, error } = await adminSupabase
+    const { data: newOrganization, error } = await supabase
       .from('organizations')
       .insert(validation.data)
       .select()
@@ -274,10 +285,10 @@ export async function updateOrganization(formData: z.infer<typeof updateOrganiza
 
     const { id, ...updateData } = validation.data;
 
-    // Usar cliente admin para atualização
-    const adminSupabase = await createSupabaseAdminClient();
+    // Usar cliente autenticado (RLS aplicado automaticamente)
+    const supabase = await createSupabaseServerClient();
     
-    const { data: updatedOrganization, error } = await adminSupabase
+    const { data: updatedOrganization, error } = await supabase
       .from('organizations')
       .update(updateData)
       .eq('id', id)
@@ -338,11 +349,11 @@ export async function deleteOrganization(id: string): Promise<{ success: boolean
       return { success: false, error: 'Acesso negado.' };
     }
 
-    // Usar cliente admin para soft delete
-    const adminSupabase = await createSupabaseAdminClient();
+    // Usar cliente autenticado (RLS aplicado automaticamente)
+    const supabase = await createSupabaseServerClient();
     
     // Buscar dados da organização antes de remover
-    const { data: organization, error: fetchError } = await adminSupabase
+    const { data: organization, error: fetchError } = await supabase
       .from('organizations')
       .select('*')
       .eq('id', id)
@@ -352,7 +363,8 @@ export async function deleteOrganization(id: string): Promise<{ success: boolean
       return { success: false, error: 'Organização não encontrada.' };
     }
 
-    // Verificar se há usuários ativos na organização
+    // Verificar se há usuários ativos na organização - usar admin client para esta verificação específica
+    const adminSupabase = await createSupabaseAdminClient();
     const { data: activeUsers, error: usersError } = await adminSupabase
       .from('profiles')
       .select('id')
@@ -371,8 +383,8 @@ export async function deleteOrganization(id: string): Promise<{ success: boolean
       };
     }
 
-    // Realizar soft delete
-    const { error: deleteError } = await adminSupabase
+    // Realizar soft delete com cliente autenticado
+    const { error: deleteError } = await supabase
       .from('organizations')
       .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
@@ -415,11 +427,11 @@ export async function deleteOrganization(id: string): Promise<{ success: boolean
 /**
  * Obtém estatísticas de organizações
  */
-export async function getOrganizationStats(): Promise<{ data?: any; error?: string }> {
+export async function getOrganizationStats(): Promise<{ success: boolean; data?: any; error?: string }> {
   try {
     const { authorized } = await verifyMasterAdminAccess();
     if (!authorized) {
-      return { error: 'Acesso negado.' };
+      return { success: false, error: 'Acesso negado.' };
     }
 
     const supabase = await createSupabaseServerClient();
@@ -444,7 +456,7 @@ export async function getOrganizationStats(): Promise<{ data?: any; error?: stri
 
     if (error) {
       console.error('Erro ao buscar estatísticas:', error);
-      return { error: 'Não foi possível carregar as estatísticas.' };
+      return { success: false, error: 'Não foi possível carregar as estatísticas.' };
     }
 
     const organizations = data || [];
@@ -456,10 +468,10 @@ export async function getOrganizationStats(): Promise<{ data?: any; error?: stri
       pending: organizations.filter(org => !org.is_implementation_complete).length,
     };
 
-    return { data: stats };
+    return { success: true, data: stats };
   } catch (e: any) {
     console.error('Erro inesperado em getOrganizationStats:', e);
-    return { error: e.message || 'Um erro inesperado ocorreu.' };
+    return { success: false, error: e.message || 'Um erro inesperado ocorreu.' };
   }
 }
 

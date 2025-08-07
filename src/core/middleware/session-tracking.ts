@@ -117,6 +117,34 @@ export async function trackUserSession(request: NextRequest, userId: string, org
   try {
     const supabase = await createSupabaseServerClient();
     
+    // NOVO: Verificar se o usuário está temporariamente bloqueado
+    try {
+      const { data: isBlocked } = await supabase
+        .rpc('is_user_session_blocked', { check_user_id: userId });
+      
+      if (isBlocked) {
+        logger.debug(`Usuário ${userId} está temporariamente bloqueado - não registrando atividade`);
+        
+        // Se está bloqueado, desativar todas as sessões ativas
+        await supabase
+          .from('user_sessions')
+          .update({ 
+            is_active: false,
+            updated_at: new Date().toISOString(),
+            security_flags: {
+              ended_at: new Date().toISOString(),
+              ended_reason: 'user_blocked'
+            }
+          })
+          .eq('user_id', userId);
+          
+        return; // Não registrar atividade se estiver bloqueado
+      }
+    } catch (error) {
+      logger.debug('Erro ao verificar bloqueio na sessão:', error);
+      // Continuar com o tracking em caso de erro
+    }
+    
     const userAgent = request.headers.get('user-agent') || '';
     const ip = getClientIP(request);
     const deviceInfo = parseDeviceInfo(userAgent);
@@ -179,7 +207,9 @@ export async function trackUserSession(request: NextRequest, userId: string, org
         security_flags: {
           trusted_device: false,
           first_time_login: false
-        }
+        },
+        created_at: now,
+        updated_at: now
       };
 
       const { data: newSession, error: insertError } = await supabase

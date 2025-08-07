@@ -65,7 +65,7 @@ const validateOrganizationForm = createValidator<OrganizationFormData>({
     }
   },
   implementation_config: (value) => {
-    if (value && value.trim()) {
+    if (value?.trim()) {
       try {
         JSON.parse(value);
       } catch {

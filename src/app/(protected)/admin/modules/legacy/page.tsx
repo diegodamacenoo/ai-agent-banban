@@ -48,9 +48,11 @@ export default function ModulesLegacyPage() {
   const [showDeleted, setShowDeleted] = useState(false);
   const [activeTab, setActiveTab] = useState('base-modules');
   
-  // Filtros específicos para implementações
+  // Filtros específicos para módulos base (dos implementações)
   const [includeArchivedModules, setIncludeArchivedModules] = useState(false);
   const [includeDeletedModules, setIncludeDeletedModules] = useState(false);
+  
+  // Implementações não usam mais soft delete - removido
 
   // Manual state management to identify the source of multiple requests
   const [initialBaseModules, setInitialBaseModules] = useState([]);
@@ -130,10 +132,14 @@ export default function ModulesLegacyPage() {
       console.error('Erro na operação otimística de assignment:', error, operation);
     }
   });
+  
+  // Refs únicos por instância para evitar conflitos entre abas
+  const hookId = useRef(`legacy-modules-${Math.random().toString(36).substring(2)}`);
   const loadingRef = useRef(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(false);
   const loadCalledRef = useRef(false);
+  const loadCompletedRef = useRef(false);
 
   // Optimized load function with controlled execution
   const loadData = useCallback(async () => {
@@ -165,8 +171,6 @@ export default function ModulesLegacyPage() {
         getBaseModules({ includeArchived: true, includeDeleted: true }),
         getBaseModuleStats(),
         getModuleImplementations({ 
-          includeArchived: true, 
-          includeDeleted: true,
           includeArchivedModules: true,
           includeDeletedModules: true
         }),
@@ -219,7 +223,6 @@ export default function ModulesLegacyPage() {
     } finally {
       loadingRef.current = false;
       setModuleLoading(false);
-      console.debug(`✅ CLIENT: Completed loadData ${callId}`);
     }
   }, []); // Empty dependency array to prevent recreation
 

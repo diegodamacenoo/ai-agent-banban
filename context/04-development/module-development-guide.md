@@ -71,20 +71,27 @@ INSERT INTO tenant_module_assignments (
 ### 1. Preparação do Ambiente
 
 ```bash
-# Clonar templates do sistema atual
-cd context/04-development/templates/
+# 1. Criar estrutura Core Module (Backend/Lógica)
+mkdir -p src/core/modules/banban/meu-modulo/{services,types,migrations}
+cd src/core/modules/banban/meu-modulo/
 
-# Para módulo base/genérico
-cp -r standard-module/ ../../../src/core/modules/template/meu-modulo/
+# Criar arquivos principais
+touch index.ts config.ts module.json README.md
+touch services/index.ts types/index.ts
+touch migrations/001_initial_setup.sql
 
-# Para módulo cliente-específico (Banban)
-cp -r custom-module/ ../../../src/core/modules/banban/meu-modulo/
+# 2. Criar estrutura Frontend Module (UI)
+mkdir -p src/app/\(protected\)/\[slug\]/\(modules\)/meu-modulo/{hooks,implementations}
+cd src/app/\(protected\)/\[slug\]/\(modules\)/meu-modulo/
 
-# Backend modular (se necessário)
-cp -r backend-module/ ../../../backend/src/modules/custom/meu-modulo/
+# Criar arquivos de UI
+touch page.tsx
+touch hooks/useMeuModulo.ts
+touch implementations/BanbanMeuModuloImplementation.tsx
 
-# Navegar para o módulo
-cd ../../../src/core/modules/banban/meu-modulo/
+# 3. Criar Server Actions (se necessário)
+mkdir -p src/app/actions/modules/banban/
+touch src/app/actions/modules/banban/meu-modulo.ts
 ```
 
 ### 🚀 ModuleDiscoveryService - SISTEMA ATUAL
@@ -138,46 +145,159 @@ npm install -D @types/node typescript jest @typescript-eslint/eslint-plugin
 touch tsconfig.json
 ```
 
-### 3. Estrutura de Arquivos - PADRÃO ATUAL
+### 3. Estrutura de Arquivos - ARQUITETURA CORRETA
+
+## 🏗️ Separação de Responsabilidades
+
+### 📦 Core Module (Backend/Lógica de Negócio)
+
+**Localização:** `src/core/modules/{client}/{module}/`
 
 ```
-meu-modulo/
-├── module.json                 # 📄 Manifesto (OBRIGATÓRIO)
+src/core/modules/banban/meu-modulo/
+├── index.ts                    # 📄 Interface ModuleInterface (OBRIGATÓRIO)
+├── config.ts                   # ⚙️ Configurações e thresholds (OBRIGATÓRIO)
+├── module.json                 # 📄 Metadados completos (OBRIGATÓRIO)
 ├── README.md                   # 📚 Documentação (OBRIGATÓRIO)
-├── types/
-│   ├── index.ts               # Tipos principais + Zod schemas
-│   ├── interfaces.ts          # Interfaces de negócio
-│   └── api.ts                 # Tipos de API/responses
-├── services/
-│   ├── index.ts              # Export principal
-│   ├── MeuModuloService.ts   # Serviço principal
-│   ├── validators.ts         # Validações Zod
-│   └── cache.ts              # Gerenciamento de cache
-├── handlers/
-│   ├── index.ts              # Server Actions (não API handlers)
-│   ├── server-actions.ts     # Server Actions do Next.js
-│   └── webhook-handlers.ts   # Webhooks (se aplicável)
-├── components/                 # Componentes React (OBRIGATÓRIO)
-│   ├── index.ts             
-│   ├── MeuModuloWidget.tsx   # Widget dashboard
-│   ├── MeuModuloConfig.tsx   # Painel configuração
-│   └── MeuModuloPage.tsx     # Página principal
-├── utils/
-│   ├── index.ts
-│   ├── helpers.ts
-│   └── constants.ts
-├── tests/                      # Testes (OBRIGATÓRIO - coverage ≥ 70%)
-│   ├── unit/
-│   ├── integration/
-│   └── e2e/
-├── migrations/                 # Migrações SQL (se usar BD)
-│   └── 20250102000000_initial.sql
-├── docs/
-│   ├── API.md
-│   ├── SETUP.md
-│   └── EXAMPLES.md
-└── .env.example               # Variáveis de ambiente
+├── services/                   # 🔧 Lógica de negócio
+│   ├── index.ts               # Export principal
+│   ├── meu-modulo-processor.ts # Processador principal
+│   ├── meu-modulo-service.ts  # Serviços auxiliares
+│   ├── meu-modulo-metrics.ts  # Métricas e analytics
+│   └── validators.ts          # Validações Zod
+├── types/                     # 📝 Tipos TypeScript específicos
+│   └── index.ts              # Exports de tipos
+├── migrations/                # 🗄️ Schema do banco (se aplicável)
+│   └── 001_initial_setup.sql # Setup inicial
+└── tests/                     # 🧪 Testes (coverage ≥ 70%)
+    ├── unit/
+    ├── integration/
+    └── services.test.ts
 ```
+
+### 🎨 Frontend Module (UI Components)
+
+**Localização:** `src/app/(protected)/[slug]/(modules)/{module}/`
+
+```
+src/app/(protected)/[slug]/(modules)/meu-modulo/
+├── page.tsx                   # 📄 Página principal/roteamento (OBRIGATÓRIO)
+├── hooks/                     # 🪝 React hooks personalizados
+│   └── useMeuModulo.ts       # Hook principal do módulo
+└── implementations/           # 🎯 Componentes por cliente
+    ├── BanbanMeuModuloImplementation.tsx    # Implementação BanBan
+    ├── StandardMeuModuloImplementation.tsx  # Implementação Standard
+    └── EnterpriseMeuModuloImplementation.tsx # Implementação Enterprise
+```
+
+### ⚡ Server Actions (Separado)
+
+**Localização:** `src/app/actions/modules/{client}/`
+
+```
+src/app/actions/modules/banban/
+├── meu-modulo.ts             # 🔄 Server Actions específicas
+├── index.ts                  # Exports
+└── types.ts                  # Tipos para actions
+```
+
+**Importante:**
+- ❌ **NÃO colocar** componentes React no core (`src/core/modules/`)
+- ❌ **NÃO colocar** lógica de negócio no frontend (`src/app/`)
+- ❌ **NÃO colocar** Server Actions no core module
+- ✅ **Separação clara**: Core = Backend, App = Frontend
+
+## 📋 Exemplo Prático: Módulo BanBan Alerts
+
+### Implementação Real - Core Module
+
+```typescript
+// src/core/modules/banban/alerts/index.ts
+import type { ModuleInterface } from '../../../../shared/types/module-interface';
+
+export class BanbanAlertsModule implements ModuleInterface {
+  public readonly id = 'banban-alerts';
+  public readonly name = 'BanBan Alerts System';
+  public readonly version = '2.0.0';
+  
+  async initialize(): Promise<ModuleInitResult> {
+    // Inicialização dos serviços
+    return { success: true, message: 'Module initialized' };
+  }
+  
+  async processAlerts(organizationId: string) {
+    return await banbanAlertProcessor.processAllAlerts(organizationId);
+  }
+}
+```
+
+```typescript
+// src/core/modules/banban/alerts/config.ts
+export const BANBAN_ALERTS_MODULE_CONFIG = {
+  business_rules: {
+    alert_types: [
+      {
+        type: "STOCK_CRITICAL",
+        threshold: 5,
+        priority: "critical"
+      }
+    ]
+  }
+};
+```
+
+### Implementação Real - Frontend Module
+
+```typescript
+// src/app/(protected)/[slug]/(modules)/alerts/hooks/useAlerts.ts
+'use client';
+import { banbanAlertProcessor } from '@/core/modules/banban/alerts/services/alert-processor';
+
+export function useAlerts(options: UseAlertsOptions) {
+  const [alerts, setAlerts] = useState([]);
+  
+  const refreshAlerts = useCallback(async () => {
+    const processedAlerts = await banbanAlertProcessor.processAllAlerts(options.organizationId);
+    setAlerts(processedAlerts);
+  }, [options.organizationId]);
+  
+  return { alerts, refreshAlerts };
+}
+```
+
+```tsx
+// src/app/(protected)/[slug]/(modules)/alerts/implementations/BanbanAlertsImplementation.tsx
+import { useAlerts } from '../hooks/useAlerts';
+
+export default function BanbanAlertsImplementation({ params, config }) {
+  const { alerts, refreshAlerts } = useAlerts({
+    organizationId: params.slug
+  });
+
+  return (
+    <div>
+      {/* UI do módulo */}
+      {alerts.map(alert => (
+        <AlertCard key={alert.id} alert={alert} />
+      ))}
+    </div>
+  );
+}
+```
+
+### Fluxo de Dados
+
+```
+1. Frontend Hook (useAlerts) 
+   ↓ chama
+2. Core Service (banbanAlertProcessor)
+   ↓ usa
+3. Core Config (BANBAN_ALERTS_MODULE_CONFIG)
+   ↓ retorna
+4. Processed Data → Frontend UI
+```
+
+**Resultado:** Separação clara, reutilização de código, manutenibilidade!
 
 ### 📁 Estrutura Backend Modular (Fastify) - SE NECESSÁRIO
 

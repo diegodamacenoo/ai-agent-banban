@@ -62,7 +62,7 @@ export async function captureRequestInfo(
     userAgent = headersList.get('user-agent') || undefined;
   } catch (headerError) {
     // Headers may not be available in some contexts
-    console.debug('[AUDIT] Headers not available:', headerError);
+    // Log suprimido - headers não disponíveis é situação normal
   }
   
   // Capture organization_id from user profile
@@ -79,7 +79,7 @@ export async function captureRequestInfo(
     
     organizationId = profile?.organization_id || undefined;
   } catch (profileError) {
-    console.debug('[AUDIT] Error fetching organization_id:', profileError);
+    // Log suprimido - erro ao buscar organização é situação normal
   }
   
   return { ipAddress, userAgent, organizationId };
@@ -99,8 +99,10 @@ export async function createAuditLog(logData: z.infer<typeof AuditLogSchema>) {
   const { actor_user_id, action_type, ...rest } = validatedData;
   
   try {
-    const supabase = await createSupabaseAdminClient();
-    const { data: { user } } = await (await createSupabaseServerClient()).auth.getUser();
+    // Para logs de auditoria, usar cliente server normal ao invés de admin
+    // O admin só é necessário para consultar logs, não para criar
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     // Se não houver ator, usar um usuário do sistema ou lançar erro
     const actorId = actor_user_id || user?.id || 'system';

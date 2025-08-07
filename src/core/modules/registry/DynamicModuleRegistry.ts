@@ -85,7 +85,7 @@ export class DynamicModuleRegistry implements IModuleRegistry {
     const modules = await this.loadModuleConfiguration(organizationId);
     const moduleConfig = modules.find(m => m.slug === moduleSlug);
 
-    if (!moduleConfig || !moduleConfig.implementation?.component_path) {
+    if (!moduleConfig?.implementation?.component_path) {
       console.error(`[Registry] Configuração ou caminho do componente não encontrado para o módulo ${moduleSlug}`);
       return null;
     }

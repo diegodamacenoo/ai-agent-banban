@@ -66,8 +66,12 @@ export default function ModulesPage() {
       <Layout.Header>
         <Layout.Breadcrumbs items={[{ title: 'Gerenciamento de Módulos' }]} />
         <Layout.Actions>
-          <Button variant="outline" onClick={handleReload} disabled={combinedLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${combinedLoading ? 'animate-spin' : ''}`} />
+          <Button 
+            variant="outline" 
+            onClick={handleReload} 
+            disabled={combinedLoading}
+            leftIcon={<RefreshCw className={combinedLoading ? 'animate-spin' : ''} />}
+          >
             Atualizar
           </Button>
         </Layout.Actions>

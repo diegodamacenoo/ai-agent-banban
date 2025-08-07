@@ -163,7 +163,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_key
 
 Sistema integra automaticamente com:
 - `src/components/admin/session-monitor.tsx` - Componente de monitoramento
-- `src/app/(authenticated)/dashboard/admin/sessions/` - Página de gestão
+- `src/app/(protected)/admin/audit/` - Página de gestão (tab Sessões)
 - `src/app/actions/auth/sessions.ts` - Server actions de sessões
 
 ## ✅ Status: Implementado

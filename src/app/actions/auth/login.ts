@@ -8,6 +8,7 @@ import { createAuditLog } from '@/features/security/audit-logger';
 import { AUDIT_ACTION_TYPES, AUDIT_RESOURCE_TYPES } from '@/core/schemas/audit';
 import { captureRequestInfo } from '@/core/auth/request-info';
 import { safeLogger } from '@/features/security/safe-logger';
+import { conditionalDebugLog } from '@/app/actions/admin/modules/system-config-utils';
 
 // Schema de validação
 const LoginSchema = z.object({
@@ -37,7 +38,7 @@ export async function signInWithPassword(data: LoginInput): Promise<{
 
     const supabase = await createSupabaseServerClient();
     
-    // Autenticar usuário
+    // Primeiro, tentar autenticar para obter o user ID
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password
@@ -53,6 +54,59 @@ export async function signInWithPassword(data: LoginInput): Promise<{
 
     if (!authData.user) {
       return { success: false, error: 'Usuário não encontrado' };
+    }
+
+    // VERIFICAR SE O USUÁRIO ESTÁ BLOQUEADO
+    await conditionalDebugLog('ServerAction: Verificando bloqueio para usuário', { userId: authData.user.id });
+    
+    try {
+      const { data: isBlocked } = await supabase
+        .rpc('is_user_session_blocked', { check_user_id: authData.user.id });
+      
+      await conditionalDebugLog('ServerAction: Resultado do bloqueio', { isBlocked });
+      
+      if (isBlocked) {
+        await conditionalDebugLog('ServerAction: Usuário bloqueado - fazendo logout e redirecionando', { userId: authData.user.id });
+        
+        // Fazer logout imediatamente
+        await supabase.auth.signOut();
+        
+        // Buscar tempo restante usando uma RPC mais simples
+        await conditionalDebugLog('ServerAction: Buscando tempo de bloqueio para usuário', { userId: authData.user.id });
+        
+        let timeRemaining = 0;
+        
+        try {
+          // Criar uma RPC simples para obter tempo restante de bloqueio
+          const { data: blockData, error: blockRpcError } = await supabase
+            .rpc('get_user_block_remaining_time', { check_user_id: authData.user.id });
+          
+          await conditionalDebugLog('ServerAction: Resultado RPC tempo restante', { blockData, blockRpcError });
+          
+          if (blockData && typeof blockData === 'number' && blockData > 0) {
+            timeRemaining = blockData;
+            await conditionalDebugLog('ServerAction: Tempo restante via RPC', { timeRemaining });
+          } else {
+            await conditionalDebugLog('ServerAction: Sem tempo de bloqueio ou bloqueio expirado', {});
+          }
+        } catch (error) {
+          await conditionalDebugLog('ServerAction: Erro ao buscar tempo via RPC', { error });
+          // Fallback: assumir 5 minutos se recém bloqueado
+          timeRemaining = 5 * 60; // 5 minutos em segundos
+          await conditionalDebugLog('ServerAction: Usando fallback de 5 minutos', { timeRemaining });
+        }
+        
+        await conditionalDebugLog('ServerAction: Redirecionando para login com bloqueio', { timeRemaining });
+        
+        // Retornar redirecionamento com parâmetros - sempre incluir blocked_until mesmo se 0
+        return { 
+          success: true, 
+          redirect: `/login?reason=session_terminated&blocked_until=${timeRemaining}`
+        };
+      }
+    } catch (error) {
+      await conditionalDebugLog('ServerAction: Erro ao verificar bloqueio', { error });
+      // Continuar com login se erro na verificação
     }
 
     // Buscar perfil e organização do usuário

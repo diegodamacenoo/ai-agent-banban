@@ -40,22 +40,39 @@ tenant_module_assignments {
 ### Frontend (UI/UX via Server Actions)
 ```
 src/
-├── app/actions/               # 🚀 SERVER ACTIONS
-│   ├── modules/              # Lógica de UI dos módulos
-│   │   ├── banban/          # Actions específicas Banban
-│   │   │   ├── performance.ts
-│   │   │   ├── inventory.ts
-│   │   │   └── sales.ts
-│   │   └── generic/         # Actions genéricas
-│   └── admin/               # CRUD administrativo
+├── app/
+│   ├── actions/             # 🚀 SERVER ACTIONS
+│   │   ├── modules/        # Actions específicas de módulos
+│   │   │   ├── banban/     # Actions específicas Banban
+│   │   │   │   ├── alerts.ts
+│   │   │   │   ├── performance.ts
+│   │   │   │   └── inventory.ts
+│   │   │   └── generic/    # Actions genéricas
+│   │   └── admin/          # CRUD administrativo
+│   │
+│   └── (protected)/[slug]/(modules)/  # 🎨 UI COMPONENTS
+│       ├── alerts/
+│       │   ├── page.tsx    # Roteamento
+│       │   ├── hooks/      # React hooks
+│       │   └── implementations/ # Componentes por cliente
+│       ├── performance/
+│       └── inventory/
 │
-├── core/                     # ⚙️ SISTEMA DINÂMICO
+├── core/                    # ⚙️ SISTEMA CORE (BACKEND/LÓGICA)
 │   ├── modules/
-│   │   └── resolver/        # Dynamic Module Resolver
+│   │   ├── banban/         # Módulos específicos Banban
+│   │   │   ├── alerts/     # Sistema de alertas
+│   │   │   │   ├── index.ts           # Interface ModuleInterface
+│   │   │   │   ├── config.ts          # Configurações
+│   │   │   │   ├── services/          # Lógica de negócio
+│   │   │   │   ├── types/             # Tipos TypeScript
+│   │   │   │   └── migrations/        # Schema banco
+│   │   │   ├── performance/
+│   │   │   └── inventory/
+│   │   └── resolver/       # Dynamic Module Resolver
 │   │       └── dynamic-module-resolver.ts
 │   └── services/
 │       └── module-configuration-service.ts
-│
 ├── cli/                      # 🔧 FERRAMENTAS CLI
 │   ├── commands/            # CLI commands
 │   └── templates/           # Module templates
@@ -93,6 +110,39 @@ src/
         ├── module-loader/     # Carregamento dinâmico
         └── tenant-manager/    # Gestão multi-tenant
 ```
+
+## 🏗️ Separação de Responsabilidades na Arquitetura
+
+### 📦 Core Modules (`src/core/modules/`)
+**Responsabilidades:**
+- ✅ Lógica de negócio e processamento
+- ✅ Configurações e thresholds
+- ✅ Tipos TypeScript específicos  
+- ✅ Serviços e processadores
+- ✅ Migrations de banco de dados
+- ✅ Interface ModuleInterface
+- ❌ **NÃO incluir** componentes React
+- ❌ **NÃO incluir** Server Actions
+- ❌ **NÃO incluir** hooks React
+
+### 🎨 Frontend Modules (`src/app/(protected)/[slug]/(modules)/`)
+**Responsabilidades:**
+- ✅ Componentes React
+- ✅ Hooks personalizados (useModule)
+- ✅ Páginas e roteamento
+- ✅ Implementações por cliente
+- ✅ Estados da UI
+- ❌ **NÃO incluir** lógica de negócio
+- ❌ **NÃO incluir** processamento de dados
+- ❌ **NÃO incluir** configurações de backend
+
+### ⚡ Server Actions (`src/app/actions/modules/`)
+**Responsabilidades:**
+- ✅ Bridge entre UI e Core modules
+- ✅ Validação de entrada
+- ✅ Chamadas para serviços do core
+- ✅ Formatação de resposta para UI
+- ❌ **NÃO incluir** lógica de negócio complexa
 
 ## Sistema de Módulos Atualizado
 

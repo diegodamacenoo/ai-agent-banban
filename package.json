@@ -105,6 +105,7 @@
     "@babel/plugin-transform-react-jsx": "^7.27.1",
     "@babel/preset-react": "^7.27.1",
     "@eslint/eslintrc": "^3.3.1",
+    "@playwright/test": "^1.54.2",
     "@supabase/mcp-server-supabase": "^0.4.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",

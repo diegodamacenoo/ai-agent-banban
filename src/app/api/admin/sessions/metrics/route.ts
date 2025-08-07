@@ -1,8 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/core/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = await createSupabaseServerClient()
   
   try {
     // Verificar autenticação
@@ -12,14 +12,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Buscar perfil do usuário
-    const { data: profile } = await supabase
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('organization_id, role')
       .eq('id', user.id)
       .single()
 
-    if (!profile?.organization_id) {
-      return NextResponse.json({ error: 'Organização não encontrada' }, { status: 404 })
+    if (profileError) {
+      console.error('Erro ao buscar perfil:', profileError)
+      return NextResponse.json({ error: 'Erro ao buscar perfil' }, { status: 500 })
     }
 
     // Verificar permissão (apenas admins podem acessar métricas)
@@ -27,22 +28,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Sem permissão' }, { status: 403 })
     }
 
+    // Master admins podem ver tudo, organization_admin precisam de organização
+    if (profile.role === 'organization_admin' && !profile?.organization_id) {
+      return NextResponse.json({ error: 'Organização não encontrada' }, { status: 404 })
+    }
+
     // Buscar métricas via função RPC
     const { data: metrics, error: metricsError } = await supabase
       .rpc('get_session_analytics', {
-        p_org_id: profile.organization_id,
+        p_org_id: profile.role === 'master_admin' ? null : profile.organization_id,
         p_days_back: 7
       })
 
     if (metricsError) {
       console.error('Erro nas métricas:', metricsError)
-      return NextResponse.json({ error: 'Erro ao buscar métricas' }, { status: 500 })
+      return NextResponse.json({ 
+        error: 'Erro ao buscar métricas',
+        details: metricsError.message 
+      }, { status: 500 })
     }
 
     // Buscar estatísticas adicionais da organização
     const { data: orgStats, error: orgStatsError } = await supabase
       .rpc('get_organization_session_stats', {
-        p_org_id: profile.organization_id
+        p_org_id: profile.role === 'master_admin' ? null : profile.organization_id
       })
 
     if (orgStatsError) {
@@ -68,7 +77,7 @@ export async function POST(request: NextRequest) {
 
 // Endpoint para buscar métricas em tempo real (GET)
 export async function GET() {
-  const supabase = await createClient()
+  const supabase = await createSupabaseServerClient()
   
   try {
     const { data: { user } } = await supabase.auth.getUser()

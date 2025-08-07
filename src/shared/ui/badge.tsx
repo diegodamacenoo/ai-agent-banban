@@ -11,7 +11,7 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          "border-transparent bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] focus-visible:ring-[hsl(var(--ring))]",
+          "border-transparent bg-[hsl(var(--highlight))] text-[hsl(var(--secondary-foreground))] focus-visible:ring-[hsl(var(--ring))]",
         secondary:
           "border-transparent bg-[hsl(var(--card))] text-[hsl(var(--secondary-foreground))] focus-visible:ring-[hsl(var(--ring))]",
         destructive:

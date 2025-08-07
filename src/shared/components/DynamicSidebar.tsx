@@ -2,7 +2,7 @@
  * DynamicSidebar - Sidebar dinâmica baseada em configurações do banco
  * Fase 3 - Dynamic Navigation Implementation
  * 
- * Refatorado para usar @sidebar.tsx seguindo o padrão do admin-sidebar.tsx
+ * Refatorado para usar shared/ui/sidebar.tsx seguindo o padrão do admin-sidebar.tsx
  */
 
 'use client';
@@ -215,7 +215,7 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
     const newExpanded: string[] = [];
     
     navigation.forEach(item => {
-      if (item.items?.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'))) {
+      if (item.items?.some(subItem => pathname === subItem.href || pathname.startsWith(`${subItem.href  }/`))) {
         newExpanded.push(item.id);
       }
     });
@@ -236,13 +236,13 @@ export const DynamicSidebar: React.FC<DynamicSidebarProps> = ({
 
   // Verificar se um subitem está ativo
   const isSubItemActive = (href: string) => {
-    return pathname === href || pathname.startsWith(href + '/');
+    return pathname === href || pathname.startsWith(`${href  }/`);
   };
 
   // Verificar se algum subitem de um item pai está ativo
   const hasActiveSubItem = (item: NavigationItem) => {
     if (!item.items) return false;
-    return item.items.some(subItem => pathname === subItem.href || pathname.startsWith(subItem.href + '/'));
+    return item.items.some(subItem => pathname === subItem.href || pathname.startsWith(`${subItem.href  }/`));
   };
 
   // Lógica principal de ativação para itens principais

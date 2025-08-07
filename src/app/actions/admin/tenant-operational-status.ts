@@ -478,7 +478,7 @@ export async function getApprovalStats(): Promise<{
     const reviewedRequests = recentRequests?.filter(r => r.reviewed_at) || [];
     const totalHours = reviewedRequests.reduce((sum, req) => {
       const created = new Date(req.created_at);
-      const reviewed = new Date(req.reviewed_at!);
+      const reviewed = new Date(req.reviewed_at);
       const hours = (reviewed.getTime() - created.getTime()) / (1000 * 60 * 60);
       return sum + hours;
     }, 0);

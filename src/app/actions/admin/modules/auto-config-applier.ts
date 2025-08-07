@@ -1,7 +1,7 @@
 'use server';
 
 import { getSystemConfig, conditionalDebugLog } from './system-config-utils';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/core/supabase/server';
 
 /**
  * Aplicar configurações automaticamente para novas implementações/assignments
